@@ -6,18 +6,25 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Rep is ERC20, AccessControl {
     
+    bytes32 public constant MULTISIG_ROLE = keccak256("MULTISIG_ROLE");
+
+
     address private _multiSig;
 
     constructor(address addr) ERC20("RepToken", "Rep") {
-
+        _multiSig = addr;
     }
 
     modifier onlyMultisig {
-        
+        require(msg.sender == _multiSig, "Not multisig!");
         _;
     }
 
-    function transferFromMultisig() public {
+    function transferFromMultisig() public onlyMultisig {
+        
+    }
+
+    function transferFromMultisigWithRole() public onlyRole(MULTISIG_ROLE) {
 
     }
 

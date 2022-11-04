@@ -5,6 +5,10 @@ require('dotenv').config()
 module.exports = {
   solidity: "0.8.17",
   networks: {
+    eth: {
+      url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_ETH}`,
+      accounts: [process.env.PRIVATE_KEY],
+    },
     goerli: {
       url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_KEY_GOERLI}`,
       accounts: [process.env.PRIVATE_KEY],
@@ -16,7 +20,14 @@ module.exports = {
       },
   },
   etherscan: {
-    apiKey: `${process.env.POLYGONSCAN_KEY}`
-    // apiKey: `${process.env.ETHERSCAN_KEY}`
+    // apiKey: `${process.env.POLYGONSCAN_KEY}`
+    apiKey: `${process.env.ETHERSCAN_KEY}`
   }
 };
+
+//To verify smart contracts:
+//npx hardhat verify --network network --constructor-args arguments.js
+//same arguments.js contents:
+//module.exports = [
+// "0x1234", //admin role
+//];

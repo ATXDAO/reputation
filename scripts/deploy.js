@@ -9,7 +9,7 @@ const hre = require("hardhat");
 async function main() {
 
   const Contract = await hre.ethers.getContractFactory("Rep");
-  const contract = await Contract.deploy();
+  const contract = await Contract.deploy("0xA0E4307b80966af146C89E911bD78FbD909fA87C");
 
   await contract.deployed();
 
