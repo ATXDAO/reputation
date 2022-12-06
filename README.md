@@ -1,22 +1,13 @@
-# REP TOKEN
+# Sample Hardhat Project
 
-## Setup
+This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
 
-##### WARNING THIS FILE IS NOT IGNORED BY GIT. BE WEARY OF PUTTING SENSITIVE DATA IN IT
+Try running some of the following tasks:
 
-1. `cp .env.example_THIS_FILE_IS_NOT_IGNORED .env` and set those environment variables
-
-##### WARNING THIS FILE IS NOT IGNORED BY GIT. BE WEARY OF PUTTING SENSITIVE DATA IN IT
-
-1. install deps via `yarn install`
-1. `npm i -g hardhat-shorthand` to install `hh`
-1. compile contracts for hardhat tasks `hh compile`
-
-## Testing
-
-1. install [forge](https://github.com/gakonst/foundry)
-   - install [rust](https://www.rust-lang.org/tools/install) via
-     `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
-   - install `foundryup`: `curl https://raw.githubusercontent.com/gakonst/foundry/master/foundryup/install | bash`
-   - run `foundryup`
-1. `yarn test` in project directory
+```shell
+npx hardhat help
+npx hardhat test
+REPORT_GAS=true npx hardhat test
+npx hardhat node
+npx hardhat run scripts/deploy.js
+```
