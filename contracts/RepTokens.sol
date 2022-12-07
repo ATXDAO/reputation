@@ -30,18 +30,8 @@ contract RepTokens is ERC1155, AccessControl {
 
     //The admin role needs to be a multi-sig used by trusted members of the DAO.
     //The admin role is used to grant/revoke distributor and burner roles to addresses at will.
-    constructor(
-        // address[] memory distributors, 
-        // address[] memory burners
-        )
-        ERC1155("") {
+    constructor() ERC1155("") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        // for (uint256 i = 0; i < distributors.length; i++) {
-        //     _setupRole(DISTRIBUTOR_ROLE, distributors[i]);
-        // }
-        // for (uint256 i = 0; i < burners.length; i++) {
-        //     _setupRole(BURNER_ROLE, burners[i]);
-        // }
     }
 
     function safeTransferFrom(
