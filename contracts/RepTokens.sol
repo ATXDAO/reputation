@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Tokens1155 is ERC1155, AccessControl {
+contract RepTokens is ERC1155, AccessControl {
 
     //LOOK INTO MAKING A FUNCTION THAT SHOWS ALL THE CURRENT OWNERS AND THEIR BALANCES
 
@@ -52,11 +52,13 @@ contract Tokens1155 is ERC1155, AccessControl {
         bytes memory data
     ) public override {
 
+        //if soulbound token, then revert transaction.
         if (id == 0) {
             require(true == false, "Cannot trade soulbound token!");
         }
+        //If transferable token, then check to see if the recipient address has been granted the BURNER_ROLE.
         else if (id == 1) {
-            require(hasRole(BURNER_ROLE, to), "Can only transfer the transferable token to a qualified burner address!");
+            require(hasRole(BURNER_ROLE, to), "Only a burner may succesfully be a recipient of a transferable token");
             super.safeTransferFrom(from, to, id, amount, data);
         }
         else {
@@ -64,14 +66,18 @@ contract Tokens1155 is ERC1155, AccessControl {
         }
     }
 
+    //The act of distributing is done only by an address (distributor) granted the DISTRIBUTOR_ROLE.
+    //The distributor may call this function to send a provided amount of transferable and soulbound tokens to an address.
     function distribute(
         address to,
         uint256 amount,
         bytes memory data
     ) public {
 
-        require(hasRole(DISTRIBUTOR_ROLE, _msgSender()), "minter role required");
+        require(hasRole(DISTRIBUTOR_ROLE, _msgSender()), "Only a distributor may succesfully call this function!");
+        //mints an amount of soulbound tokens to an address.
         super._mint(to, 0, amount, data);
+        //mints an amount of transferable tokens to an address.
         super._mint(to, 1, amount, data);
     }
 
