@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./RepTokensManager.sol";
 
 contract SoulboundRepToken is ERC20 {
     
@@ -19,8 +20,8 @@ contract SoulboundRepToken is ERC20 {
         return _multisig;
     }
 
-    function mintToSender(uint256 amount) public {
-        _mint(msg.sender, amount);
+    function mint(address to, uint256 amount) public {
+        _mint(to, amount);
     }
 
     function transfer(address to, uint256 amount)
@@ -28,11 +29,7 @@ contract SoulboundRepToken is ERC20 {
         override
         returns (bool)
     {
-        //If sender is not the DAO multi-sig, then they are a random person trying to transfer the token.
-        if (msg.sender != _multisig) {
-            //The token is soulbound to the sender so the transaction should revert and not allow transferring of tokens.
-            require(true == false, "Only the multi-sig is able to transfer tokens!");           
-        }
+        require(true == false, "This token is not tradeable!");           
 
         _transfer(msg.sender, to, amount);
         return true;
