@@ -64,16 +64,8 @@ describe("Rep Tokens", function () {
 
     await contract.connect(distributor).distribute(receiver.address, 3, []);
 
-    let bo1 =  await contract.balanceOf(receiver.address, 0);
-    let bo2 =  await contract.balanceOf(receiver.address, 1);
-
     await contract.connect(receiver).safeTransferFrom(receiver.address, burner.address, 1, 2, []);
 
-    let bo3 =  await contract.balanceOf(receiver.address, 0);
-    let bo4 =  await contract.balanceOf(receiver.address, 1);
-
-    console.log(bo4.toNumber());
-    console.log(bo2.toNumber());
 
     expect(await contract.balanceOf(receiver.address, 1)).to.equal(1);
   });
