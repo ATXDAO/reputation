@@ -23,7 +23,11 @@ contract RepTokens is ERC1155, AccessControl {
     //or use it with ill intent.
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-
+    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESS(ES) ARE GRANTED THIS ROLE.
+    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
+    //Addresses granted this role should only ever change the maxTokensPerDistribution if there is a fault
+    //in how the socio-economic system is playing out in regards to the tokens, I.E. if too little tokens are being rewarded
+    //or if too many are being handed out.
     bytes32 public constant MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE = keccak256("MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE");
 
     //id 0 = soulbound token
@@ -91,50 +95,14 @@ contract RepTokens is ERC1155, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
-    address[] allTransferableOwners;
-    address[] allSoulboundOwners;
+    mapping(uint256 => address[]) ownersOfTokenTypes;
 
-    function getSoulboundOwners() public view returns(address[] memory) {
-        return allSoulboundOwners;
+    function getOwnersOfTokenID(uint256 tokenID) public view returns(address[] memory) {
+        return ownersOfTokenTypes[tokenID];
     }
 
-    function getSoulboundOwnersLegth() public view returns(uint256) {
-        return allSoulboundOwners.length;
-    }
-
-    function getTransferableOwners() public view returns(address[] memory) {
-        return allTransferableOwners;
-    }
-    
-    function getTransferableOwnersLength() public view returns(uint256) {
-        return allTransferableOwners.length;
-    }
-
-
-    function checkIfAddressNeedsAddedToArray(uint256 tokenID, address addrToCheck, address[] storage owners) internal {
-
-        // //if receiving address currently owns given tokenID
-        if (balanceOf(addrToCheck, tokenID) > 0) {
-            bool isPresent = false;
-            
-            //loop through all token owners of given owners array
-            for (uint256 i = 0; i < owners.length; i++) {
-                //if address of receiver is found within given owners array.
-                if (owners[i] == addrToCheck) {
-                    //the address of receiver is equal to a current owner of given owners array
-                    isPresent = true;
-                    //leave loop for performance
-                    break;
-                }
-            }
-
-            //if address of receiver is not currently recorded as an owner of token ID, but it now owns
-            //tokens of token ID
-            if (!isPresent) {
-                //record address of receiver as an an owner of given tokenID
-                owners.push(addrToCheck);
-            }
-        }
+    function getOwnersOfTokenIDLength(uint256 tokenID) public view returns(uint256) {
+        return ownersOfTokenTypes[tokenID].length;
     }
 
     function _afterTokenTransfer(
@@ -149,43 +117,64 @@ contract RepTokens is ERC1155, AccessControl {
         //loop through transferred token IDs
         for (uint i = 0; i < ids.length; i++) {
 
-            //if soulbound token
-            if (ids[i] == 0) {
-                checkIfAddressNeedsAddedToArray(ids[i], to, allSoulboundOwners);
-            }
+            if (balanceOf(to, ids[i]) > 0) {
+                addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(to, ids[i]);
+            } 
 
-            //if transferable token
-            if (ids[i] == 1) {
-
-                //address(0) mints tokens, thus no recorded entries for its balance exist.
-                if (from != address(0)) {
-                    //if sending address currently owns no transferable tokens, remove it from being 
-                    //recognized as an owner of a transferable token.
-                    if (balanceOf(from, ids[i]) <= 0) {
-                        removeTransferableRights(from);
-                    }
+            if (from != address(0)) {
+                if (balanceOf(from, ids[i]) <= 0) {
+                    removeAddressAsOwnerOfTokenID(from, ids[i]);
                 }
-
-                checkIfAddressNeedsAddedToArray(ids[i], to, allTransferableOwners);
             }
         }
 
         super._afterTokenTransfer(operator, from,to, ids, amounts, data);
     }
 
-    function removeTransferableRights(address addr) internal {
+    //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
+    //as an owner of @tokenID.
+    //@tokenID: the ID of the token selected.
+    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(address addrToCheck, uint256 tokenID) internal {
+
+        //get all owners of a given tokenID.
+        address[] storage owners = ownersOfTokenTypes[tokenID];
+
+        bool isPresent = false;
+        
+        //loop through all token owners of selected tokenID.
+        for (uint256 i = 0; i < owners.length; i++) {
+            //if address of receiver is found within selected tokenID's owners.
+            if (owners[i] == addrToCheck) {
+                //the address of receiver is equal to a current owner of the selected tokenID.
+                isPresent = true;
+                //leave loop for performance
+                break;
+            }
+        }
+
+        //if address of receiver is not currently registered as an owner of selected tokenID, but it now
+        //holds a positive balance of the selected tokenID
+        if (!isPresent) {
+            //register address of receiver as an an owner of selected tokenID
+            owners.push(addrToCheck);
+        }
+    }
+
+    function removeAddressAsOwnerOfTokenID(address addrToCheck, uint256 id) internal {
+
+        address[] storage owners = ownersOfTokenTypes[id];
 
         uint256 index;
-        for (uint i = 0; i < allTransferableOwners.length - 1; i++) {
-            if (allTransferableOwners[i] == addr) {
+        for (uint i = 0; i < owners.length - 1; i++) {
+            if (owners[i] == addrToCheck) {
                 index = i;
                 break;
             }
         }
 
-        for (uint i = index; i < allTransferableOwners.length - 1; i++) {
-            allTransferableOwners[i] = allTransferableOwners[i + 1];
+        for (uint i = index; i < owners.length - 1; i++) {
+            owners[i] = owners[i + 1];
         }
-        allTransferableOwners.pop();
+        owners.pop();
     }
 }

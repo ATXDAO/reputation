@@ -84,7 +84,7 @@ describe("Rep Tokens", function () {
 
     await contract.connect(distributor).distribute(receiver.address, 3, []);
 
-    expect(await contract.getTransferableOwnersLength()).to.equals(1);
+    expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(1);
   });
 
 
@@ -103,7 +103,7 @@ describe("Rep Tokens", function () {
 
     await contract.connect(receiver).safeTransferFrom(receiver.address, burner.address, 1, 2, []);
 
-    expect(await contract.getTransferableOwnersLength()).to.equals(2);
+    expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(2);
   });
 
 
@@ -122,7 +122,7 @@ describe("Rep Tokens", function () {
 
     await contract.connect(receiver).safeTransferFrom(receiver.address, burner.address, 1, 3, []);
 
-    expect(await contract.getTransferableOwnersLength()).to.equals(1);
+    expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(1);
   });
 
   it("succesfully transfer tokens to burner accounts and transferable arrays remain consistent.", async function () {
@@ -153,6 +153,6 @@ describe("Rep Tokens", function () {
     //total count = 4
     await contract.connect(receiver3).safeTransferFrom(receiver3.address, burner.address, 1, 3, []);
 
-    expect(await contract.getTransferableOwnersLength()).to.equals(4);
+    expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(4);
   });
 });
