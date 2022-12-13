@@ -119,49 +119,76 @@ contract RepTokens is ERC1155, AccessControl {
         bytes memory data
     ) internal override {
 
+        //loop through token IDs
         for (uint i = 0; i < ids.length; i++) {
+            //break from array since address(0) cannot contain any transferable tokens
             if (from == address(0))
                 break;
 
-            if (ids[i] == 0) {
-                if (balanceOf(from,ids[i]) <= 0){
-                    removeTransferableRights(from);
-                }
-            }
-            else if (ids[i] == 1) {
-                if (balanceOf(from,ids[i]) <= 0) {
+            // functionality not needed since soulbound tokens cannot ever be traded and there is no function to remove an address
+            // from the soulbound owners array.
+            // if (ids[i] == 0) {
+            //     if (balanceOf(from, ids[i]) <= 0){
+            //         removeSoulboundTokens(from);
+            //     }
+            // }
+
+            //if transferred token is Transferable Token
+            if (ids[i] == 1) {
+                //check if Transferable Token's balance of sender is less than or equal to zero, then remove it from the
+                //transferable tokens array
+                if (balanceOf(from, ids[i]) <= 0) {
                     removeTransferableRights(from);
                 }
             }
         }
 
+        //loop through token IDs
         for (uint i = 0; i < ids.length; i++) {
+            //if soulbound token
             if (ids[i] == 0) {
+                //if soulbound token balance of "to" address is greater than 0 
                 if (balanceOf(to,ids[i]) > 0)
                 {
+                    //run a for loop to check if "to" is already present in the soulbound owners array.
                     bool isPresent = false;
+                    //loop through soulbound owners
                     for (uint256 j = 0; j < soulboundOwners.length; j++) {
+                        //if soulbound owners index is equal to "to"
                         if (soulboundOwners[j] == to) {
+                            //The address already owns a balance of soulbound tokens,
+                            //therefore no need to add it to the soulbound tokens array
                             isPresent = true;
                         }
                     }
 
+                    //if "to" is not present in soulbound owners array
                     if (!isPresent) {
+                        //add "to" to soulbound owners array
                         soulboundOwners.push(to);
                     }
                 }
             }
+            //if transferable token
             else if (ids[i] == 1) {
+                //if transferable token balance of "to" address is greater than 0
                 if (balanceOf(to,ids[i]) > 0) {
 
+                    //run a for loop to check if "to" is already present in the transferable tokens owners array.
                     bool isPresent = false;
+                    //loop through transferable tokens owners
                     for (uint256 j = 0; j < transferableOwners.length; j++) {
+                        //if transferable tokens index is equal to "to"
                         if (transferableOwners[j] == to) {
+                            //The address already owns a balance of transferable tokens,
+                            //therefore no need to add it to the transferable tokens array
                             isPresent = true;
                         }
                     }
 
+                    //if "to" is not present in transferable tokens owners array
                     if (!isPresent) {
+                        //add "to" to transferable tokens owners array
                         transferableOwners.push(to);
                     }
                 }
