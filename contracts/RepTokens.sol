@@ -6,8 +6,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract RepTokens is ERC1155, AccessControl {
 
-    //LOOK INTO MAKING A FUNCTION THAT SHOWS ALL THE CURRENT OWNERS AND THEIR BALANCES
-
     //LOOK INTO A WAY OF ALLOWING AN ADDRESS TO MAKE A REQUEST TO TRANSFER ITS SOULBOUND TOKENS.
     //HELPFUL IN CASES OF A COMPROMISED WALLET OR CHANGING OF WALLET
     //CURRENTLY, THE THOUGHT IS THAT AN ADDRESS WILL MAKE A REQUEST TO TRANSFER ITS SOULBOUND TOKENS,
@@ -25,6 +23,9 @@ contract RepTokens is ERC1155, AccessControl {
     //or use it with ill intent.
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
+
+    bytes32 public constant MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE = keccak256("MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE");
+
     //id 0 = soulbound token
     //id 1 = transferable token
 
@@ -32,6 +33,9 @@ contract RepTokens is ERC1155, AccessControl {
     //The admin role is used to grant/revoke distributor and burner roles to addresses at will.
     constructor() ERC1155("") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        //either set here or after role is set up
+        maxTokensPerDistribution = 15000;
     }
 
     function safeTransferFrom(
@@ -56,6 +60,17 @@ contract RepTokens is ERC1155, AccessControl {
         }
     }
 
+    //maxTokensPerDistribution forces a hard lock on distributing tokens.
+    //This prevents distributors from being bad actors or making accidents by distributing enough to
+    //completely destroy the token economy.
+    //It also prevents bad actors by forcing multiple transactions and multiple transaction fees - very
+    //similar to how ethereum gas, itself, works. 
+    uint256 maxTokensPerDistribution;
+
+    function setMaxTokensPerDistribution(uint256 maxTokens) public onlyRole(MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE) {
+        maxTokensPerDistribution = maxTokens;
+    }
+
     //The act of distributing is done only by an address (distributor) granted the DISTRIBUTOR_ROLE.
     //The distributor may call this function to send a provided amount of transferable and soulbound tokens to an address.
     function distribute(
@@ -65,6 +80,7 @@ contract RepTokens is ERC1155, AccessControl {
     ) public {
 
         require(hasRole(DISTRIBUTOR_ROLE, _msgSender()), "Only a distributor may succesfully call this function!");
+        require(amount <= maxTokensPerDistribution, "Cannot distribute that many tokens in one transaction!");
         //mints an amount of soulbound tokens to an address.
         super._mint(to, 0, amount, data);
         //mints an amount of transferable tokens to an address.
@@ -73,5 +89,101 @@ contract RepTokens is ERC1155, AccessControl {
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    address[] transferableOwners;
+    address[] soulboundOwners;
+
+    function getSoulboundOwners() public view returns(address[] memory) {
+        return soulboundOwners;
+    }
+
+    function getSoulboundOwnersLegth() public view returns(uint256) {
+        return soulboundOwners.length;
+    }
+
+    function getTransferableOwners() public view returns(address[] memory) {
+        return transferableOwners;
+    }
+    
+    function getTransferableOwnersLength() public view returns(uint256) {
+        return transferableOwners.length;
+    }
+
+    function _afterTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override {
+
+        for (uint i = 0; i < ids.length; i++) {
+            if (from == address(0))
+                break;
+
+            if (ids[i] == 0) {
+                if (balanceOf(from,ids[i]) <= 0){
+                    removeTransferableRights(from);
+                }
+            }
+            else if (ids[i] == 1) {
+                if (balanceOf(from,ids[i]) <= 0) {
+                    removeTransferableRights(from);
+                }
+            }
+        }
+
+        for (uint i = 0; i < ids.length; i++) {
+            if (ids[i] == 0) {
+                if (balanceOf(to,ids[i]) > 0)
+                {
+                    bool isPresent = false;
+                    for (uint256 j = 0; j < soulboundOwners.length; j++) {
+                        if (soulboundOwners[j] == to) {
+                            isPresent = true;
+                        }
+                    }
+
+                    if (!isPresent) {
+                        soulboundOwners.push(to);
+                    }
+                }
+            }
+            else if (ids[i] == 1) {
+                if (balanceOf(to,ids[i]) > 0) {
+
+                    bool isPresent = false;
+                    for (uint256 j = 0; j < transferableOwners.length; j++) {
+                        if (transferableOwners[j] == to) {
+                            isPresent = true;
+                        }
+                    }
+
+                    if (!isPresent) {
+                        transferableOwners.push(to);
+                    }
+                }
+            }
+        }
+
+        super._afterTokenTransfer(operator, from,to, ids, amounts, data);
+    }
+
+    function removeTransferableRights(address addr) internal {
+
+        uint256 index;
+        for (uint i = 0; i < transferableOwners.length - 1; i++) {
+            if (transferableOwners[i] == addr) {
+                index = i;
+                break;
+            }
+        }
+
+        for (uint i = index; i < transferableOwners.length - 1; i++) {
+            transferableOwners[i] = transferableOwners[i + 1];
+        }
+        transferableOwners.pop();
     }
 }
