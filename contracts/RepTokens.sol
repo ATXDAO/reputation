@@ -117,11 +117,16 @@ contract RepTokens is ERC1155, AccessControl {
         //loop through transferred token IDs
         for (uint i = 0; i < ids.length; i++) {
 
+            //if the tokenID balance of the receiving address is greater than zero after the transfer, then check to see if the receiving
+            //address needs to be added as an owner to the tokenID
             if (balanceOf(to, ids[i]) > 0) {
                 addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(to, ids[i]);
             } 
 
+            //address(0) cannot have a balance of tokens so check to see if it is the sender (usually from == address(0) in the case of minting)
             if (from != address(0)) {
+                //if the tokenID balance of the sending address is less than zero after the transfer, then remove it from being an owner
+                //of the tokenID
                 if (balanceOf(from, ids[i]) <= 0) {
                     removeAddressAsOwnerOfTokenID(from, ids[i]);
                 }
