@@ -110,6 +110,33 @@ contract RepTokens is ERC1155, AccessControl {
         return allTransferableOwners.length;
     }
 
+
+    function checkIfAddressNeedsAddedToArray(uint256 tokenID, address addrToCheck, address[] storage owners) internal {
+
+        // //if receiving address currently owns given tokenID
+        if (balanceOf(addrToCheck, tokenID) > 0) {
+            bool isPresent = false;
+            
+            //loop through all token owners of given owners array
+            for (uint256 i = 0; i < owners.length; i++) {
+                //if address of receiver is found within given owners array.
+                if (owners[i] == addrToCheck) {
+                    //the address of receiver is equal to a current owner of given owners array
+                    isPresent = true;
+                    //leave loop for performance
+                    break;
+                }
+            }
+
+            //if address of receiver is not currently recorded as an owner of token ID, but it now owns
+            //tokens of token ID
+            if (!isPresent) {
+                //record address of receiver as an an owner of given tokenID
+                owners.push(addrToCheck);
+            }
+        }
+    }
+
     function _afterTokenTransfer(
         address operator,
         address from,
@@ -119,33 +146,12 @@ contract RepTokens is ERC1155, AccessControl {
         bytes memory data
     ) internal override {
 
-        //loop through token IDs
+        //loop through transferred token IDs
         for (uint i = 0; i < ids.length; i++) {
 
             //if soulbound token
             if (ids[i] == 0) {
-                //if receiving address currently owns soulbound tokens
-                if (balanceOf(to,ids[i]) > 0)
-                {
-                    bool isPresent = false;
-                    //loop through all soulbound token owners
-                    for (uint256 j = 0; j < allSoulboundOwners.length; j++) {
-                        //if address of receiver is equal to a current owner of soulbound tokens
-                        if (allSoulboundOwners[j] == to) {
-                            //the address of receiver is equal to a current owner of soulbound tokens
-                            isPresent = true;
-                            //leave loop for performance
-                            break;
-                        }
-                    }
-
-                    //if address of receiver is not currently recorded as an owner of soulbounds tokens, , but it now owns
-                    //soulbound tokens
-                    if (!isPresent) {
-                        //record address of receiver as an an owner of soulbounds tokens
-                        allSoulboundOwners.push(to);
-                    }
-                }
+                checkIfAddressNeedsAddedToArray(ids[i], to, allSoulboundOwners);
             }
 
             //if transferable token
@@ -160,84 +166,9 @@ contract RepTokens is ERC1155, AccessControl {
                     }
                 }
 
-                
-                //if receiving address currently owns transferable tokens
-                if (balanceOf(to,ids[i]) > 0) {
-
-                    //run a for loop to check if "to" is already present in the transferable tokens owners array.
-                    bool isPresent = false;
-                    //loop through all transferable token owners
-                    for (uint256 j = 0; j < allTransferableOwners.length; j++) {
-                        //if address of receiver is equal to a current owner of transferable tokens
-                        if (allTransferableOwners[j] == to) {
-                            //the address of receiver is equal to a current owner of transferable tokens
-                            isPresent = true;
-                            //leave loop for performance
-                            break;
-                        }
-                    }
-
-                    //if address of receiver is not currently recorded as an owner of transferable tokens, but it now owns
-                    //transferable tokens
-                    if (!isPresent) {
-                        //record address of receiver as an an owner of transferable tokens
-                        allTransferableOwners.push(to);
-                    }
-                }
+                checkIfAddressNeedsAddedToArray(ids[i], to, allTransferableOwners);
             }
         }
-
-        // //loop through transferred token IDs
-        // for (uint i = 0; i < ids.length; i++) {
-        //     //if soulbound token
-        //     if (ids[i] == 0) {
-        //         //if "to" address currently owns soulbound tokens 
-        //         if (balanceOf(to,ids[i]) > 0)
-        //         {
-        //             //run a for loop to check if "to" is already present in the soulbound owners array.
-        //             bool isPresent = false;
-        //             //loop through soulbound owners
-        //             for (uint256 j = 0; j < allSoulboundOwners.length; j++) {
-        //                 //if soulbound owners index is equal to "to"
-        //                 if (allSoulboundOwners[j] == to) {
-        //                     //The address already owns a balance of soulbound tokens,
-        //                     //therefore no need to add it to the soulbound tokens array
-        //                     isPresent = true;
-        //                 }
-        //             }
-
-        //             //if "to" is not present in soulbound owners array
-        //             if (!isPresent) {
-        //                 //add "to" to soulbound owners array
-        //                 allSoulboundOwners.push(to);
-        //             }
-        //         }
-        //     }
-        //     //if transferable token
-        //     else if (ids[i] == 1) {
-        //         //if transferable token balance of "to" address is greater than 0
-        //         if (balanceOf(to,ids[i]) > 0) {
-
-        //             //run a for loop to check if "to" is already present in the transferable tokens owners array.
-        //             bool isPresent = false;
-        //             //loop through transferable tokens owners
-        //             for (uint256 j = 0; j < allTransferableOwners.length; j++) {
-        //                 //if transferable tokens index is equal to "to"
-        //                 if (allTransferableOwners[j] == to) {
-        //                     //The address already owns a balance of transferable tokens,
-        //                     //therefore no need to add it to the transferable tokens array
-        //                     isPresent = true;
-        //                 }
-        //             }
-
-        //             //if "to" is not present in transferable tokens owners array
-        //             if (!isPresent) {
-        //                 //add "to" to transferable tokens owners array
-        //                 allTransferableOwners.push(to);
-        //             }
-        //         }
-        //     }
-        // }
 
         super._afterTokenTransfer(operator, from,to, ids, amounts, data);
     }
