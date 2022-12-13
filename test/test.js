@@ -155,4 +155,40 @@ describe("Rep Tokens", function () {
 
     expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(4);
   });
+
+
+  it("Succesfully transfer soulbound tokens using a designated wallet address", async function () {
+    const [admin, distributor, burner, receiver, soulboundTransferer, receiver2] = await ethers.getSigners();
+
+    const Contract = await ethers.getContractFactory("RepTokens");
+    const contract = await Contract.deploy();
+
+    let BURNER_ROLE = await contract.BURNER_ROLE();
+    let DISTRIBUTOR_ROLE = await contract.DISTRIBUTOR_ROLE();
+    let SOULBOUND_TOKEN_TRANSFERER_ROLE = await contract.SOULBOUND_TOKEN_TRANSFERER_ROLE();
+
+    await contract.grantRole(DISTRIBUTOR_ROLE, distributor.address);
+    await contract.grantRole(BURNER_ROLE, burner.address);
+    await contract.grantRole(SOULBOUND_TOKEN_TRANSFERER_ROLE, soulboundTransferer.address);
+
+    await contract.connect(distributor).distribute(receiver.address, 3, []);
+
+    console.log("receiving addr: " + receiver.address);
+    console.log("receiving2 addr: " + receiver2.address);
+
+    let owners1 = await contract.getOwnersOfTokenID(0);
+    console.log("pre: " + owners1);
+    
+    await contract.connect(receiver).setApprovalForAll(soulboundTransferer.address, true);
+    let s = await contract.connect(soulboundTransferer).fulfillTransferSoulboundTokensRequest(receiver.address, receiver2.address);
+
+    //WILL FAIL SINCE ONLY SOULBOUND TRANSFERER HAS THE ABILITY TO TRANSFER TOKENS NO MATTER WHAT
+    // await contract.connect(receiver).setApprovalForAll(distributor.address, true);
+    // let s = await contract.connect(distributor).safeTransferFrom(receiver.address, burner.address, 0, 1, []);
+
+    let owners2 = await contract.getOwnersOfTokenID(0);
+    console.log("post: " + owners2);
+    
+    expect(true);
+  });
 });

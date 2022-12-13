@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/contracts/RepTokens.sol": {
-      "lastModificationDate": 1670914787567,
-      "contentHash": "2788e8c63b8a7d9c979b0f7ac1e1be9f",
+      "lastModificationDate": 1670917230627,
+      "contentHash": "d8ff188af2c3cdb5eb513aeaf76433f2",
       "sourceName": "contracts/RepTokens.sol",
       "solcConfig": {
         "version": "0.8.17",

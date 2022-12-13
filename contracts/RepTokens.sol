@@ -6,11 +6,22 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract RepTokens is ERC1155, AccessControl {
 
-    //LOOK INTO A WAY OF ALLOWING AN ADDRESS TO MAKE A REQUEST TO TRANSFER ITS SOULBOUND TOKENS.
+    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
+
+    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
+    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
+    //Addresses granted this role have the ability to move other adresses' soulbound tokens after they have given consent (setApprovalForAll) 
+    //to the role.
     //HELPFUL IN CASES OF A COMPROMISED WALLET OR CHANGING OF WALLET
-    //CURRENTLY, THE THOUGHT IS THAT AN ADDRESS WILL MAKE A REQUEST TO TRANSFER ITS SOULBOUND TOKENS,
-    //THEN THE ADMIN ROLE (A MULTISIG) NEEDS TO APPROVE THE REQUEST. THIS GIVES SEVERAL EYES ON THE REQUEST
-    //AND EACH DECIDER FROM THE MULTISIG NEEDS TO ACT IN GOOD FAITH ON WHETHER THE REQUEST IS VALID (I.E. not filled with bad intent, harm, etc.)
+    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE = keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
+
+    //NEEDS TESTED
+    //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
+    //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
+    function fulfillTransferSoulboundTokensRequest(address from, address to) public {
+        require(hasRole(SOULBOUND_TOKEN_TRANSFERER_ROLE, _msgSender()), "Only a soulbound token transferer may succesfully call this function!");
+        super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
+    }
 
     //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
     //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
