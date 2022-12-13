@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract RepTokens is ERC1155, AccessControl {
 
     //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
+    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
+    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
 
     //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
     //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
