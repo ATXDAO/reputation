@@ -20,8 +20,7 @@ contract RepTokens is ERC1155, AccessControl {
     //NEEDS TESTED
     //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
     //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
-    function fulfillTransferSoulboundTokensRequest(address from, address to) public {
-        require(hasRole(SOULBOUND_TOKEN_TRANSFERER_ROLE, _msgSender()), "Only a soulbound token transferer may succesfully call this function!");
+    function fulfillTransferSoulboundTokensRequest(address from, address to) public onlyRole(SOULBOUND_TOKEN_TRANSFERER_ROLE) {
         super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
     }
 
@@ -94,9 +93,7 @@ contract RepTokens is ERC1155, AccessControl {
         address to,
         uint256 amount,
         bytes memory data
-    ) public {
-
-        require(hasRole(DISTRIBUTOR_ROLE, _msgSender()), "Only a distributor may succesfully call this function!");
+    ) public onlyRole(DISTRIBUTOR_ROLE) {
         require(amount <= maxTokensPerDistribution, "Cannot distribute that many tokens in one transaction!");
         //mints an amount of soulbound tokens to an address.
         super._mint(to, 0, amount, data);
