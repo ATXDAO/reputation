@@ -3,8 +3,11 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RepTokens is ERC1155, AccessControl {
+//default operator filterer needs implemented to support OpenSea
+contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
 
     //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
     //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
@@ -52,28 +55,6 @@ contract RepTokens is ERC1155, AccessControl {
 
         //either set here or after role is set up
         maxTokensPerDistribution = 15000;
-    }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) public override {
-
-        //if soulbound token, then revert transaction.
-        if (id == 0) {
-            require(true == false, "Cannot trade soulbound token!");
-        }
-        //If transferable token, then check to see if the recipient address has been granted the BURNER_ROLE.
-        else if (id == 1) {
-            require(hasRole(BURNER_ROLE, to), "Only a burner may succesfully be a recipient of a transferable token");
-            super.safeTransferFrom(from, to, id, amount, data);
-        }
-        else {
-            require(id < 2, "Please provide a valid token to transfer!"); 
-        }
     }
 
     //maxTokensPerDistribution forces a hard lock on distributing tokens.
@@ -191,5 +172,39 @@ contract RepTokens is ERC1155, AccessControl {
             owners[i] = owners[i + 1];
         }
         owners.pop();
+    }
+
+    function setApprovalForAll(address operator, bool approved) public override onlyAllowedOperatorApproval(operator) {
+        super.setApprovalForAll(operator, approved);
+    }
+
+    //untested
+    function safeTransferFrom(address from, address to, uint256 tokenId, uint256 amount, bytes memory data)
+        public
+        override
+        onlyAllowedOperator(from)
+    {
+         //if soulbound token, then revert transaction.
+        if (tokenId == 0) {
+            require(true == false, "Cannot trade soulbound token!");
+        }
+        //If transferable token, then check to see if the recipient address has been granted the BURNER_ROLE.
+        else if (tokenId == 1) {
+            require(hasRole(BURNER_ROLE, to), "Only a burner may succesfully be a recipient of a transferable token");
+            super.safeTransferFrom(from, to, tokenId, amount, data);
+        }
+        else {
+            require(tokenId < 2, "Please provide a valid token to transfer!"); 
+        }
+    }
+
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public virtual override onlyAllowedOperator(from) {
+        super.safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 }
