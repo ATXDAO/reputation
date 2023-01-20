@@ -15,7 +15,6 @@ describe("Rep Tokens", function () {
     await expect(contract.connect(burner).distribute(receiver.address, 3, [])).to.be.revertedWith("AccessControl: account 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc is missing role 0xfbd454f36a7e1a388bd6fc3ab10d434aa4578f811acbbcf33afb1c697486313c");
   });
 
-
   it("Reverts due to attempting to send a transferrable token to an address, of which does not have the BURNER_ROLE.", async function () {
     const [admin, distributor, burner, receiver] = await ethers.getSigners();
 
@@ -31,8 +30,6 @@ describe("Rep Tokens", function () {
 
     await expect(contract.connect(receiver).safeTransferFrom(receiver.address, distributor.address, 1, 2, [])).to.be.revertedWith("Only a burner may succesfully be a recipient of a transferable token");
   });
-
-
 
   it("Reverts due to attempting to transfer a soulbound token.", async function () {
     const [admin, distributor, burner, receiver] = await ethers.getSigners();
@@ -65,7 +62,6 @@ describe("Rep Tokens", function () {
     await contract.connect(distributor).distribute(receiver.address, 3, []);
 
     await contract.connect(receiver).safeTransferFrom(receiver.address, burner.address, 1, 2, []);
-
 
     expect(await contract.balanceOf(receiver.address, 1)).to.equal(1);
   });

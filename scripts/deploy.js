@@ -8,9 +8,9 @@ const { ethers } = require('hardhat')
 
 async function main() {
 
-  const contractName = "Test";
+  const contractName = "RepTokens";
   const Contract = await ethers.getContractFactory(contractName);
-  const contract = await Contract.deploy();
+  const contract = await Contract.deploy(["0xf1dd420F930a5CbC5363D24dC1a8cdC560b786E6"]);
   
   console.log(`${contractName} is being deployed...`);
   console.log(`Transaction hash: ${contract.deployTransaction.hash}`);

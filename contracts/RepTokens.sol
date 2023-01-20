@@ -50,8 +50,11 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
 
     //The admin role needs to be a multi-sig used by trusted members of the DAO.
     //The admin role is used to grant/revoke distributor and burner roles to addresses at will.
-    constructor() ERC1155("") {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    constructor(address[] memory admins) ERC1155("ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/{id}") {
+
+        for (uint256 i = 0; i < admins.length; i++) {
+            _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
+        }
 
         //either set here or after role is set up
         maxTokensPerDistribution = 15000;
@@ -206,5 +209,14 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
         bytes memory data
     ) public virtual override onlyAllowedOperator(from) {
         super.safeBatchTransferFrom(from, to, ids, amounts, data);
+    }
+
+    function uri(uint256 _tokenid) override public pure returns (string memory) {
+        return string(
+            abi.encodePacked(
+                "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/",
+                Strings.toString(_tokenid)
+            )
+        );
     }
 }
