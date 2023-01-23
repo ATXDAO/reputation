@@ -5,98 +5,114 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-//default operator filterer needs implemented to support OpenSea
-contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
-
-    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
-    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
-    //TODO:// DETERMINE WHEN/WHERE ROLES ARE GRANTED
-
-    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
-    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
-    //Addresses granted this role have the ability to move other adresses' soulbound tokens after they have given consent (setApprovalForAll) 
-    //to the role.
-    //HELPFUL IN CASES OF A COMPROMISED WALLET OR CHANGING OF WALLET
-    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE = keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
-
-    //NEEDS TESTED
-    //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
-    //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
-    function fulfillTransferSoulboundTokensRequest(address from, address to) public onlyRole(SOULBOUND_TOKEN_TRANSFERER_ROLE) {
-        super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
-    }
-
-    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
-    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
-    //Addresses granted this role have the ability to mint tokens to addresses on demand without limit.
+contract RepTokens is
+    Ownable,
+    DefaultOperatorFilterer,
+    ERC1155,
+    AccessControl,
+    Pausable
+{
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-
-    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESSES ARE GRANTED THIS ROLE.
-    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
-    //Addresses granted this role should only be trusted to ever receive a transferable token and never move it
-    //or use it with ill intent.
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE =
+        keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
 
-    //EXTREME CONSIDERATION SHOULD BE MADE FOR WHICH ADDRESS(ES) ARE GRANTED THIS ROLE.
-    //Addresses granted this role should be multisigs or smart contracts that have been proven to be trusted.
-    //Addresses granted this role should only ever change the maxTokensPerDistribution if there is a fault
-    //in how the socio-economic system is playing out in regards to the tokens, I.E. if too little tokens are being rewarded
-    //or if too many are being handed out.
-    bytes32 public constant MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE = keccak256("MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE");
+    uint256 public maxMintAmount;
+    mapping(uint256 => address[]) ownersOfTokenTypes;
 
     //id 0 = soulbound token
     //id 1 = transferable token
-
-    //The admin role needs to be a multi-sig used by trusted members of the DAO.
-    //The admin role is used to grant/revoke distributor and burner roles to addresses at will.
-    constructor(address[] memory admins) ERC1155("ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/{id}") {
-
+    constructor(
+        address[] memory admins
+    )
+        ERC1155(
+            "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/{id}"
+        )
+    {
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
-
-        //either set here or after role is set up
-        maxTokensPerDistribution = 15000;
     }
 
-    //maxTokensPerDistribution forces a hard lock on distributing tokens.
-    //This prevents distributors from being bad actors or making accidents by distributing enough to
-    //completely destroy the token economy.
-    //It also prevents bad actors by forcing multiple transactions and multiple transaction fees - very
-    //similar to how ethereum gas, itself, works. 
-    uint256 maxTokensPerDistribution;
-
-    function setMaxTokensPerDistribution(uint256 maxTokens) public onlyRole(MAX_TOKENS_PER_DISTRIBUTION_SETTER_ROLE) {
-        maxTokensPerDistribution = maxTokens;
+    function uri(
+        uint256 _tokenid
+    ) public pure override returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/",
+                    Strings.toString(_tokenid)
+                )
+            );
     }
 
-    //The act of distributing is done only by an address (distributor) granted the DISTRIBUTOR_ROLE.
-    //The distributor may call this function to send a provided amount of transferable and soulbound tokens to an address.
-    function distribute(
+    function mint(
         address to,
         uint256 amount,
         bytes memory data
-    ) public onlyRole(DISTRIBUTOR_ROLE) {
-        require(amount <= maxTokensPerDistribution, "Cannot distribute that many tokens in one transaction!");
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
+        require(
+            amount <= maxMintAmount,
+            "Cannot mint that many tokens in a single transaction!"
+        );
+
         //mints an amount of soulbound tokens to an address.
         super._mint(to, 0, amount, data);
         //mints an amount of transferable tokens to an address.
         super._mint(to, 1, amount, data);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, AccessControl) returns (bool) {
-        return super.supportsInterface(interfaceId);
+    function setMaxMintAmount(
+        uint256 value
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        maxMintAmount = value;
     }
 
-    mapping(uint256 => address[]) ownersOfTokenTypes;
-
-    function getOwnersOfTokenID(uint256 tokenID) public view returns(address[] memory) {
-        return ownersOfTokenTypes[tokenID];
+    //from : minter
+    //to : distributor
+    function transferFromMinterToDistributor(
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory data
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
+        require(
+            hasRole(DISTRIBUTOR_ROLE, to),
+            "Minter can only send tokens to distributors!"
+        );
+        super.safeTransferFrom(from, to, 0, amount, data);
+        super.safeTransferFrom(from, to, 1, amount, data);
     }
 
-    function getOwnersOfTokenIDLength(uint256 tokenID) public view returns(uint256) {
-        return ownersOfTokenTypes[tokenID].length;
+    //from : distributor
+    //to : address
+    function transferFromDistributor(
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
+        super.safeTransferFrom(from, to, 0, amount, data);
+        super.safeTransferFrom(from, to, 1, amount, data);
+    }
+
+    //from : address
+    //to : burner
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256,
+        uint256 amount,
+        bytes memory data
+    ) public override onlyAllowedOperator(from) {
+        require(
+            hasRole(BURNER_ROLE, to),
+            "Can only send a redeemable token to a burner address!"
+        );
+        super.safeTransferFrom(from, to, 1, amount, data);
     }
 
     function _afterTokenTransfer(
@@ -107,15 +123,13 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
         uint256[] memory amounts,
         bytes memory data
     ) internal override {
-
         //loop through transferred token IDs
         for (uint i = 0; i < ids.length; i++) {
-
             //if the tokenID balance of the receiving address is greater than zero after the transfer, then check to see if the receiving
             //address needs to be added as an owner to the tokenID
             if (balanceOf(to, ids[i]) > 0) {
                 addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(to, ids[i]);
-            } 
+            }
 
             //address(0) cannot have a balance of tokens so check to see if it is the sender (usually from == address(0) in the case of minting)
             if (from != address(0)) {
@@ -127,19 +141,31 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
             }
         }
 
-        super._afterTokenTransfer(operator, from,to, ids, amounts, data);
+        super._afterTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    //NEEDS TESTED
+    //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
+    //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
+    function fulfillTransferSoulboundTokensRequest(
+        address from,
+        address to
+    ) public onlyRole(SOULBOUND_TOKEN_TRANSFERER_ROLE) {
+        super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
     }
 
     //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
     //as an owner of @tokenID.
     //@tokenID: the ID of the token selected.
-    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(address addrToCheck, uint256 tokenID) internal {
-
+    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(
+        address addrToCheck,
+        uint256 tokenID
+    ) internal {
         //get all owners of a given tokenID.
         address[] storage owners = ownersOfTokenTypes[tokenID];
 
         bool isPresent = false;
-        
+
         //loop through all token owners of selected tokenID.
         for (uint256 i = 0; i < owners.length; i++) {
             //if address of receiver is found within selected tokenID's owners.
@@ -159,8 +185,10 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
         }
     }
 
-    function removeAddressAsOwnerOfTokenID(address addrToCheck, uint256 id) internal {
-
+    function removeAddressAsOwnerOfTokenID(
+        address addrToCheck,
+        uint256 id
+    ) internal {
         address[] storage owners = ownersOfTokenTypes[id];
 
         uint256 index;
@@ -177,30 +205,33 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
         owners.pop();
     }
 
-    function setApprovalForAll(address operator, bool approved) public override onlyAllowedOperatorApproval(operator) {
+    function getOwnersOfTokenID(
+        uint256 tokenID
+    ) public view returns (address[] memory) {
+        return ownersOfTokenTypes[tokenID];
+    }
+
+    function getOwnersOfTokenIDLength(
+        uint256 tokenID
+    ) public view returns (uint256) {
+        return ownersOfTokenTypes[tokenID].length;
+    }
+
+    function togglePause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
+    }
+
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) public override onlyAllowedOperatorApproval(operator) {
         super.setApprovalForAll(operator, approved);
     }
-
-    //untested
-    function safeTransferFrom(address from, address to, uint256 tokenId, uint256 amount, bytes memory data)
-        public
-        override
-        onlyAllowedOperator(from)
-    {
-         //if soulbound token, then revert transaction.
-        if (tokenId == 0) {
-            require(true == false, "Cannot trade soulbound token!");
-        }
-        //If transferable token, then check to see if the recipient address has been granted the BURNER_ROLE.
-        else if (tokenId == 1) {
-            require(hasRole(BURNER_ROLE, to), "Only a burner may succesfully be a recipient of a transferable token");
-            super.safeTransferFrom(from, to, tokenId, amount, data);
-        }
-        else {
-            require(tokenId < 2, "Please provide a valid token to transfer!"); 
-        }
-    }
-
+    
     function safeBatchTransferFrom(
         address from,
         address to,
@@ -211,12 +242,9 @@ contract RepTokens is Ownable, DefaultOperatorFilterer, ERC1155, AccessControl {
         super.safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 
-    function uri(uint256 _tokenid) override public pure returns (string memory) {
-        return string(
-            abi.encodePacked(
-                "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/",
-                Strings.toString(_tokenid)
-            )
-        );
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }

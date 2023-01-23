@@ -5,12 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./RepTokensManager.sol";
 
 contract TransferableRepToken is ERC20 {
-
     address repTokensManager;
 
-    constructor() ERC20("Transferable Rep Token", "TRT") {
-
-    }
+    constructor() ERC20("Transferable Rep Token", "TRT") {}
 
     address _multisig;
 
@@ -24,17 +21,14 @@ contract TransferableRepToken is ERC20 {
 
     //multi-sig - can send/receive from anywhere
     //regular peep - can send/receive to/from multi-sig
-    function transfer(address to, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
-        
-        
+    function transfer(
+        address to,
+        uint256 amount
+    ) public override returns (bool) {
         // if (msg.sender != RepTokensManager(repTokensManager).getMultisig()) {
         //     require(to == _multisig, "Cannot send tokens to anywhere except multisig!");
         // }
-        
+
         _transfer(msg.sender, to, amount);
         return true;
     }
