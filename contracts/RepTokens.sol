@@ -53,6 +53,7 @@ contract RepTokens is
             );
     }
 
+
     function mint(
         address to,
         uint256 amount,
@@ -96,7 +97,11 @@ contract RepTokens is
     //     super.safeTransferFrom(from, to, 1, amount, data);
     // }
 
-    mapping (address=> address) walletToSecureWallet;
+    mapping (address=> address) public destinationWallets;
+
+    function setDestinationWallet(address destination) external {
+        destinationWallets[msg.sender] = destination;
+    }
 
     //from : distributor
     //to : address
@@ -107,10 +112,12 @@ contract RepTokens is
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
 
+        if (destinationWallets[to] == address(0)) {
+            destinationWallets[to] = to;
+        }
 
-        // address receivingWallet = 
-        super.safeTransferFrom(from, to, 0, amount, data);
-        super.safeTransferFrom(from, to, 1, amount, data);
+        super.safeTransferFrom(from, destinationWallets[to], 0, amount, data);
+        super.safeTransferFrom(from, destinationWallets[to], 1, amount, data);
     }
 
     //from : address

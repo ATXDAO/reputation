@@ -115,6 +115,10 @@ describe("Rep Tokens", function () {
   });
 
 
+  it("", async function () {
+
+  });
+
   it("Transferable owners count is two after transferring some tokens from one address to another", async function () {
     expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(2);
   });
@@ -146,6 +150,11 @@ describe("Rep Tokens", function () {
     expect(await contract.getOwnersOfTokenIDLength(1)).to.equals(4);
   });
 
+
+  it("", async function () {
+
+  });
+
   it ("Reverts due to attempting to transfer lifetime tokens using an address which does not have the LIFETIME_TRANSFERER_ROLE.", async function() {
     await contract.connect(receiver).setApprovalForAll(admin.address, true);
     await expect(contract.connect(admin).fulfillTransferSoulboundTokensRequest(receiver.address, receiver2.address)).to.be.revertedWith(`AccessControl: account ${admin.address.toLowerCase()} is missing role ${SOULBOUND_TOKEN_TRANSFERER_ROLE}`);
@@ -160,4 +169,32 @@ describe("Rep Tokens", function () {
     expect((await contract.getOwnersOfTokenID(1)).length).to.equals(3);
     expect((await contract.getOwnersOfTokenID(0)).length).to.equals(4);
   });
+
+
+  it("", async function () {
+
+  });
+
+  it("Should end with receiver1 getting the distributed tokens", async function () {
+
+    await contract.connect(minter).mint(distributor.address, 10, []);
+
+    await contract.connect(distributor).distribute(distributor.address, receiver.address, 10, []);
+    
+    expect(await contract.balanceOf(receiver.address, 0)).to.equals(10);
+    expect(await contract.balanceOf(receiver2.address, 0)).to.equals(453);
+  });
+
+  it("Should end with receiver2 getting the distributed tokens", async function () {
+
+    await contract.connect(minter).mint(distributor.address, 10, []);
+    await contract.connect(receiver).setDestinationWallet(receiver2.address);
+
+    await contract.connect(distributor).distribute(distributor.address, receiver.address, 10, []);
+    
+    expect(await contract.balanceOf(receiver.address, 0)).to.equals(10);
+    expect(await contract.balanceOf(receiver2.address, 0)).to.equals(463);
+  });
+
+  
 });
