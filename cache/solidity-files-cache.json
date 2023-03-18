@@ -858,8 +858,8 @@
       ]
     },
     "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/contracts/IRepTokens.sol": {
-      "lastModificationDate": 1679105257285,
-      "contentHash": "320ed5f3e1268ffc9e673fe87f7cdec6",
+      "lastModificationDate": 1679115096789,
+      "contentHash": "7c94148c176d9aee71e4ab7ff1ba3bd2",
       "sourceName": "contracts/IRepTokens.sol",
       "solcConfig": {
         "version": "0.8.17",

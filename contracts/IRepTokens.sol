@@ -21,6 +21,8 @@ interface IRepTokens is IAccessControl, IERC1155
         uint256 value
     ) external;
 
+    function setDestinationWallet(address destination) external;
+
     //from : distributor
     //to : address
     function distribute(
