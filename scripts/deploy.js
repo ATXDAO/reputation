@@ -10,7 +10,7 @@ async function main() {
 
   const contractName = "RepTokens";
   const Contract = await ethers.getContractFactory(contractName);
-  const contract = await Contract.deploy(["0xf1dd420F930a5CbC5363D24dC1a8cdC560b786E6"]);
+  const contract = await Contract.deploy(["0xf1dd420F930a5CbC5363D24dC1a8cdC560b786E6"], 350);
   
   console.log(`${contractName} is being deployed...`);
   console.log(`Transaction hash: ${contract.deployTransaction.hash}`);

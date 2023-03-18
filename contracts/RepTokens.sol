@@ -6,27 +6,29 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "./IRepTokens.sol";
 
 contract RepTokens is
+    IRepTokens,
+    AccessControl,
     Ownable,
     DefaultOperatorFilterer,
     ERC1155,
-    AccessControl,
     Pausable
 {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE =
-        keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
+    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE = keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
 
-    uint256 public maxMintAmount;
+    uint256 public maxMintAmountPerTx;
     mapping(uint256 => address[]) ownersOfTokenTypes;
 
     //id 0 = soulbound token
     //id 1 = transferable token
     constructor(
-        address[] memory admins
+        address[] memory admins,
+        uint256 _maxMintAmountPerTx
     )
         ERC1155(
             "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/{id}"
@@ -35,6 +37,8 @@ contract RepTokens is
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
+
+        maxMintAmountPerTx = _maxMintAmountPerTx;
     }
 
     function uri(
@@ -55,8 +59,13 @@ contract RepTokens is
         bytes memory data
     ) public onlyRole(MINTER_ROLE) whenNotPaused {
         require(
-            amount <= maxMintAmount,
+            amount <= maxMintAmountPerTx,
             "Cannot mint that many tokens in a single transaction!"
+        );
+
+        require(
+            hasRole(DISTRIBUTOR_ROLE, to),
+            "Minter can only mint tokens to distributors!"
         );
 
         //mints an amount of soulbound tokens to an address.
@@ -68,33 +77,38 @@ contract RepTokens is
     function setMaxMintAmount(
         uint256 value
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        maxMintAmount = value;
+        maxMintAmountPerTx = value;
     }
 
     //from : minter
     //to : distributor
-    function transferFromMinterToDistributor(
-        address from,
-        address to,
-        uint256 amount,
-        bytes memory data
-    ) public onlyRole(MINTER_ROLE) whenNotPaused {
-        require(
-            hasRole(DISTRIBUTOR_ROLE, to),
-            "Minter can only send tokens to distributors!"
-        );
-        super.safeTransferFrom(from, to, 0, amount, data);
-        super.safeTransferFrom(from, to, 1, amount, data);
-    }
+    // function transferFromMinterToDistributor(
+    //     address from,
+    //     address to,
+    //     uint256 amount,
+    //     bytes memory data
+    // ) public onlyRole(MINTER_ROLE) whenNotPaused {
+    //     require(
+    //         hasRole(DISTRIBUTOR_ROLE, to),
+    //         "Minter can only send tokens to distributors!"
+    //     );
+    //     super.safeTransferFrom(from, to, 0, amount, data);
+    //     super.safeTransferFrom(from, to, 1, amount, data);
+    // }
+
+    mapping (address=> address) walletToSecureWallet;
 
     //from : distributor
     //to : address
-    function transferFromDistributor(
+    function distribute(
         address from,
         address to,
         uint256 amount,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
+
+
+        // address receivingWallet = 
         super.safeTransferFrom(from, to, 0, amount, data);
         super.safeTransferFrom(from, to, 1, amount, data);
     }
@@ -104,15 +118,31 @@ contract RepTokens is
     function safeTransferFrom(
         address from,
         address to,
-        uint256,
+        uint256 id,
         uint256 amount,
         bytes memory data
-    ) public override onlyAllowedOperator(from) {
+    ) public override(ERC1155, IERC1155) onlyAllowedOperator(from) {
+        require(
+            id == 1, 
+            "Can only send a redeemable token!"
+        );
+
+        require(
+            !hasRole(DISTRIBUTOR_ROLE, from),
+            "Distributors can only send tokens in pairs through the transferFromDistributor function!"
+        );
+
+        require(
+            !hasRole(BURNER_ROLE, from),
+            "Burners cannot send tokens!"
+        );
+        
         require(
             hasRole(BURNER_ROLE, to),
-            "Can only send a redeemable token to a burner address!"
+            "Can only send Redeemable Tokens to burners!"
         );
-        super.safeTransferFrom(from, to, 1, amount, data);
+
+        super.safeTransferFrom(from, to, id, amount, data);
     }
 
     function _afterTokenTransfer(
@@ -144,7 +174,6 @@ contract RepTokens is
         super._afterTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    //NEEDS TESTED
     //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
     //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
     function fulfillTransferSoulboundTokensRequest(
@@ -152,6 +181,7 @@ contract RepTokens is
         address to
     ) public onlyRole(SOULBOUND_TOKEN_TRANSFERER_ROLE) {
         super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
+        super.safeTransferFrom(from, to, 1, balanceOf(from, 1), "");
     }
 
     //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
@@ -228,7 +258,7 @@ contract RepTokens is
     function setApprovalForAll(
         address operator,
         bool approved
-    ) public override onlyAllowedOperatorApproval(operator) {
+    ) public override(ERC1155, IERC1155) onlyAllowedOperatorApproval(operator) {
         super.setApprovalForAll(operator, approved);
     }
     
@@ -238,13 +268,22 @@ contract RepTokens is
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) public virtual override onlyAllowedOperator(from) {
+    ) public virtual override(ERC1155, IERC1155) onlyAllowedOperator(from) {
         super.safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC1155, AccessControl) returns (bool) {
+    ) public view virtual override(ERC1155, IERC165, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function renounceRole(bytes32 role, address account) public virtual override(IAccessControl, AccessControl) {
+        require(
+            !hasRole(BURNER_ROLE, account),
+            "Burners cannot renounce their own roles!"
+        );
+
+        super.renounceRole(role, account);
     }
 }
