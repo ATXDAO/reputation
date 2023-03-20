@@ -19,12 +19,18 @@ contract RepTokens is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant SOULBOUND_TOKEN_TRANSFERER_ROLE = keccak256("SOULBOUND_TOKEN_TRANSFERER_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE = keccak256("TOKEN_MIGRATOR_ROLE");
 
     uint256 public maxMintAmountPerTx;
     mapping(uint256 => address[]) ownersOfTokenTypes;
 
-    //id 0 = soulbound token
+    event Mint(address minter, address to, uint256 amount);
+    event DestinationWalletSet(address coreAddress, address destination);
+    event Distributed(address from, address to, uint256 amount);
+    event OwnershipOfTokensMigrated(address from, address to, uint256 lifetimeBalance, uint256 redeemableBalance);
+    event BurnedRedeemable(address from, address to, uint256 amount);
+
+    //id 0 = lifetime token
     //id 1 = transferable token
     constructor(
         address[] memory admins,
@@ -69,10 +75,12 @@ contract RepTokens is
             "Minter can only mint tokens to distributors!"
         );
 
-        //mints an amount of soulbound tokens to an address.
+        //mints an amount of lifetime tokens to an address.
         super._mint(to, 0, amount, data);
         //mints an amount of transferable tokens to an address.
         super._mint(to, 1, amount, data);
+
+        emit Mint(msg.sender, to, amount);
     }
 
     function setMaxMintAmount(
@@ -99,8 +107,14 @@ contract RepTokens is
 
     mapping (address=> address) public destinationWallets;
 
-    function setDestinationWallet(address destination) external {
-        destinationWallets[msg.sender] = destination;
+    function setDestinationWallet(address destination) public {
+        _setDestinationWallet(msg.sender, destination);
+    }
+
+
+    function _setDestinationWallet(address coreAddress, address destination) internal {
+        destinationWallets[coreAddress] = destination;
+        emit DestinationWalletSet(coreAddress, destination);
     }
 
     //from : distributor
@@ -113,11 +127,12 @@ contract RepTokens is
     ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
 
         if (destinationWallets[to] == address(0)) {
-            destinationWallets[to] = to;
+            _setDestinationWallet(to, to);
         }
 
         super.safeTransferFrom(from, destinationWallets[to], 0, amount, data);
         super.safeTransferFrom(from, destinationWallets[to], 1, amount, data);
+        emit Distributed(from, destinationWallets[to], amount);
     }
 
     //from : address
@@ -150,6 +165,7 @@ contract RepTokens is
         );
 
         super.safeTransferFrom(from, to, id, amount, data);
+        emit BurnedRedeemable(from, to, amount);
     }
 
     function _afterTokenTransfer(
@@ -181,14 +197,19 @@ contract RepTokens is
         super._afterTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
-    //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
-    function fulfillTransferSoulboundTokensRequest(
+
+    //this needs to be called beforehand by address that wants to transfer its lifetime tokens:
+    //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
+    function migrateOwnershipOfTokens(
         address from,
         address to
-    ) public onlyRole(SOULBOUND_TOKEN_TRANSFERER_ROLE) {
-        super.safeTransferFrom(from, to, 0, balanceOf(from, 0), "");
-        super.safeTransferFrom(from, to, 1, balanceOf(from, 1), "");
+    ) public onlyRole(TOKEN_MIGRATOR_ROLE) {
+        uint256 lifetimeBalance = balanceOf(from, 0);
+        uint256 redeemableBalance = balanceOf(from, 1);
+
+        super.safeTransferFrom(from, to, 0, lifetimeBalance, "");
+        super.safeTransferFrom(from, to, 1, redeemableBalance, "");
+        emit OwnershipOfTokensMigrated(from, to, lifetimeBalance, redeemableBalance);
     }
 
     //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered

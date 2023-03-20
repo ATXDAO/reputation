@@ -9,7 +9,7 @@ describe("Rep Tokens", function () {
   let MINTER_ROLE;
   let BURNER_ROLE;
   let DISTRIBUTOR_ROLE;
-  let SOULBOUND_TOKEN_TRANSFERER_ROLE;
+  let TOKEN_MIGRATOR_ROLE;
 
   before(async function() {
     [admin, minter, distributor, burner, receiver, soulboundTokenTransferer, distributorTwo, receiver2, receiver3, receiver4, receiver5] = await ethers.getSigners();
@@ -31,12 +31,12 @@ describe("Rep Tokens", function () {
     MINTER_ROLE = await contract.MINTER_ROLE();
     DISTRIBUTOR_ROLE = await contract.DISTRIBUTOR_ROLE();
     BURNER_ROLE = await contract.BURNER_ROLE();
-    SOULBOUND_TOKEN_TRANSFERER_ROLE = await contract.SOULBOUND_TOKEN_TRANSFERER_ROLE();
+    TOKEN_MIGRATOR_ROLE = await contract.TOKEN_MIGRATOR_ROLE();
 
     await contract.grantRole(MINTER_ROLE, minter.address);
     await contract.grantRole(DISTRIBUTOR_ROLE, distributor.address);
     await contract.grantRole(BURNER_ROLE, burner.address);
-    await contract.grantRole(SOULBOUND_TOKEN_TRANSFERER_ROLE, soulboundTokenTransferer.address);
+    await contract.grantRole(TOKEN_MIGRATOR_ROLE, soulboundTokenTransferer.address);
   });
 
   it("Reverts due to attempting to mint tokens using an address which does not have the MINTER_ROLE.", async function () {
@@ -157,14 +157,14 @@ describe("Rep Tokens", function () {
 
   it ("Reverts due to attempting to transfer lifetime tokens using an address which does not have the LIFETIME_TRANSFERER_ROLE.", async function() {
     await contract.connect(receiver).setApprovalForAll(admin.address, true);
-    await expect(contract.connect(admin).fulfillTransferSoulboundTokensRequest(receiver.address, receiver2.address)).to.be.revertedWith(`AccessControl: account ${admin.address.toLowerCase()} is missing role ${SOULBOUND_TOKEN_TRANSFERER_ROLE}`);
+    await expect(contract.connect(admin).migrateOwnershipOfTokens(receiver.address, receiver2.address)).to.be.revertedWith(`AccessControl: account ${admin.address.toLowerCase()} is missing role ${TOKEN_MIGRATOR_ROLE}`);
 
   });
 
   it("Succesfully transfer soulbound tokens using a designated wallet address", async function () {
     
     await contract.connect(receiver).setApprovalForAll(soulboundTokenTransferer.address, true);
-    await contract.connect(soulboundTokenTransferer).fulfillTransferSoulboundTokensRequest(receiver.address, receiver2.address);
+    await contract.connect(soulboundTokenTransferer).migrateOwnershipOfTokens(receiver.address, receiver2.address);
 
     expect((await contract.getOwnersOfTokenID(1)).length).to.equals(3);
     expect((await contract.getOwnersOfTokenID(0)).length).to.equals(4);

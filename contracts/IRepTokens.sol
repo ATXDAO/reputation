@@ -9,7 +9,7 @@ interface IRepTokens is IAccessControl, IERC1155
     function MINTER_ROLE() external view returns(bytes32);
     function DISTRIBUTOR_ROLE() external view returns(bytes32);
     function BURNER_ROLE() external view returns(bytes32);
-    function SOULBOUND_TOKEN_TRANSFERER_ROLE() external view returns(bytes32);
+    function TOKEN_MIGRATOR_ROLE() external view returns(bytes32);
 
     function mint(
         address to,
@@ -34,7 +34,7 @@ interface IRepTokens is IAccessControl, IERC1155
 
     //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
     //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
-    function fulfillTransferSoulboundTokensRequest(
+    function migrateOwnershipOfTokens(
         address from,
         address to
     ) external;
