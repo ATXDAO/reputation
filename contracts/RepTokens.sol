@@ -3,9 +3,11 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@opengsn/contracts/src/ERC2771Recipient.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
+
 import "./IRepTokens.sol";
 
 contract RepTokens is
@@ -14,7 +16,8 @@ contract RepTokens is
     Ownable,
     DefaultOperatorFilterer,
     ERC1155,
-    Pausable
+    Pausable,
+    ERC2771Recipient
 {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
@@ -23,6 +26,7 @@ contract RepTokens is
 
     uint256 public maxMintAmountPerTx;
     mapping(uint256 => address[]) ownersOfTokenTypes;
+    mapping (address=> address) public destinationWallets;
 
     event Mint(address minter, address to, uint256 amount);
     event DestinationWalletSet(address coreAddress, address destination);
@@ -37,7 +41,7 @@ contract RepTokens is
         uint256 _maxMintAmountPerTx
     )
         ERC1155(
-            "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/{id}"
+            "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/{id}"
         )
     {
         for (uint256 i = 0; i < admins.length; i++) {
@@ -53,12 +57,15 @@ contract RepTokens is
         return
             string(
                 abi.encodePacked(
-                    "ipfs://bafybeih3e3hyanol5zjsnyzxss72p3fosy6jsw46wr77e5rlstz5zapxru/",
+                    "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/",
                     Strings.toString(_tokenid)
                 )
             );
     }
 
+    function setTrustedForwarder(address forwarder) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setTrustedForwarder(forwarder);
+    }
 
     function mint(
         address to,
@@ -80,7 +87,17 @@ contract RepTokens is
         //mints an amount of transferable tokens to an address.
         super._mint(to, 1, amount, data);
 
-        emit Mint(msg.sender, to, amount);
+        emit Mint(_msgSender(), to, amount);
+    }
+
+    function mintBatch(
+        address[] memory to,
+        uint256[] memory amount,
+        bytes memory data
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
+        for (uint256 i =0; i < to.length; i++) {
+            mint(to[i], amount[i], data);
+        }
     }
 
     function setMaxMintAmount(
@@ -89,28 +106,9 @@ contract RepTokens is
         maxMintAmountPerTx = value;
     }
 
-    //from : minter
-    //to : distributor
-    // function transferFromMinterToDistributor(
-    //     address from,
-    //     address to,
-    //     uint256 amount,
-    //     bytes memory data
-    // ) public onlyRole(MINTER_ROLE) whenNotPaused {
-    //     require(
-    //         hasRole(DISTRIBUTOR_ROLE, to),
-    //         "Minter can only send tokens to distributors!"
-    //     );
-    //     super.safeTransferFrom(from, to, 0, amount, data);
-    //     super.safeTransferFrom(from, to, 1, amount, data);
-    // }
-
-    mapping (address=> address) public destinationWallets;
-
     function setDestinationWallet(address destination) public {
-        _setDestinationWallet(msg.sender, destination);
+        _setDestinationWallet(_msgSender(), destination);
     }
-
 
     function _setDestinationWallet(address coreAddress, address destination) internal {
         destinationWallets[coreAddress] = destination;
@@ -133,6 +131,17 @@ contract RepTokens is
         super.safeTransferFrom(from, destinationWallets[to], 0, amount, data);
         super.safeTransferFrom(from, destinationWallets[to], 1, amount, data);
         emit Distributed(from, destinationWallets[to], amount);
+    }
+
+    function distributeBatch(
+        address from,
+        address[] memory to,
+        uint256[] memory amount,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
+        for (uint256 i = 0; i < to.length; i++) {
+            distribute(from, to[i], amount[i], data);
+        }
     }
 
     //from : address
@@ -250,7 +259,7 @@ contract RepTokens is
         address[] storage owners = ownersOfTokenTypes[id];
 
         uint256 index;
-        for (uint i = 0; i < owners.length - 1; i++) {
+        for (uint i = 0; i < owners.length; i++) {
             if (owners[i] == addrToCheck) {
                 index = i;
                 break;
@@ -313,5 +322,13 @@ contract RepTokens is
         );
 
         super.renounceRole(role, account);
+    }
+
+    function _msgSender() internal view override(Context, ERC2771Recipient) returns (address ret) {
+        return ERC2771Recipient._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Recipient) returns (bytes calldata) {
+        return ERC2771Recipient._msgData();
     }
 }

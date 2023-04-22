@@ -17,6 +17,8 @@ interface IRepTokens is IAccessControl, IERC1155
         bytes memory data
     ) external;
 
+    function maxMintAmountPerTx() external view returns(uint256);
+
     function setMaxMintAmount(
         uint256 value
     ) external;
@@ -33,7 +35,7 @@ interface IRepTokens is IAccessControl, IERC1155
     ) external;
 
     //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
-    //setApprovalForAll(SOULBOUND_TOKEN_TRANSFERER_ROLE, true)
+    //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
     function migrateOwnershipOfTokens(
         address from,
         address to

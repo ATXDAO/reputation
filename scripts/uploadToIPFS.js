@@ -7,17 +7,17 @@ const fs = require("fs");
 async function main() {
 
     let token0Obj = {};
-    token0Obj.name = "Souldbound Token - 0.0.1";
-    token0Obj.description = "This is a soulbound token.";
-    token0Obj.image = "ipfs://bafybeidr6demas4y4ounbj564npugalan74patc5xdhbbo6zywvzdr3gbq/0.png";
-
+    token0Obj.name = "Lifetime Token";
+    token0Obj.description = "Represents a member's long standing reputation with the DAO and cannot be transferred.";
+    token0Obj.image = "ipfs://bafybeiaywvtmm2rqa2idup57z44s24booowx7ikl5z36gqs2vjoyzrftce/lifetimetoken.jpg";
+    
     token0Obj.attributes = [];
     token0Obj.attributes.push( { "trait_type" : "Transfer Type", "value": "Soulbound" })
 
     let token1Obj = {};
-    token1Obj.name = "Redeemable Token 0.0.1";
-    token1Obj.description = "This is a redeemable token.";
-    token1Obj.image = "ipfs://bafybeidr6demas4y4ounbj564npugalan74patc5xdhbbo6zywvzdr3gbq/1.png";
+    token1Obj.name = "Redeemable Token";
+    token1Obj.description = "Exchangeable for rewards, event entry, membership discounts, etc.";
+    token1Obj.image = "ipfs://bafybeiaywvtmm2rqa2idup57z44s24booowx7ikl5z36gqs2vjoyzrftce/redeemabletoken.jpg";
 
     token1Obj.attributes = [];
     token1Obj.attributes.push( { "trait_type" : "Transfer Type", "value": "Redeemable" })

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/contracts/RepTokens.sol": {
-      "lastModificationDate": 1679343306440,
-      "contentHash": "61f0d7de26df204fae4c11485f7db33d",
+      "lastModificationDate": 1682189318221,
+      "contentHash": "a2ea00b3db83dccae0675bb84020ab25",
       "sourceName": "contracts/RepTokens.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -31,9 +31,10 @@
       "imports": [
         "@openzeppelin/contracts/token/ERC1155/ERC1155.sol",
         "@openzeppelin/contracts/access/AccessControl.sol",
-        "operator-filter-registry/src/DefaultOperatorFilterer.sol",
         "@openzeppelin/contracts/access/Ownable.sol",
         "@openzeppelin/contracts/security/Pausable.sol",
+        "@opengsn/contracts/src/ERC2771Recipient.sol",
+        "operator-filter-registry/src/DefaultOperatorFilterer.sol",
         "./IRepTokens.sol"
       ],
       "versionPragmas": [
@@ -858,8 +859,8 @@
       ]
     },
     "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/contracts/IRepTokens.sol": {
-      "lastModificationDate": 1679341945754,
-      "contentHash": "daefb18238a4a80602b4256bce4d1066",
+      "lastModificationDate": 1682189280750,
+      "contentHash": "8adbef88b7595ab288b9ce11628645e2",
       "sourceName": "contracts/IRepTokens.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -893,6 +894,533 @@
       ],
       "artifacts": [
         "IRepTokens"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/ERC2771Recipient.sol": {
+      "lastModificationDate": 1681132851580,
+      "contentHash": "a3f8c0bfa93fbf48114c0d9dedfeb5a0",
+      "sourceName": "@opengsn/contracts/src/ERC2771Recipient.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IERC2771Recipient.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.9"
+      ],
+      "artifacts": [
+        "ERC2771Recipient"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/interfaces/IERC2771Recipient.sol": {
+      "lastModificationDate": 1681132851581,
+      "contentHash": "0e5ad1cd070b2093adf9d1139dbc6ee6",
+      "sourceName": "@opengsn/contracts/src/interfaces/IERC2771Recipient.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0"
+      ],
+      "artifacts": [
+        "IERC2771Recipient"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@openzeppelin/contracts/interfaces/IERC165.sol": {
+      "lastModificationDate": 1670356801386,
+      "contentHash": "ee9624272968c23d93d4c2e39f06e6e2",
+      "sourceName": "@openzeppelin/contracts/interfaces/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/introspection/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": []
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/interfaces/IRelayHub.sol": {
+      "lastModificationDate": 1681132851582,
+      "contentHash": "5a0235a32642d3cba5ae8a395c6e6daf",
+      "sourceName": "@opengsn/contracts/src/interfaces/IRelayHub.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/interfaces/IERC165.sol",
+        "../utils/GsnTypes.sol",
+        "./IStakeManager.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "IRelayHub"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/utils/GsnTypes.sol": {
+      "lastModificationDate": 1681132851581,
+      "contentHash": "7c7a7293b1d434eab044095c315b0d1b",
+      "sourceName": "@opengsn/contracts/src/utils/GsnTypes.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../forwarder/IForwarder.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "GsnTypes"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/interfaces/IStakeManager.sol": {
+      "lastModificationDate": 1681132851582,
+      "contentHash": "ae084f85efcae094916720ff3aa8a646",
+      "sourceName": "@opengsn/contracts/src/interfaces/IStakeManager.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/utils/introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "IStakeManager"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/forwarder/IForwarder.sol": {
+      "lastModificationDate": 1681132851582,
+      "contentHash": "88616c92a3ec43b83256d83df9ee6460",
+      "sourceName": "@opengsn/contracts/src/forwarder/IForwarder.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/interfaces/IERC165.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "IForwarder"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/BasePaymaster.sol": {
+      "lastModificationDate": 1681132851580,
+      "contentHash": "ecfd7d81796a1e96f31d336478bd8d59",
+      "sourceName": "@opengsn/contracts/src/BasePaymaster.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+        "./utils/GsnTypes.sol",
+        "./interfaces/IPaymaster.sol",
+        "./interfaces/IRelayHub.sol",
+        "./utils/GsnEip712Library.sol",
+        "./forwarder/IForwarder.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "BasePaymaster"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/interfaces/IPaymaster.sol": {
+      "lastModificationDate": 1681132851582,
+      "contentHash": "24ad718123867cba17f193e804314505",
+      "sourceName": "@opengsn/contracts/src/interfaces/IPaymaster.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/interfaces/IERC165.sol",
+        "../utils/GsnTypes.sol"
+      ],
+      "versionPragmas": [
+        ">=0.7.6"
+      ],
+      "artifacts": [
+        "IPaymaster"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/utils/GsnEip712Library.sol": {
+      "lastModificationDate": 1681132851581,
+      "contentHash": "ea0e591c36cb3778686d19787c138c6c",
+      "sourceName": "@opengsn/contracts/src/utils/GsnEip712Library.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/GsnTypes.sol",
+        "../interfaces/IERC2771Recipient.sol",
+        "../forwarder/IForwarder.sol",
+        "./GsnUtils.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "GsnEip712Library"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol": {
+      "lastModificationDate": 1670356801103,
+      "contentHash": "964a5d1f03af86adc9de59cbf8f52444",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ERC165Checker"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/utils/GsnUtils.sol": {
+      "lastModificationDate": 1681132851581,
+      "contentHash": "162129775c11b11a983364323a575312",
+      "sourceName": "@opengsn/contracts/src/utils/GsnUtils.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/MinLibBytes.sol",
+        "./GsnTypes.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "GsnUtils"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/node_modules/@opengsn/contracts/src/utils/MinLibBytes.sol": {
+      "lastModificationDate": 1681132851583,
+      "contentHash": "181d8d962f63a4477abfe9cc7929676d",
+      "sourceName": "@opengsn/contracts/src/utils/MinLibBytes.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "MinLibBytes"
+      ]
+    },
+    "/Users/jacob/Documents/Repos/ATXDAO/rep-contracts/contracts/SingleRecipientPaymaster.sol": {
+      "lastModificationDate": 1681133286761,
+      "contentHash": "3045d1f68fea1cf2349ee3ef72b5b9a8",
+      "sourceName": "contracts/SingleRecipientPaymaster.sol",
+      "solcConfig": {
+        "version": "0.8.17",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@opengsn/contracts/src/BasePaymaster.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "SingleRecipientPaymaster"
       ]
     }
   }

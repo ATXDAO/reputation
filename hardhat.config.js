@@ -9,7 +9,7 @@ module.exports = {
       url: process.env.URL_ETHEREUM,
       accounts: [process.env.PRIVATE_KEY],
     },
-    eth: {
+    matic: {
       url: process.env.URL_POLYGON,
       accounts: [process.env.PRIVATE_KEY],
     },
@@ -20,7 +20,7 @@ module.exports = {
     mumbai: {
       url: process.env.URL_MUMBAI,
       accounts: [process.env.PRIVATE_KEY],
-      },
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
