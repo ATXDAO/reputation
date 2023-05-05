@@ -6,6 +6,21 @@
 // global scope, and execute the script.
 const { ethers } = require('hardhat')
 
+async function deploy(contractName, ...params) {
+  const Contract = await ethers.getContractFactory(contractName);
+  const contract = await Contract.deploy(...params);
+  
+  console.log(`${contractName} is being deployed...`);
+  console.log(`Transaction hash: ${contract.deployTransaction.hash}`);
+
+  let tx = await contract.deployed();
+  
+  console.log(`Gas Price: ${ethers.utils.formatUnits(contract.deployTransaction.gasPrice.toNumber(), 'gwei')} gwei`)
+  console.log(`Gas Limit: ${contract.deployTransaction.gasLimit.toNumber()}`)
+  
+  console.log(`Deployed ${contractName} to: ${contract.address}`);
+}
+
 async function deployPaymaster(addr) {
   const contractName = "SingleRecipientPaymaster";
   const Contract = await ethers.getContractFactory(contractName);
@@ -20,34 +35,14 @@ async function deployPaymaster(addr) {
   console.log(`Gas Limit: ${contract.deployTransaction.gasLimit.toNumber()}`)
   
   console.log(`Deployed ${contractName} to: ${contract.address}`);
+  return contract;
 }
 
 async function main() {
 
-  // await deployPaymaster("0x4eB337e0FC01b8ed0Db67a37b5CAB4B8AA5F29f0");
-  // return;
+  let rep = await deploy("RepTokens", ["0xc689c800a7121b186208ea3b182fAb2671B337E7"], 50);
 
-  const contractName = "RepTokens";
-  const Contract = await ethers.getContractFactory(contractName);
-  const contract = await Contract.deploy(["0xc689c800a7121b186208ea3b182fAb2671B337E7"], 50);
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  //MAKE SURE TO DEPLOY WITH ATX SPECIFIC PRIVATE KEY
-  console.log(`${contractName} is being deployed...`);
-  console.log(`Transaction hash: ${contract.deployTransaction.hash}`);
-
-  let tx = await contract.deployed();
-  
-  console.log(`Gas Price: ${ethers.utils.formatUnits(contract.deployTransaction.gasPrice.toNumber(), 'gwei')} gwei`)
-  console.log(`Gas Limit: ${contract.deployTransaction.gasLimit.toNumber()}`)
-  
-  console.log(`Deployed contract to: ${contract.address}`);
+  await deploy("SingleRecipientPaymaster", rep.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

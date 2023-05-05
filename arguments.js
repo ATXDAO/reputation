@@ -1,3 +1,3 @@
 module.exports = [
-    ["0xc689c800a7121b186208ea3b182fAb2671B337E7"], 50
+    "0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2"
 ]
