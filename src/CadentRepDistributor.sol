@@ -9,7 +9,7 @@ contract CadentRepDistributor is ERC1155Holder {
     IRepTokens s_rep;
 
     uint256 s_amountDistributedPerCadenceCycle;
-    uint256 s_cadenceCycle;
+    uint256 s_cadence;
 
     mapping(address => uint256) addressToLastClaimDate;
 
@@ -22,7 +22,7 @@ contract CadentRepDistributor is ERC1155Holder {
     ) {
         s_rep = IRepTokens(rep);
         s_amountDistributedPerCadenceCycle = amountDistributedPerCadence;
-        s_cadenceCycle = cadenceCycle;
+        s_cadence = cadenceCycle;
     }
 
     function claim() external {
@@ -44,7 +44,7 @@ contract CadentRepDistributor is ERC1155Holder {
         int lastClaimTime = int(addressToLastClaimDate[addr]);
         return
             lastClaimTime != 0
-                ? (lastClaimTime + int(s_cadenceCycle) - int(block.timestamp))
+                ? (lastClaimTime + int(s_cadence) - int(block.timestamp))
                 : int(0);
     }
 
@@ -56,7 +56,7 @@ contract CadentRepDistributor is ERC1155Holder {
         return s_amountDistributedPerCadenceCycle;
     }
 
-    function getCadenceCycle() external view returns (uint256) {
-        return s_cadenceCycle;
+    function getCadence() external view returns (uint256) {
+        return s_cadence;
     }
 }

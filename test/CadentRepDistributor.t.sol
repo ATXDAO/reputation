@@ -4,11 +4,12 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {MockRepTokens} from "./Mocks/MockRepToken.sol";
 import {CadentRepDistributor} from "../src/CadentRepDistributor.sol";
+import {DeployCadentRepDistributor} from "../script/DeployCadentRepDistributor.s.sol";
 
 contract CadentRepDistributorTest is Test {
     address public ADMIN = makeAddr("ADMIN");
     uint256 constant MAX_MINT_PER_TX = 100;
-    uint256 constant AMOUNT_DISTRIBUTED_PER_DAY = 5;
+    uint256 constant AMOUNT_DISTRIBUTED_PER_CADENCE = 5;
     uint256 constant CADENCE_OF_1_DAY = 86400;
     uint256 constant CADENCE_OF_1_WEEK = 604800;
 
@@ -18,9 +19,12 @@ contract CadentRepDistributorTest is Test {
     MockRepTokens s_repTokens;
     CadentRepDistributor s_cadentRepDistributor;
 
+    DeployCadentRepDistributor s_deployCadentRepDistributor;
+
     function setUp() public {
         address[] memory t = new address[](1);
         t[0] = ADMIN;
+
         s_repTokens = new MockRepTokens(t, MAX_MINT_PER_TX);
 
         vm.startPrank(ADMIN);
@@ -31,9 +35,10 @@ contract CadentRepDistributorTest is Test {
         s_selectedCadence = CADENCE_OF_1_WEEK;
         s_slightlyLessThanCadence = s_selectedCadence - 2;
 
-        s_cadentRepDistributor = new CadentRepDistributor(
+        s_deployCadentRepDistributor = new DeployCadentRepDistributor();
+        s_cadentRepDistributor = s_deployCadentRepDistributor.run(
             address(s_repTokens),
-            AMOUNT_DISTRIBUTED_PER_DAY,
+            AMOUNT_DISTRIBUTED_PER_CADENCE,
             s_selectedCadence
         );
     }
@@ -79,12 +84,10 @@ contract CadentRepDistributorTest is Test {
         s_cadentRepDistributor.claim();
         vm.stopPrank();
 
-        advanceSeconds(CADENCE_OF_1_WEEK + 1 weeks);
+        advanceSeconds(CADENCE_OF_1_WEEK + 1 seconds);
 
         int result = s_cadentRepDistributor.getRemainingTime(user);
-
-        console.logInt(result);
-        console.log(block.timestamp);
+        assertEq(result, -2);
     }
 
     function testDailyRepDistributorGetsGrantedDistributorRole()
@@ -112,7 +115,10 @@ contract CadentRepDistributorTest is Test {
         s_cadentRepDistributor.claim();
         vm.stopPrank();
 
-        assertEq(s_repTokens.balanceOf(user, 0), AMOUNT_DISTRIBUTED_PER_DAY);
+        assertEq(
+            s_repTokens.balanceOf(user, 0),
+            AMOUNT_DISTRIBUTED_PER_CADENCE
+        );
     }
 
     function testUserCanDoClaimAfterOneDayFromLastClaim()
