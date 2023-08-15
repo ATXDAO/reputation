@@ -315,7 +315,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
-.broadcast
+/broadcast
 nosetests.xml
 coverage.xml
 *.cover
