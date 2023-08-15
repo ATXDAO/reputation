@@ -1,3 +1,6 @@
+#Foundry files
+/broadcast
+
 #Hardhat files
 cache
 artifacts
@@ -315,7 +318,6 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
-/broadcast
 nosetests.xml
 coverage.xml
 *.cover
