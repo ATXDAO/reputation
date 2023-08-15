@@ -43,6 +43,15 @@ ifeq ($(findstring --network goerli,$(ARGS)),--network goerli)
 	NETWORK_ARGS := --rpc-url $(GOERLI_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 endif
 
+ifeq ($(findstring --network polygon,$(ARGS)),--network polygon)
+	NETWORK_ARGS := --rpc-url $(POLYGON_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(POLYGONSCAN_API_KEY) -vvvv
+endif
+
+ifeq ($(findstring --network op-mainnet,$(ARGS)),--network op-mainnet)
+	NETWORK_ARGS := --rpc-url $(OP_MAINNET_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(OP_MAINNET_API_KEY) -vvvv
+endif
+
+
 deployRepTokensWithData:
 	@forge script script/DeployRepTokensWithData.s.sol:DeployRepTokensWithData $(NETWORK_ARGS)
 

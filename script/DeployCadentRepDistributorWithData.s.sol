@@ -6,7 +6,7 @@ import {CadentRepDistributor} from "../src/CadentRepDistributor.sol";
 import {DeployCadentRepDistributor} from "./DeployCadentRepDistributor.s.sol";
 
 contract DeployCadentRepDistributorWithData is Script {
-    address repTokens = 0xF0535B9d8E98144BB4233fEdd252220d0152311E;
+    address repTokens = 0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2;
     uint256 amountToDistributePerCadence = 1;
     uint256 cadence = 60;
 

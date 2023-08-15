@@ -6,6 +6,8 @@ import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155
 
 contract CadentRepDistributor is ERC1155Holder {
     error CadentRepDistributor__NOT_ENOUGH_TIME_PASSED();
+    error CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE();
+
     IRepTokens s_rep;
 
     uint256 s_amountToDistributePerCadence;
@@ -28,6 +30,12 @@ contract CadentRepDistributor is ERC1155Holder {
     function claim() external {
         if (getRemainingTime(msg.sender) > 0)
             revert CadentRepDistributor__NOT_ENOUGH_TIME_PASSED();
+
+        if (s_rep.balanceOf(address(this), 0) <= 0)
+            revert CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE();
+
+        if (s_rep.balanceOf(address(this), 1) <= 0)
+            revert CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE();
 
         s_rep.distribute(
             address(this),

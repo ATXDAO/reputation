@@ -7,6 +7,9 @@ import {CadentRepDistributor} from "../src/CadentRepDistributor.sol";
 import {DeployCadentRepDistributor} from "../script/DeployCadentRepDistributor.s.sol";
 
 contract CadentRepDistributorTest is Test {
+    error CadentRepDistributor__NOT_ENOUGH_TIME_PASSED();
+    error CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE();
+
     address public ADMIN = makeAddr("ADMIN");
     uint256 constant MAX_MINT_PER_TX = 100;
     uint256 constant AMOUNT_DISTRIBUTED_PER_CADENCE = 5;
@@ -151,10 +154,7 @@ contract CadentRepDistributorTest is Test {
         vm.startPrank(user);
         s_cadentRepDistributor.claim();
 
-        bytes4 selector = bytes4(
-            keccak256("CadentRepDistributor__NOT_ENOUGH_TIME_PASSED()")
-        );
-        vm.expectRevert(abi.encodeWithSelector(selector));
+        vm.expectRevert(CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
     }
@@ -171,7 +171,19 @@ contract CadentRepDistributorTest is Test {
         advanceSeconds(s_slightlyLessThanCadence);
 
         vm.startPrank(user);
-        vm.expectRevert();
+        vm.expectRevert(CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
+        s_cadentRepDistributor.claim();
+        vm.stopPrank();
+    }
+
+    function testUserCannotClaimBecauseCadentRepDistributorHasNoTokens()
+        public
+        setupDailyRepDistributorRole(ADMIN)
+    {
+        address user = dealNewAccount("user");
+
+        vm.startPrank(user);
+        vm.expectRevert(CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE.selector);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
     }
