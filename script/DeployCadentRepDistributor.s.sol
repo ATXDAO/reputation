@@ -7,13 +7,13 @@ import {CadentRepDistributor} from "../src/CadentRepDistributor.sol";
 contract DeployCadentRepDistributor is Script {
     function run(
         address repTokens,
-        uint256 amountDistributedPerCadence,
+        uint256 amountToDistributePerCadence,
         uint256 cadence
     ) external returns (CadentRepDistributor) {
         vm.startBroadcast();
         CadentRepDistributor cadentRepDistributor = new CadentRepDistributor(
             address(repTokens),
-            amountDistributedPerCadence,
+            amountToDistributePerCadence,
             cadence
         );
         vm.stopBroadcast();

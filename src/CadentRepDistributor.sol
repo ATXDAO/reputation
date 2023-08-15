@@ -8,7 +8,7 @@ contract CadentRepDistributor is ERC1155Holder {
     error CadentRepDistributor__NOT_ENOUGH_TIME_PASSED();
     IRepTokens s_rep;
 
-    uint256 s_amountDistributedPerCadenceCycle;
+    uint256 s_amountToDistributePerCadence;
     uint256 s_cadence;
 
     mapping(address => uint256) addressToLastClaimDate;
@@ -21,7 +21,7 @@ contract CadentRepDistributor is ERC1155Holder {
         uint256 cadenceCycle
     ) {
         s_rep = IRepTokens(rep);
-        s_amountDistributedPerCadenceCycle = amountDistributedPerCadence;
+        s_amountToDistributePerCadence = amountDistributedPerCadence;
         s_cadence = cadenceCycle;
     }
 
@@ -32,7 +32,7 @@ contract CadentRepDistributor is ERC1155Holder {
         s_rep.distribute(
             address(this),
             msg.sender,
-            s_amountDistributedPerCadenceCycle,
+            s_amountToDistributePerCadence,
             ""
         );
 
@@ -48,12 +48,8 @@ contract CadentRepDistributor is ERC1155Holder {
                 : int(0);
     }
 
-    function getAmountDistributedPerCadenceCycle()
-        external
-        view
-        returns (uint256)
-    {
-        return s_amountDistributedPerCadenceCycle;
+    function getAmountToDistributePerCadence() external view returns (uint256) {
+        return s_amountToDistributePerCadence;
     }
 
     function getCadence() external view returns (uint256) {

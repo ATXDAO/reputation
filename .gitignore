@@ -2,7 +2,6 @@
 cache
 artifacts
 
-
 # Created by .ignore support plugin (hsz.mobi)
 ### VisualStudioCode template
 .vscode/*
@@ -316,6 +315,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.broadcast
 nosetests.xml
 coverage.xml
 *.cover
