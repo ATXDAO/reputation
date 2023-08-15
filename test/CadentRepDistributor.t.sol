@@ -22,10 +22,10 @@ contract CadentRepDistributorTest is Test {
     DeployCadentRepDistributor s_deployCadentRepDistributor;
 
     function setUp() public {
-        address[] memory t = new address[](1);
-        t[0] = ADMIN;
+        address[] memory admins = new address[](1);
+        admins[0] = ADMIN;
 
-        s_repTokens = new MockRepTokens(t, MAX_MINT_PER_TX);
+        s_repTokens = new MockRepTokens(admins, MAX_MINT_PER_TX);
 
         vm.startPrank(ADMIN);
         s_repTokens.grantRole(s_repTokens.MINTER_ROLE(), ADMIN);
