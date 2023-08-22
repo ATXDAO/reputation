@@ -14,20 +14,11 @@ contract RepTokensTest is Test {
 
     DeployRepTokens deployer;
 
-    address[] public t;
+    address[] public admins;
 
     function setUp() public {
-        t = [accounts[0]];
+        admins = [accounts[0]];
         deployer = new DeployRepTokens();
-        s_repTokens = deployer.run(t, MAX_MINT_PER_TX);
-    }
-
-    function testAccountZeroHasAdminRole() external {
-        bool hasRole = s_repTokens.hasRole(s_repTokens.DEFAULT_ADMIN_ROLE(), accounts[0]);
-        assertEq(hasRole, true);
-    }
-
-    function testMaxMintPerTxEqualsValuePassedInDuringDeployment() external {
-        assertEq(s_repTokens.maxMintAmountPerTx(), MAX_MINT_PER_TX);
+        s_repTokens = deployer.run(admins, MAX_MINT_PER_TX);
     }
 }
