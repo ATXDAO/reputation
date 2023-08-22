@@ -7,14 +7,14 @@ import {CadentRepDistributor} from "../src/CadentRepDistributor.sol";
 import {DeployCadentRepDistributor} from "../script/DeployCadentRepDistributor.s.sol";
 
 contract CadentRepDistributorTest is Test {
-    error CadentRepDistributor__NOT_ENOUGH_TIME_PASSED();
-    error CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE();
-
     address public ADMIN = makeAddr("ADMIN");
+    address public USER = makeAddr("USER");
     uint256 constant MAX_MINT_PER_TX = 100;
     uint256 constant AMOUNT_DISTRIBUTED_PER_CADENCE = 5;
     uint256 constant CADENCE_OF_1_DAY = 86400;
     uint256 constant CADENCE_OF_1_WEEK = 604800;
+
+    uint256 constant AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH = 100;
 
     uint256 s_selectedCadence;
     uint256 s_slightlyLessThanCadence;
@@ -39,11 +39,10 @@ contract CadentRepDistributorTest is Test {
         s_slightlyLessThanCadence = s_selectedCadence - 2;
 
         s_deployCadentRepDistributor = new DeployCadentRepDistributor();
-        s_cadentRepDistributor = s_deployCadentRepDistributor.run(
-            address(s_repTokens),
-            AMOUNT_DISTRIBUTED_PER_CADENCE,
-            s_selectedCadence
-        );
+        s_cadentRepDistributor =
+            s_deployCadentRepDistributor.run(address(s_repTokens), AMOUNT_DISTRIBUTED_PER_CADENCE, s_selectedCadence);
+
+        vm.deal(USER, 1 ether);
     }
 
     function advanceSeconds(uint256 numOfSeconds) public {
@@ -51,27 +50,16 @@ contract CadentRepDistributorTest is Test {
         vm.roll(block.number + 1);
     }
 
-    function dealNewAccount(
-        string memory accountName
-    ) public returns (address) {
-        address user = makeAddr(accountName);
-        vm.deal(user, 1 ether);
-        return user;
-    }
-
     modifier setupDailyRepDistributorRole(address admin) {
         vm.startPrank(admin);
-        s_repTokens.grantRole(
-            s_repTokens.DISTRIBUTOR_ROLE(),
-            address(s_cadentRepDistributor)
-        );
+        s_repTokens.grantRole(s_repTokens.DISTRIBUTOR_ROLE(), address(s_cadentRepDistributor));
         vm.stopPrank();
         _;
     }
 
-    modifier setupDailyRepDistributorWithTokens(address minter) {
+    modifier setupDailyRepDistributorWithTokens(address minter, uint256 amount) {
         vm.startPrank(minter);
-        s_repTokens.mint(address(s_cadentRepDistributor), 100, "");
+        s_repTokens.mint(address(s_cadentRepDistributor), amount, "");
         vm.stopPrank();
         _;
     }
@@ -79,63 +67,48 @@ contract CadentRepDistributorTest is Test {
     function testGetRemainingTime()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
-        address user = dealNewAccount("user");
-
-        vm.startPrank(user);
+        vm.startPrank(USER);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
 
         advanceSeconds(CADENCE_OF_1_WEEK + 1 seconds);
 
-        int result = s_cadentRepDistributor.getRemainingTime(user);
+        int256 result = s_cadentRepDistributor.getRemainingTime(USER);
         assertEq(result, -2);
     }
 
     function testDailyRepDistributorGetsGrantedDistributorRole()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
-        assertEq(
-            s_repTokens.hasRole(
-                s_repTokens.DISTRIBUTOR_ROLE(),
-                address(s_cadentRepDistributor)
-            ),
-            true
-        );
+        assertEq(s_repTokens.hasRole(s_repTokens.DISTRIBUTOR_ROLE(), address(s_cadentRepDistributor)), true);
     }
 
     function testUserCanDoFirstTimeClaim()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
-        address user = dealNewAccount("user");
-
-        vm.startPrank(user);
+        vm.startPrank(USER);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
 
-        assertEq(
-            s_repTokens.balanceOf(user, 0),
-            AMOUNT_DISTRIBUTED_PER_CADENCE
-        );
+        assertEq(s_repTokens.balanceOf(USER, 0), AMOUNT_DISTRIBUTED_PER_CADENCE);
     }
 
     function testUserCanDoClaimAfterOneDayFromLastClaim()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
         testUserCanDoFirstTimeClaim();
 
-        address user = dealNewAccount("user");
-
         advanceSeconds(s_selectedCadence);
 
-        vm.startPrank(user);
+        vm.startPrank(USER);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
     }
@@ -143,18 +116,16 @@ contract CadentRepDistributorTest is Test {
     function testUserCannotDoClaimImmediatelyAfterLastClaim()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
         testUserCanDoFirstTimeClaim();
 
-        address user = dealNewAccount("user");
-
         advanceSeconds(s_selectedCadence);
 
-        vm.startPrank(user);
+        vm.startPrank(USER);
         s_cadentRepDistributor.claim();
 
-        vm.expectRevert(CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
+        vm.expectRevert(CadentRepDistributor.CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
     }
@@ -162,29 +133,30 @@ contract CadentRepDistributorTest is Test {
     function testUserCannotDoClaimBeforeAnyClaim()
         public
         setupDailyRepDistributorRole(ADMIN)
-        setupDailyRepDistributorWithTokens(ADMIN)
+        setupDailyRepDistributorWithTokens(ADMIN, AMOUNT_TO_SET_UP_DISTRIBUTOR_WITH)
     {
         testUserCanDoFirstTimeClaim();
 
-        address user = dealNewAccount("user");
-
         advanceSeconds(s_slightlyLessThanCadence);
 
-        vm.startPrank(user);
-        vm.expectRevert(CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
+        vm.startPrank(USER);
+        vm.expectRevert(CadentRepDistributor.CadentRepDistributor__NOT_ENOUGH_TIME_PASSED.selector);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
     }
 
-    function testUserCannotClaimBecauseCadentRepDistributorHasNoTokens()
-        public
-        setupDailyRepDistributorRole(ADMIN)
-    {
-        address user = dealNewAccount("user");
-
-        vm.startPrank(user);
-        vm.expectRevert(CadentRepDistributor__NO_TOkENS_TO_DISTRIBUTE.selector);
+    function testUserCannotClaimBecauseCadentRepDistributorHasNoTokens() public setupDailyRepDistributorRole(ADMIN) {
+        vm.startPrank(USER);
+        vm.expectRevert(CadentRepDistributor.CadentRepDistributor__NOT_ENOUGH_TOkENS_TO_DISTRIBUTE.selector);
         s_cadentRepDistributor.claim();
         vm.stopPrank();
+    }
+
+    function testGetAmountToDistributePerCadence() public {
+        assertEq(s_cadentRepDistributor.getAmountToDistributePerCadence(), AMOUNT_DISTRIBUTED_PER_CADENCE);
+    }
+
+    function testGetCadence() public {
+        assertEq(s_cadentRepDistributor.getCadence(), s_selectedCadence);
     }
 }

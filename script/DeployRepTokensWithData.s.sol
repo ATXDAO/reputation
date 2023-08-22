@@ -6,13 +6,14 @@ import {RepTokens} from "../src/RepTokens.sol";
 import {DeployRepTokens} from "./DeployRepTokens.s.sol";
 
 contract DeployRepTokensWithData is Script {
-    address ADMIN = 0xc4f6578c24c599F195c0758aD3D4861758d703A3;
+    address ADMIN = 0xD08B05944d58c8d75e9b09d5d83d311caF28A7c5;
     uint256 constant MAX_MINT_PER_TX = 20;
+
+    address[] public admins;
 
     function run() external returns (RepTokens) {
         DeployRepTokens deployer = new DeployRepTokens();
-        address[] memory admins = new address[](1);
-        admins[0] = ADMIN;
+        admins = [ADMIN];
 
         return deployer.run(admins, MAX_MINT_PER_TX);
     }
