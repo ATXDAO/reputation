@@ -14,7 +14,12 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant TOKEN_MIGRATOR_ROLE = keccak256("TOKEN_MIGRATOR_ROLE");
 
-    uint256 public maxMintAmountPerTx;
+    uint256 private s_maxMintAmountPerTx;
+
+    function getMaxMintAmountPerTransaciton() external view returns (uint256) {
+        return s_maxMintAmountPerTx;
+    }
+
     mapping(uint256 => address[]) ownersOfTokenTypes;
     mapping(address => address) public destinationWallets;
 
@@ -26,14 +31,14 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
 
     //id 0 = lifetime token
     //id 1 = transferable token
-    constructor(address[] memory admins, uint256 _maxMintAmountPerTx)
+    constructor(address[] memory admins, uint256 maxMintAmountPerTx)
         ERC1155("ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/{id}")
     {
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
 
-        maxMintAmountPerTx = _maxMintAmountPerTx;
+        s_maxMintAmountPerTx = maxMintAmountPerTx;
     }
 
     function uri(uint256 _tokenid) public pure override returns (string memory) {
@@ -45,7 +50,7 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     }
 
     function mint(address to, uint256 amount, bytes memory data) public onlyRole(MINTER_ROLE) whenNotPaused {
-        require(amount <= maxMintAmountPerTx, "Cannot mint that many tokens in a single transaction!");
+        require(amount <= s_maxMintAmountPerTx, "Cannot mint that many tokens in a single transaction!");
 
         require(hasRole(DISTRIBUTOR_ROLE, to), "Minter can only mint tokens to distributors!");
 
@@ -67,8 +72,8 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         }
     }
 
-    function setMaxMintAmount(uint256 value) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        maxMintAmountPerTx = value;
+    function setMaxMintAmount(uint256 value) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        s_maxMintAmountPerTx = value;
     }
 
     function setDestinationWallet(address destination) public {
