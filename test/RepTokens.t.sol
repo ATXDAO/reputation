@@ -20,6 +20,12 @@ contract RepTokensTest is Test {
         admins = [accounts[0]];
         deployer = new DeployRepTokens();
         s_repTokens =
-            deployer.run(admins, MAX_MINT_PER_TX, "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4");
+            deployer.run(admins, MAX_MINT_PER_TX, "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/");
+
+        // s_repTokens.grantRole(s_repTokens.MINTER_ROLE(), accounts[0]);
+    }
+
+    function testURI() public view {
+        console.log(s_repTokens.uri(0));
     }
 }

@@ -29,21 +29,23 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     event OwnershipOfTokensMigrated(address from, address to, uint256 lifetimeBalance, uint256 redeemableBalance);
     event BurnedRedeemable(address from, address to, uint256 amount);
 
+    string private s_baseURI;
+
     //id 0 = lifetime token
     //id 1 = transferable token
-    // ATX DAO BaseURI: ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4
     constructor(address[] memory admins, uint256 maxMintAmountPerTx, string memory baseURI)
-        ERC1155(string.concat(baseURI, "/{id}"))
+        ERC1155(string.concat(baseURI, "{id}"))
     {
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
 
         s_maxMintAmountPerTx = maxMintAmountPerTx;
+        s_baseURI = baseURI;
     }
 
-    function uri(uint256 _tokenid) public pure override returns (string memory) {
-        return string.concat("ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/", uint2str(_tokenid));
+    function uri(uint256 tokenId) public view override returns (string memory) {
+        return string(abi.encodePacked(s_baseURI, Strings.toString(tokenId)));
     }
 
     function uint2str(uint256 _i) internal pure returns (string memory _uintAsString) {
