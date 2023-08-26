@@ -43,11 +43,29 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     }
 
     function uri(uint256 _tokenid) public pure override returns (string memory) {
-        return string(
-            abi.encodePacked(
-                "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/", Strings.toString(_tokenid)
-            )
-        );
+        return string.concat("ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/", uint2str(_tokenid));
+    }
+
+    function uint2str(uint256 _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint256 j = _i;
+        uint256 len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint256 k = len;
+        while (_i != 0) {
+            k = k - 1;
+            uint8 temp = (48 + uint8(_i - _i / 10 * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
+            _i /= 10;
+        }
+        return string(bstr);
     }
 
     function mint(address to, uint256 amount, bytes memory data) public onlyRole(MINTER_ROLE) whenNotPaused {
