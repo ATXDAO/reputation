@@ -19,6 +19,7 @@ contract RepTokensTest is Test {
     function setUp() public {
         admins = [accounts[0]];
         deployer = new DeployRepTokens();
-        s_repTokens = deployer.run(admins, MAX_MINT_PER_TX);
+        s_repTokens =
+            deployer.run(admins, MAX_MINT_PER_TX, "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4");
     }
 }

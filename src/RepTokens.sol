@@ -31,8 +31,9 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
 
     //id 0 = lifetime token
     //id 1 = transferable token
-    constructor(address[] memory admins, uint256 maxMintAmountPerTx)
-        ERC1155("ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/{id}")
+    // ATX DAO BaseURI: ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4
+    constructor(address[] memory admins, uint256 maxMintAmountPerTx, string memory baseURI)
+        ERC1155(string.concat(baseURI, "/{id}"))
     {
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
