@@ -7,8 +7,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-//a test comment
-
 contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
