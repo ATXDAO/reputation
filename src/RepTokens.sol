@@ -11,13 +11,10 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant TOKEN_MIGRATOR_ROLE = keccak256("TOKEN_MIGRATOR_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE =
+        keccak256("TOKEN_MIGRATOR_ROLE");
 
     uint256 private s_maxMintAmountPerTx;
-
-    function getMaxMintAmountPerTransaciton() external view returns (uint256) {
-        return s_maxMintAmountPerTx;
-    }
 
     mapping(uint256 => address[]) ownersOfTokenTypes;
     mapping(address => address) public destinationWallets;
@@ -25,16 +22,23 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
     event Mint(address minter, address to, uint256 amount);
     event DestinationWalletSet(address coreAddress, address destination);
     event Distributed(address from, address to, uint256 amount);
-    event OwnershipOfTokensMigrated(address from, address to, uint256 lifetimeBalance, uint256 redeemableBalance);
+    event OwnershipOfTokensMigrated(
+        address from,
+        address to,
+        uint256 lifetimeBalance,
+        uint256 redeemableBalance
+    );
     event BurnedRedeemable(address from, address to, uint256 amount);
 
     string private s_baseURI;
 
     //id 0 = lifetime token
     //id 1 = transferable token
-    constructor(address[] memory admins, uint256 maxMintAmountPerTx, string memory baseURI)
-        ERC1155(string.concat(baseURI, "{id}"))
-    {
+    constructor(
+        address[] memory admins,
+        uint256 maxMintAmountPerTx,
+        string memory baseURI
+    ) ERC1155(string.concat(baseURI, "{id}")) {
         for (uint256 i = 0; i < admins.length; i++) {
             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
@@ -47,10 +51,20 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         return string(abi.encodePacked(s_baseURI, Strings.toString(tokenId)));
     }
 
-    function mint(address to, uint256 amount, bytes memory data) public onlyRole(MINTER_ROLE) whenNotPaused {
-        require(amount <= s_maxMintAmountPerTx, "Cannot mint that many tokens in a single transaction!");
+    function mint(
+        address to,
+        uint256 amount,
+        bytes memory data
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
+        require(
+            amount <= s_maxMintAmountPerTx,
+            "Cannot mint that many tokens in a single transaction!"
+        );
 
-        require(hasRole(DISTRIBUTOR_ROLE, to), "Minter can only mint tokens to distributors!");
+        require(
+            hasRole(DISTRIBUTOR_ROLE, to),
+            "Minter can only mint tokens to distributors!"
+        );
 
         //mints an amount of lifetime tokens to an address.
         super._mint(to, 0, amount, data);
@@ -60,17 +74,19 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         emit Mint(_msgSender(), to, amount);
     }
 
-    function mintBatch(address[] memory to, uint256[] memory amount, bytes memory data)
-        public
-        onlyRole(MINTER_ROLE)
-        whenNotPaused
-    {
+    function mintBatch(
+        address[] memory to,
+        uint256[] memory amount,
+        bytes memory data
+    ) public onlyRole(MINTER_ROLE) whenNotPaused {
         for (uint256 i = 0; i < to.length; i++) {
             mint(to[i], amount[i], data);
         }
     }
 
-    function setMaxMintAmount(uint256 value) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMaxMintAmount(
+        uint256 value
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         s_maxMintAmountPerTx = value;
     }
 
@@ -78,18 +94,22 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         _setDestinationWallet(_msgSender(), destination);
     }
 
-    function _setDestinationWallet(address coreAddress, address destination) internal {
+    function _setDestinationWallet(
+        address coreAddress,
+        address destination
+    ) internal {
         destinationWallets[coreAddress] = destination;
         emit DestinationWalletSet(coreAddress, destination);
     }
 
     //from : distributor
     //to : address
-    function distribute(address from, address to, uint256 amount, bytes memory data)
-        public
-        onlyRole(DISTRIBUTOR_ROLE)
-        whenNotPaused
-    {
+    function distribute(
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
         if (destinationWallets[to] == address(0)) {
             _setDestinationWallet(to, to);
         }
@@ -99,11 +119,12 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         emit Distributed(from, destinationWallets[to], amount);
     }
 
-    function distributeBatch(address from, address[] memory to, uint256[] memory amount, bytes memory data)
-        public
-        onlyRole(DISTRIBUTOR_ROLE)
-        whenNotPaused
-    {
+    function distributeBatch(
+        address from,
+        address[] memory to,
+        uint256[] memory amount,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
         for (uint256 i = 0; i < to.length; i++) {
             distribute(from, to[i], amount[i], data);
         }
@@ -111,10 +132,13 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
 
     //from : address
     //to : burner
-    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes memory data)
-        public
-        override
-    {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public override {
         require(id == 1, "Can only send a redeemable token!");
 
         require(
@@ -124,7 +148,10 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
 
         require(!hasRole(BURNER_ROLE, from), "Burners cannot send tokens!");
 
-        require(hasRole(BURNER_ROLE, to), "Can only send Redeemable Tokens to burners!");
+        require(
+            hasRole(BURNER_ROLE, to),
+            "Can only send Redeemable Tokens to burners!"
+        );
 
         super.safeTransferFrom(from, to, id, amount, data);
         emit BurnedRedeemable(from, to, amount);
@@ -161,19 +188,30 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
 
     //this needs to be called beforehand by address that wants to transfer its lifetime tokens:
     //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
-    function migrateOwnershipOfTokens(address from, address to) public onlyRole(TOKEN_MIGRATOR_ROLE) {
+    function migrateOwnershipOfTokens(
+        address from,
+        address to
+    ) public onlyRole(TOKEN_MIGRATOR_ROLE) {
         uint256 lifetimeBalance = balanceOf(from, 0);
         uint256 redeemableBalance = balanceOf(from, 1);
 
         super.safeTransferFrom(from, to, 0, lifetimeBalance, "");
         super.safeTransferFrom(from, to, 1, redeemableBalance, "");
-        emit OwnershipOfTokensMigrated(from, to, lifetimeBalance, redeemableBalance);
+        emit OwnershipOfTokensMigrated(
+            from,
+            to,
+            lifetimeBalance,
+            redeemableBalance
+        );
     }
 
     //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
     //as an owner of @tokenID.
     //@tokenID: the ID of the token selected.
-    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(address addrToCheck, uint256 tokenID) internal {
+    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(
+        address addrToCheck,
+        uint256 tokenID
+    ) internal {
         //get all owners of a given tokenID.
         address[] storage owners = ownersOfTokenTypes[tokenID];
 
@@ -198,7 +236,10 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         }
     }
 
-    function removeAddressAsOwnerOfTokenID(address addrToCheck, uint256 id) internal {
+    function removeAddressAsOwnerOfTokenID(
+        address addrToCheck,
+        uint256 id
+    ) internal {
         address[] storage owners = ownersOfTokenTypes[id];
 
         uint256 index;
@@ -215,11 +256,15 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         owners.pop();
     }
 
-    function getOwnersOfTokenID(uint256 tokenID) public view returns (address[] memory) {
+    function getOwnersOfTokenID(
+        uint256 tokenID
+    ) public view returns (address[] memory) {
         return ownersOfTokenTypes[tokenID];
     }
 
-    function getOwnersOfTokenIDLength(uint256 tokenID) public view returns (uint256) {
+    function getOwnersOfTokenIDLength(
+        uint256 tokenID
+    ) public view returns (uint256) {
         return ownersOfTokenTypes[tokenID].length;
     }
 
@@ -231,13 +276,17 @@ contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
         }
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function getBaseURI() external view returns (string memory) {
+        return s_baseURI;
+    }
+
+    function getMaxMintAmountPerTransaciton() external view returns (uint256) {
+        return s_maxMintAmountPerTx;
     }
 }
