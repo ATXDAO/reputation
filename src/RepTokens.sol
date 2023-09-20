@@ -1,292 +1,303 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+// // SPDX-License-Identifier: UNLICENSED
+// pragma solidity ^0.8.9;
 
-import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+// import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+// import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+// import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
+// import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+// import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+// import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+// import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
+// import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+// import {IRepTokens} from "./IRepTokens.sol";
 
-contract RepTokens is AccessControl, Ownable, ERC1155, Pausable {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant TOKEN_MIGRATOR_ROLE =
-        keccak256("TOKEN_MIGRATOR_ROLE");
+// contract RepTokens is IRepTokens, AccessControl, Ownable, ERC1155, Pausable {
+//     error AttemptingToMintTooManyTokens();
+//     error AttemptingToMintToNonDistributor();
 
-    uint256 private s_maxMintAmountPerTx;
+//     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+//     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
+//     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+//     bytes32 public constant TOKEN_MIGRATOR_ROLE =
+//         keccak256("TOKEN_MIGRATOR_ROLE");
 
-    mapping(uint256 => address[]) ownersOfTokenTypes;
-    mapping(address => address) public destinationWallets;
+//     uint256 private s_maxMintAmountPerTx;
 
-    event Mint(address minter, address to, uint256 amount);
-    event DestinationWalletSet(address coreAddress, address destination);
-    event Distributed(address from, address to, uint256 amount);
-    event OwnershipOfTokensMigrated(
-        address from,
-        address to,
-        uint256 lifetimeBalance,
-        uint256 redeemableBalance
-    );
-    event BurnedRedeemable(address from, address to, uint256 amount);
+//     mapping(uint256 => address[]) ownersOfTokenTypes;
+//     mapping(address => address) public destinationWallets;
 
-    string private s_baseURI;
+//     event Mint(address minter, address to, uint256 amount);
+//     event DestinationWalletSet(address coreAddress, address destination);
+//     event Distributed(address from, address to, uint256 amount);
+//     event OwnershipOfTokensMigrated(
+//         address from,
+//         address to,
+//         uint256 lifetimeBalance,
+//         uint256 redeemableBalance
+//     );
+//     event BurnedRedeemable(address from, address to, uint256 amount);
 
-    //id 0 = lifetime token
-    //id 1 = transferable token
-    constructor(
-        address[] memory admins,
-        uint256 maxMintAmountPerTx,
-        string memory baseURI
-    ) ERC1155(string.concat(baseURI, "{id}")) {
-        for (uint256 i = 0; i < admins.length; i++) {
-            _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
-        }
+//     string private s_baseURI;
 
-        s_maxMintAmountPerTx = maxMintAmountPerTx;
-        s_baseURI = baseURI;
-    }
+//     //id 0 = lifetime token
+//     //id 1 = transferable token
+//     constructor(
+//         address[] memory admins,
+//         uint256 maxMintAmountPerTx,
+//         string memory baseURI
+//     ) ERC1155(string.concat(baseURI, "{id}")) {
+//         for (uint256 i = 0; i < admins.length; i++) {
+//             _setupRole(DEFAULT_ADMIN_ROLE, admins[i]);
+//         }
 
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        return string(abi.encodePacked(s_baseURI, Strings.toString(tokenId)));
-    }
+//         s_maxMintAmountPerTx = maxMintAmountPerTx;
+//         s_baseURI = baseURI;
+//     }
 
-    function mint(
-        address to,
-        uint256 amount,
-        bytes memory data
-    ) public onlyRole(MINTER_ROLE) whenNotPaused {
-        require(
-            amount <= s_maxMintAmountPerTx,
-            "Cannot mint that many tokens in a single transaction!"
-        );
+//     function uri(uint256 tokenId) public view override returns (string memory) {
+//         return string(abi.encodePacked(s_baseURI, Strings.toString(tokenId)));
+//     }
 
-        require(
-            hasRole(DISTRIBUTOR_ROLE, to),
-            "Minter can only mint tokens to distributors!"
-        );
+//     function mint(
+//         address to,
+//         uint256 amount,
+//         bytes memory data
+//     ) public onlyRole(MINTER_ROLE) whenNotPaused {
+//         if (amount >= s_maxMintAmountPerTx) {
+//             revert AttemptingToMintTooManyTokens();
+//         }
 
-        //mints an amount of lifetime tokens to an address.
-        super._mint(to, 0, amount, data);
-        //mints an amount of transferable tokens to an address.
-        super._mint(to, 1, amount, data);
+//         if (!hasRole(DISTRIBUTOR_ROLE, to)) {
+//             revert AttemptingToMintToNonDistributor();
+//         }
 
-        emit Mint(_msgSender(), to, amount);
-    }
+//         //mints an amount of lifetime tokens to an address.
+//         super._mint(to, 0, amount, data);
+//         //mints an amount of transferable tokens to an address.
+//         super._mint(to, 1, amount, data);
 
-    function mintBatch(
-        address[] memory to,
-        uint256[] memory amount,
-        bytes memory data
-    ) public onlyRole(MINTER_ROLE) whenNotPaused {
-        for (uint256 i = 0; i < to.length; i++) {
-            mint(to[i], amount[i], data);
-        }
-    }
+//         emit Mint(_msgSender(), to, amount);
+//     }
 
-    function setMaxMintAmount(
-        uint256 value
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        s_maxMintAmountPerTx = value;
-    }
+//     function mintBatch(
+//         address[] memory to,
+//         uint256[] memory amount,
+//         bytes memory data
+//     ) public onlyRole(MINTER_ROLE) whenNotPaused {
+//         for (uint256 i = 0; i < to.length; i++) {
+//             mint(to[i], amount[i], data);
+//         }
+//     }
 
-    function setDestinationWallet(address destination) public {
-        _setDestinationWallet(_msgSender(), destination);
-    }
+//     function setMaxMintAmount(
+//         uint256 value
+//     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+//         s_maxMintAmountPerTx = value;
+//     }
 
-    function _setDestinationWallet(
-        address coreAddress,
-        address destination
-    ) internal {
-        destinationWallets[coreAddress] = destination;
-        emit DestinationWalletSet(coreAddress, destination);
-    }
+//     function setDestinationWallet(address destination) public {
+//         _setDestinationWallet(_msgSender(), destination);
+//     }
 
-    //from : distributor
-    //to : address
-    function distribute(
-        address from,
-        address to,
-        uint256 amount,
-        bytes memory data
-    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
-        if (destinationWallets[to] == address(0)) {
-            _setDestinationWallet(to, to);
-        }
+//     function _setDestinationWallet(
+//         address coreAddress,
+//         address destination
+//     ) internal {
+//         destinationWallets[coreAddress] = destination;
+//         emit DestinationWalletSet(coreAddress, destination);
+//     }
 
-        super.safeTransferFrom(from, destinationWallets[to], 0, amount, data);
-        super.safeTransferFrom(from, destinationWallets[to], 1, amount, data);
-        emit Distributed(from, destinationWallets[to], amount);
-    }
+//     //from : distributor
+//     //to : address
+//     function distribute(
+//         address from,
+//         address to,
+//         uint256 amount,
+//         bytes memory data
+//     ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
+//         if (destinationWallets[to] == address(0)) {
+//             _setDestinationWallet(to, to);
+//         }
 
-    function distributeBatch(
-        address from,
-        address[] memory to,
-        uint256[] memory amount,
-        bytes memory data
-    ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
-        for (uint256 i = 0; i < to.length; i++) {
-            distribute(from, to[i], amount[i], data);
-        }
-    }
+//         super.safeTransferFrom(from, destinationWallets[to], 0, amount, data);
+//         super.safeTransferFrom(from, destinationWallets[to], 1, amount, data);
+//         emit Distributed(from, destinationWallets[to], amount);
+//     }
 
-    //from : address
-    //to : burner
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) public override {
-        require(id == 1, "Can only send a redeemable token!");
+//     function distributeBatch(
+//         address from,
+//         address[] memory to,
+//         uint256[] memory amount,
+//         bytes memory data
+//     ) public onlyRole(DISTRIBUTOR_ROLE) whenNotPaused {
+//         for (uint256 i = 0; i < to.length; i++) {
+//             distribute(from, to[i], amount[i], data);
+//         }
+//     }
 
-        require(
-            !hasRole(DISTRIBUTOR_ROLE, from),
-            "Distributors can only send tokens in pairs through the transferFromDistributor function!"
-        );
+//     //from : address
+//     //to : burner
+//     function safeTransferFrom(
+//         address from,
+//         address to,
+//         uint256 id,
+//         uint256 amount,
+//         bytes memory data
+//     ) public override(ERC1155, IERC1155) {
+//         require(id == 1, "Can only send a redeemable token!");
 
-        require(!hasRole(BURNER_ROLE, from), "Burners cannot send tokens!");
+//         require(
+//             !hasRole(DISTRIBUTOR_ROLE, from),
+//             "Distributors can only send tokens in pairs through the transferFromDistributor function!"
+//         );
 
-        require(
-            hasRole(BURNER_ROLE, to),
-            "Can only send Redeemable Tokens to burners!"
-        );
+//         require(!hasRole(BURNER_ROLE, from), "Burners cannot send tokens!");
 
-        super.safeTransferFrom(from, to, id, amount, data);
-        emit BurnedRedeemable(from, to, amount);
-    }
+//         require(
+//             hasRole(BURNER_ROLE, to),
+//             "Can only send Redeemable Tokens to burners!"
+//         );
 
-    function _afterTokenTransfer(
-        address operator,
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override {
-        //loop through transferred token IDs
-        for (uint256 i = 0; i < ids.length; i++) {
-            //if the tokenID balance of the receiving address is greater than zero after the transfer, then check to see if the receiving
-            //address needs to be added as an owner to the tokenID
-            if (balanceOf(to, ids[i]) > 0) {
-                addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(to, ids[i]);
-            }
+//         super.safeTransferFrom(from, to, id, amount, data);
+//         emit BurnedRedeemable(from, to, amount);
+//     }
 
-            //address(0) cannot have a balance of tokens so check to see if it is the sender (usually from == address(0) in the case of minting)
-            if (from != address(0)) {
-                //if the tokenID balance of the sending address is less than zero after the transfer, then remove it from being an owner
-                //of the tokenID
-                if (balanceOf(from, ids[i]) <= 0) {
-                    removeAddressAsOwnerOfTokenID(from, ids[i]);
-                }
-            }
-        }
+//     function _afterTokenTransfer(
+//         address operator,
+//         address from,
+//         address to,
+//         uint256[] memory ids,
+//         uint256[] memory amounts,
+//         bytes memory data
+//     ) internal override {
+//         //loop through transferred token IDs
+//         for (uint256 i = 0; i < ids.length; i++) {
+//             //if the tokenID balance of the receiving address is greater than zero after the transfer, then check to see if the receiving
+//             //address needs to be added as an owner to the tokenID
+//             if (balanceOf(to, ids[i]) > 0) {
+//                 addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(to, ids[i]);
+//             }
 
-        super._afterTokenTransfer(operator, from, to, ids, amounts, data);
-    }
+//             //address(0) cannot have a balance of tokens so check to see if it is the sender (usually from == address(0) in the case of minting)
+//             if (from != address(0)) {
+//                 //if the tokenID balance of the sending address is less than zero after the transfer, then remove it from being an owner
+//                 //of the tokenID
+//                 if (balanceOf(from, ids[i]) <= 0) {
+//                     removeAddressAsOwnerOfTokenID(from, ids[i]);
+//                 }
+//             }
+//         }
 
-    //this needs to be called beforehand by address that wants to transfer its lifetime tokens:
-    //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
-    function migrateOwnershipOfTokens(
-        address from,
-        address to
-    ) public onlyRole(TOKEN_MIGRATOR_ROLE) {
-        uint256 lifetimeBalance = balanceOf(from, 0);
-        uint256 redeemableBalance = balanceOf(from, 1);
+//         super._afterTokenTransfer(operator, from, to, ids, amounts, data);
+//     }
 
-        super.safeTransferFrom(from, to, 0, lifetimeBalance, "");
-        super.safeTransferFrom(from, to, 1, redeemableBalance, "");
-        emit OwnershipOfTokensMigrated(
-            from,
-            to,
-            lifetimeBalance,
-            redeemableBalance
-        );
-    }
+//     //this needs to be called beforehand by address that wants to transfer its lifetime tokens:
+//     //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
+//     function migrateOwnershipOfTokens(
+//         address from,
+//         address to
+//     ) public onlyRole(TOKEN_MIGRATOR_ROLE) {
+//         uint256 lifetimeBalance = balanceOf(from, 0);
+//         uint256 redeemableBalance = balanceOf(from, 1);
 
-    //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
-    //as an owner of @tokenID.
-    //@tokenID: the ID of the token selected.
-    function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(
-        address addrToCheck,
-        uint256 tokenID
-    ) internal {
-        //get all owners of a given tokenID.
-        address[] storage owners = ownersOfTokenTypes[tokenID];
+//         super.safeTransferFrom(from, to, 0, lifetimeBalance, "");
+//         super.safeTransferFrom(from, to, 1, redeemableBalance, "");
+//         emit OwnershipOfTokensMigrated(
+//             from,
+//             to,
+//             lifetimeBalance,
+//             redeemableBalance
+//         );
+//     }
 
-        bool isPresent = false;
+//     //@addrToCheck: Address to check during _afterTokenTransfer if it is already registered
+//     //as an owner of @tokenID.
+//     //@tokenID: the ID of the token selected.
+//     function addAddressAsOwnerOfTokenIDIfNotAlreadyPresent(
+//         address addrToCheck,
+//         uint256 tokenID
+//     ) internal {
+//         //get all owners of a given tokenID.
+//         address[] storage owners = ownersOfTokenTypes[tokenID];
 
-        //loop through all token owners of selected tokenID.
-        for (uint256 i = 0; i < owners.length; i++) {
-            //if address of receiver is found within selected tokenID's owners.
-            if (owners[i] == addrToCheck) {
-                //the address of receiver is equal to a current owner of the selected tokenID.
-                isPresent = true;
-                //leave loop for performance
-                break;
-            }
-        }
+//         bool isPresent = false;
 
-        //if address of receiver is not currently registered as an owner of selected tokenID, but it now
-        //holds a positive balance of the selected tokenID
-        if (!isPresent) {
-            //register address of receiver as an an owner of selected tokenID
-            owners.push(addrToCheck);
-        }
-    }
+//         //loop through all token owners of selected tokenID.
+//         for (uint256 i = 0; i < owners.length; i++) {
+//             //if address of receiver is found within selected tokenID's owners.
+//             if (owners[i] == addrToCheck) {
+//                 //the address of receiver is equal to a current owner of the selected tokenID.
+//                 isPresent = true;
+//                 //leave loop for performance
+//                 break;
+//             }
+//         }
 
-    function removeAddressAsOwnerOfTokenID(
-        address addrToCheck,
-        uint256 id
-    ) internal {
-        address[] storage owners = ownersOfTokenTypes[id];
+//         //if address of receiver is not currently registered as an owner of selected tokenID, but it now
+//         //holds a positive balance of the selected tokenID
+//         if (!isPresent) {
+//             //register address of receiver as an an owner of selected tokenID
+//             owners.push(addrToCheck);
+//         }
+//     }
 
-        uint256 index;
-        for (uint256 i = 0; i < owners.length; i++) {
-            if (owners[i] == addrToCheck) {
-                index = i;
-                break;
-            }
-        }
+//     function removeAddressAsOwnerOfTokenID(
+//         address addrToCheck,
+//         uint256 id
+//     ) internal {
+//         address[] storage owners = ownersOfTokenTypes[id];
 
-        for (uint256 i = index; i < owners.length - 1; i++) {
-            owners[i] = owners[i + 1];
-        }
-        owners.pop();
-    }
+//         uint256 index;
+//         for (uint256 i = 0; i < owners.length; i++) {
+//             if (owners[i] == addrToCheck) {
+//                 index = i;
+//                 break;
+//             }
+//         }
 
-    function getOwnersOfTokenID(
-        uint256 tokenID
-    ) public view returns (address[] memory) {
-        return ownersOfTokenTypes[tokenID];
-    }
+//         for (uint256 i = index; i < owners.length - 1; i++) {
+//             owners[i] = owners[i + 1];
+//         }
+//         owners.pop();
+//     }
 
-    function getOwnersOfTokenIDLength(
-        uint256 tokenID
-    ) public view returns (uint256) {
-        return ownersOfTokenTypes[tokenID].length;
-    }
+//     function getOwnersOfTokenID(
+//         uint256 tokenID
+//     ) public view returns (address[] memory) {
+//         return ownersOfTokenTypes[tokenID];
+//     }
 
-    function togglePause() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (paused()) {
-            _unpause();
-        } else {
-            _pause();
-        }
-    }
+//     function getOwnersOfTokenIDLength(
+//         uint256 tokenID
+//     ) public view returns (uint256) {
+//         return ownersOfTokenTypes[tokenID].length;
+//     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override(ERC1155, AccessControl) returns (bool) {
-        return super.supportsInterface(interfaceId);
-    }
+//     function togglePause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+//         if (paused()) {
+//             _unpause();
+//         } else {
+//             _pause();
+//         }
+//     }
 
-    function getBaseURI() external view returns (string memory) {
-        return s_baseURI;
-    }
+//     function supportsInterface(
+//         bytes4 interfaceId
+//     )
+//         public
+//         view
+//         virtual
+//         override(IERC165, ERC1155, AccessControl)
+//         returns (bool)
+//     {
+//         return super.supportsInterface(interfaceId);
+//     }
 
-    function getMaxMintAmountPerTransaciton() external view returns (uint256) {
-        return s_maxMintAmountPerTx;
-    }
-}
+//     function getBaseURI() external view returns (string memory) {
+//         return s_baseURI;
+//     }
+
+//     function getMaxMintAmountPerTransaciton() external view returns (uint256) {
+//         return s_maxMintAmountPerTx;
+//     }
+// }

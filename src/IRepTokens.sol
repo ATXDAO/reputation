@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {SolidStateERC1155} from "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
 
 interface IRepTokens is IAccessControl, IERC1155 {
     function MINTER_ROLE() external view returns (bytes32);
@@ -23,15 +24,24 @@ interface IRepTokens is IAccessControl, IERC1155 {
 
     //from : distributor
     //to : address
-    function distribute(address from, address to, uint256 amount, bytes memory data) external;
+    function distribute(
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory data
+    ) external;
 
     //this needs to be called beforehand by address that wants to transfer its soulbound tokens:
     //setApprovalForAll(TOKEN_MIGRATOR_ROLE, true)
     function migrateOwnershipOfTokens(address from, address to) external;
 
-    function getOwnersOfTokenID(uint256 tokenID) external view returns (address[] memory);
+    function getOwnersOfTokenID(
+        uint256 tokenID
+    ) external view returns (address[] memory);
 
-    function getOwnersOfTokenIDLength(uint256 tokenID) external view returns (uint256);
+    function getOwnersOfTokenIDLength(
+        uint256 tokenID
+    ) external view returns (uint256);
 
     function togglePause() external;
 }
