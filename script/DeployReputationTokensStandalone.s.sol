@@ -19,6 +19,7 @@ contract DeployReputationTokensStandalone is Script {
             baseUri
         );
         vm.stopBroadcast();
+
         return repTokens;
     }
 }
