@@ -5,6 +5,8 @@ import {SolidStateERC1155} from "@solidstate/contracts/token/ERC1155/SolidStateE
 import {ERC1155MetadataStorage} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155MetadataStorage.sol";
 import {ERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
 import {IERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
+import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
+import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
@@ -38,6 +40,20 @@ abstract contract ReputationTokensInternal is
     ///////////////////
     // Internal Functions
     ///////////////////
+
+    function _initialize(
+        uint256 maxMintAmountPerTx,
+        string memory baseUri
+    ) internal {
+        ReputationTokensStorage
+            .layout()
+            .maxMintAmountPerTx = maxMintAmountPerTx;
+
+        ERC1155MetadataStorage.layout().baseURI = baseUri;
+
+        _setSupportsInterface(type(IERC165).interfaceId, true);
+        _setSupportsInterface(type(IERC1155).interfaceId, true);
+    }
 
     // bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
