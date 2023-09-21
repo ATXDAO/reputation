@@ -32,11 +32,9 @@ abstract contract ReputationTokensInternal is
     IReputationTokensBaseInternal
 {
     ///////////////////
-    // Types
-    ///////////////////
-    ///////////////////
     // Functions
     ///////////////////
+
     ///////////////////
     // Internal Functions
     ///////////////////
@@ -54,9 +52,6 @@ abstract contract ReputationTokensInternal is
         _setSupportsInterface(type(IERC165).interfaceId, true);
         _setSupportsInterface(type(IERC1155).interfaceId, true);
     }
-
-    // bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
 
     function maybeInitializeDestinationWallet(address addr) internal {
         if (

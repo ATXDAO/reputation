@@ -3,11 +3,11 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol";
-import {DeployReputationTokens} from "../script/DeployReputationTokens.s.sol";
+import {DeployReputationTokensStandalone} from "../script/DeployReputationTokensStandalone.s.sol";
 import {IReputationTokensBaseInternal} from "../src/IReputationTokensBaseInternal.sol";
 import {ReputationTokensStorage} from "../src/ReputationTokensStorage.sol";
 
-contract RepTokensTest is Test {
+contract RepTokensStandaloneTest is Test {
     ////////////////////////
     // State Variables
     ////////////////////////
@@ -74,7 +74,7 @@ contract RepTokensTest is Test {
     function setUp() public {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
-        DeployReputationTokens deployer = new DeployReputationTokens();
+        DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
         s_repTokens = deployer.run(admins, MAX_MINT_PER_TX, BASE_URI);
 
         setUpMinter(MINTER);

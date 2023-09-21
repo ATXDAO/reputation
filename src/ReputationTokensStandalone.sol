@@ -25,10 +25,6 @@ contract ReputationTokensStandalone is ReputationTokensBase {
         uint256 maxMintAmountPerTx,
         string memory baseUri
     ) {
-        for (uint256 i = 0; i < admins.length; i++) {
-            _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
-        }
-
-        _initialize(maxMintAmountPerTx, baseUri);
+        _initialize(admins, maxMintAmountPerTx, baseUri);
     }
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol";
 
-contract DeployReputationTokens is Script {
+contract DeployReputationTokensStandalone is Script {
     function run(
         address[] memory admins,
         uint256 maxMintAmountPerTx,

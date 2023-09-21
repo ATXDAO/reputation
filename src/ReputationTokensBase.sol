@@ -15,7 +15,7 @@ import {AccessControlStorage} from "@solidstate/contracts/access/access_control/
 import {ReputationTokensStorage} from "./ReputationTokensStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
-import {console} from "forge-std/console.sol";
+import {SafeOwnable} from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
 
 /**
  * @title Custom ERC115
@@ -28,10 +28,30 @@ import {console} from "forge-std/console.sol";
  *      3. The owner should not be able to create new tokens unless it's uri ends in the '.glb' extensions.
  * @notice This contract can act as a standalone ERC1155 collection or be used as a Diamond Facet with Diamonds.
  */
-contract ReputationTokensBase is ReputationTokensInternal, AccessControl {
+contract ReputationTokensBase is
+    ReputationTokensInternal,
+    AccessControl,
+    SafeOwnable
+{
     ///////////////////
     // Functions
     ///////////////////
+
+    ///////////////////
+    // Internal Functions
+    ///////////////////
+
+    function _initialize(
+        address[] memory admins,
+        uint256 maxMintAmountPerTx,
+        string memory baseUri
+    ) internal {
+        for (uint256 i = 0; i < admins.length; i++) {
+            _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
+        }
+
+        super._initialize(maxMintAmountPerTx, baseUri);
+    }
 
     ///////////////////
     // External Functions
@@ -143,5 +163,9 @@ contract ReputationTokensBase is ReputationTokensInternal, AccessControl {
         address addr
     ) external view returns (address) {
         return ReputationTokensStorage.layout().destinationWallets[addr];
+    }
+
+    function getMaxMintPerTx() external view returns (uint256) {
+        return ReputationTokensStorage.layout().maxMintAmountPerTx;
     }
 }
