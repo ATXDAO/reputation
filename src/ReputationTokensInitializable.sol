@@ -9,21 +9,21 @@ import {Initializable} from "@solidstate/contracts/security/initializable/Initia
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
 /**
- * @title Custom ERC115
+ * @title Reputation Tokens Initializable
  * @author Jacob Homanics
  *
- * This contract adheres to the requirements for Smart Contract Development Test using ZkSync L2 from Game7 DAO.
- * Through this smart contract:
- *      1. You can deploy it on its own or as a facet on a diamond.
- *      2. Users cannot mint more tokens after having already minted.
- *      3. The owner should not be able to create new tokens unless it's uri ends in the '.glb' extensions.
- * @notice This contract can act as a standalone ERC1155 collection or be used as a Diamond Facet with Diamonds.
+ * Inherits the neccesary functionality to create a Reputation Tokens Smart Contract.
+ * It is reccomended to be deployed through a factory or initialized through a Diamond (ERC-2535).
+ *
  */
 contract ReputationTokensInitializable is ReputationTokensBase, Initializable {
     ///////////////////
     // Functions
     ///////////////////
 
+    ///////////////////
+    // External Functions
+    ///////////////////
     function initialize(
         address owner,
         address[] memory admins,

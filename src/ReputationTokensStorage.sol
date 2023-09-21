@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title Custom ERC115 Storage
+ * @title Reputation Tokens Storage
  * @author Jacob Homanics
  *
- * This smart contract library follows the Diamond Storage Pattern by hosting the state variables for Custom ERC1155.
+ * This smart contract library follows the Diamond Storage Pattern by hosting the state variables for Reputation Tokens.
  */
 library ReputationTokensStorage {
     ///////////////////

@@ -4,10 +4,11 @@ pragma solidity ^0.8.8;
 import {IReputationTokensInternal} from "./interfaces/IReputationTokensInternal.sol";
 
 /**
- * @title Interface for Custom ERC115 Internal
+ * @title Interface for Reputation Tokens Internal
  * @author Jacob Homanics
  *
- * This smart contract hosts the error messages for Custom ERC1155 Internal and inherits the events as well.
+ * Hosts the error messages for Reputation Tokens Internal.
+ * Additionally, inherits the proper events as well from Reputation Tokens Internal Interface.
  */
 
 interface IReputationTokensBaseInternal is IReputationTokensInternal {
