@@ -8,6 +8,9 @@ import {IReputationTokensBaseInternal} from "../src/IReputationTokensBaseInterna
 import {ReputationTokensStorage} from "../src/ReputationTokensStorage.sol";
 
 contract RepTokensTest is Test {
+    ////////////////////////
+    // State Variables
+    ////////////////////////
     address ADMIN = makeAddr("ADMIN");
     address MINTER = makeAddr("MINTER");
     address DISTRIBUTOR = makeAddr("DISTRIBUTOR");
@@ -25,15 +28,18 @@ contract RepTokensTest is Test {
 
     ReputationTokensStandalone s_repTokens;
 
-    modifier m_setUpBurner(address addr) {
-        setUpBurner(addr);
+    ////////////////////////
+    // Modifiers
+    ////////////////////////
+
+    modifier m_distribute(address to, uint256 amount) {
+        distribute(to, amount);
         _;
     }
 
-    function setUpBurner(address addr) public {
-        vm.startPrank(ADMIN);
-        s_repTokens.grantRole(s_repTokens.BURNER_ROLE(), addr);
-        vm.stopPrank();
+    modifier m_mint(address to, uint256 amount) {
+        mint(to, amount);
+        _;
     }
 
     modifier m_setUpMinter(address addr) {
@@ -41,25 +47,18 @@ contract RepTokensTest is Test {
         _;
     }
 
-    function setUpMinter(address addr) public {
-        vm.startPrank(ADMIN);
-        s_repTokens.grantRole(s_repTokens.MINTER_ROLE(), addr);
-        vm.stopPrank();
+    modifier m_setUpDistributor(address addr) {
+        setUpDistributor(addr);
+        _;
+    }
+
+    modifier m_setUpBurner(address addr) {
+        setUpBurner(addr);
+        _;
     }
 
     modifier m_setUpTokenMigrator(address addr) {
         setUpTokenMigrator(addr);
-        _;
-    }
-
-    function setUpTokenMigrator(address addr) public {
-        vm.startPrank(ADMIN);
-        s_repTokens.grantRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), addr);
-        vm.stopPrank();
-    }
-
-    modifier m_setUpDistributor(address addr) {
-        setUpDistributor(addr);
         _;
     }
 
@@ -68,39 +67,9 @@ contract RepTokensTest is Test {
         _;
     }
 
-    function setDestinationWallet(address target, address destination) public {
-        vm.startPrank(target);
-        s_repTokens.setDestinationWallet(destination);
-        vm.stopPrank();
-    }
-
-    modifier m_distribute(address to, uint256 amount) {
-        distribute(to, amount);
-        _;
-    }
-
-    function distribute(address to, uint256 amount) public {
-        vm.startPrank(DISTRIBUTOR);
-        s_repTokens.distribute(DISTRIBUTOR, to, amount, "");
-        vm.stopPrank();
-    }
-
-    modifier m_mint(address to, uint256 amount) {
-        mint(to, amount);
-        _;
-    }
-
-    function mint(address to, uint256 amount) public {
-        vm.startPrank(MINTER);
-        s_repTokens.mint(to, amount, "");
-        vm.stopPrank();
-    }
-
-    function setUpDistributor(address addr) public {
-        vm.startPrank(ADMIN);
-        s_repTokens.grantRole(s_repTokens.DISTRIBUTOR_ROLE(), addr);
-        vm.stopPrank();
-    }
+    ////////////////////////
+    // Functions
+    ////////////////////////
 
     function setUp() public {
         address[] memory admins = new address[](1);
@@ -114,7 +83,11 @@ contract RepTokensTest is Test {
         setUpTokenMigrator(TOKEN_MIGRATOR);
     }
 
-    function testURI() public {
+    ////////////////////////
+    // Tests
+    ////////////////////////
+
+    function testURI() external {
         assertEq(s_repTokens.uri(0), string.concat(BASE_URI, "0"));
         assertEq(s_repTokens.uri(1), string.concat(BASE_URI, "1"));
     }
@@ -124,7 +97,7 @@ contract RepTokensTest is Test {
         assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 1), DEFAULT_MINT_AMOUNT);
     }
 
-    function testRevertIfMintingTooManyTokens() public {
+    function testRevertIfMintingTooManyTokens() external {
         uint256 mintAmount = 150;
 
         vm.startPrank(MINTER);
@@ -137,7 +110,7 @@ contract RepTokensTest is Test {
         vm.stopPrank();
     }
 
-    function testRevertIfMintingToNonDistributor() public {
+    function testRevertIfMintingToNonDistributor() external {
         vm.startPrank(MINTER);
         vm.expectRevert(
             IReputationTokensBaseInternal
@@ -149,7 +122,7 @@ contract RepTokensTest is Test {
         vm.stopPrank();
     }
 
-    function testMintBatch() public m_setUpDistributor(DISTRIBUTOR2) {
+    function testMintBatch() external m_setUpDistributor(DISTRIBUTOR2) {
         address[] memory DISTRIBUTORS = new address[](2);
         DISTRIBUTORS[0] = DISTRIBUTOR;
         DISTRIBUTORS[1] = DISTRIBUTOR2;
@@ -169,7 +142,10 @@ contract RepTokensTest is Test {
         assertEq(s_repTokens.balanceOf(DISTRIBUTOR2, 1), MINT_AMOUNTS[1]);
     }
 
-    function testDistribute() public m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT) {
+    function testDistribute()
+        external
+        m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
+    {
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.distribute(DISTRIBUTOR, USER, DEFAULT_MINT_AMOUNT, "");
         vm.stopPrank();
@@ -179,7 +155,7 @@ contract RepTokensTest is Test {
     }
 
     function testDistributeBatch()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
         address[] memory USERS = new address[](2);
@@ -203,7 +179,7 @@ contract RepTokensTest is Test {
     }
 
     function testSetDestinationWalletAndDistribute()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_setDestinationWallet(USER, DESTINATION_WALLET)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
@@ -219,7 +195,7 @@ contract RepTokensTest is Test {
     }
 
     function testRedeem()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -229,7 +205,7 @@ contract RepTokensTest is Test {
     }
 
     function testRevertIfRedeemIsNotToken1()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -244,7 +220,7 @@ contract RepTokensTest is Test {
     }
 
     function testRevertIfRedeemIllegalyAsDistributor()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
         vm.startPrank(DISTRIBUTOR);
@@ -264,7 +240,7 @@ contract RepTokensTest is Test {
     }
 
     function testRevertIfRedeemIsBeingSentToABurner()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -285,7 +261,7 @@ contract RepTokensTest is Test {
     }
 
     function testMigrationOfTokens()
-        public
+        external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -302,5 +278,50 @@ contract RepTokensTest is Test {
 
         assertEq(s_repTokens.balanceOf(USER2, 0), DEFAULT_MINT_AMOUNT);
         assertEq(s_repTokens.balanceOf(USER2, 1), DEFAULT_MINT_AMOUNT);
+    }
+
+    ////////////////////////
+    // Helper Functions
+    ///////////////////////
+    function mint(address to, uint256 amount) public {
+        vm.startPrank(MINTER);
+        s_repTokens.mint(to, amount, "");
+        vm.stopPrank();
+    }
+
+    function distribute(address to, uint256 amount) public {
+        vm.startPrank(DISTRIBUTOR);
+        s_repTokens.distribute(DISTRIBUTOR, to, amount, "");
+        vm.stopPrank();
+    }
+
+    function setUpMinter(address addr) public {
+        vm.startPrank(ADMIN);
+        s_repTokens.grantRole(s_repTokens.MINTER_ROLE(), addr);
+        vm.stopPrank();
+    }
+
+    function setUpDistributor(address addr) public {
+        vm.startPrank(ADMIN);
+        s_repTokens.grantRole(s_repTokens.DISTRIBUTOR_ROLE(), addr);
+        vm.stopPrank();
+    }
+
+    function setUpBurner(address addr) public {
+        vm.startPrank(ADMIN);
+        s_repTokens.grantRole(s_repTokens.BURNER_ROLE(), addr);
+        vm.stopPrank();
+    }
+
+    function setUpTokenMigrator(address addr) public {
+        vm.startPrank(ADMIN);
+        s_repTokens.grantRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), addr);
+        vm.stopPrank();
+    }
+
+    function setDestinationWallet(address target, address destination) public {
+        vm.startPrank(target);
+        s_repTokens.setDestinationWallet(destination);
+        vm.stopPrank();
     }
 }
