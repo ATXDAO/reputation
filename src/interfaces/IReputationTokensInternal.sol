@@ -13,9 +13,24 @@ interface IReputationTokensInternal {
 
     function DISTRIBUTOR_ROLE() external view returns (bytes32);
 
+    function BURNER_ROLE() external view returns (bytes32);
+
+    function TOKEN_MIGRATOR_ROLE() external view returns (bytes32);
+
     event Mint(
         address indexed minter,
         address indexed to,
         uint256 indexed amount
     );
+
+    event DestinationWalletSet(address coreAddress, address destination);
+    event Distributed(address from, address to, uint256 amount);
+
+    event OwnershipOfTokensMigrated(
+        address from,
+        address to,
+        uint256 lifetimeBalance,
+        uint256 redeemableBalance
+    );
+    event BurnedRedeemable(address from, address to, uint256 amount);
 }

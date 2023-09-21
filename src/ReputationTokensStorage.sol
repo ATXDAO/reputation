@@ -22,12 +22,7 @@ library ReputationTokensStorage {
 
     struct Layout {
         uint256 maxMintAmountPerTx;
-        //A mapping to see if an address has minted any tokens
-        mapping(address => bool) hasMinted;
-        //Total number of created token types.
-        uint256 totalTokenTypeCount;
-        //Owner of the smart contract. Most likely used to limit creation of tokens.
-        address owner;
+        mapping(address => address) destinationWallets;
     }
 
     ///////////////////
