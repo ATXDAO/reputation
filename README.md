@@ -1,3 +1,5 @@
+Author: Jacob Homanics 
+
 ## Reputation Tokens
 
 Reputation Tokens is a customized ERC1155 smart contract built to be deployed standalone, proxied, or through Diamonds.
