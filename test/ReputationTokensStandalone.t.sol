@@ -75,7 +75,7 @@ contract RepTokensStandaloneTest is Test {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
         DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
-        s_repTokens = deployer.run(admins, MAX_MINT_PER_TX, BASE_URI);
+        s_repTokens = deployer.run(ADMIN, admins, MAX_MINT_PER_TX, BASE_URI);
 
         setUpMinter(MINTER);
         setUpDistributor(DISTRIBUTOR);

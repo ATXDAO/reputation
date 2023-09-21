@@ -42,10 +42,13 @@ contract ReputationTokensBase is
     ///////////////////
 
     function _initialize(
+        address ownerNominee,
         address[] memory admins,
         uint256 maxMintAmountPerTx,
         string memory baseUri
     ) internal {
+        _transferOwnership(ownerNominee);
+
         for (uint256 i = 0; i < admins.length; i++) {
             _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
         }

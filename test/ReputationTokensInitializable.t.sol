@@ -29,7 +29,7 @@ contract RepTokensInitializableTest is Test {
     function testInitialize() public {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
-        s_repTokens.initialize(admins, MAX_MINT_PER_TX, "");
+        s_repTokens.initialize(ADMIN, admins, MAX_MINT_PER_TX, "");
         assertEq(MAX_MINT_PER_TX, s_repTokens.getMaxMintPerTx());
     }
 }

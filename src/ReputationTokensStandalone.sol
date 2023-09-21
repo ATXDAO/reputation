@@ -21,10 +21,11 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     ///////////////////
 
     constructor(
+        address owner,
         address[] memory admins,
         uint256 maxMintAmountPerTx,
         string memory baseUri
     ) {
-        _initialize(admins, maxMintAmountPerTx, baseUri);
+        _initialize(owner, admins, maxMintAmountPerTx, baseUri);
     }
 }

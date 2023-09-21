@@ -25,10 +25,11 @@ contract ReputationTokensInitializable is ReputationTokensBase, Initializable {
     ///////////////////
 
     function initialize(
+        address owner,
         address[] memory admins,
         uint256 maxMintAmountPerTx,
         string memory baseUri
     ) external initializer {
-        _initialize(admins, maxMintAmountPerTx, baseUri);
+        _initialize(owner, admins, maxMintAmountPerTx, baseUri);
     }
 }
