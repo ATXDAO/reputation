@@ -57,6 +57,9 @@ $ forge snapshot
 ### Deploy
 
 ```shell
+cp .env.example .env
+#Fill out .env with appropriate properties
+
 $ make deployReputationTokensStandaloneWithData ARGS="--network $NETWORK"
 ```
 
