@@ -80,7 +80,7 @@ abstract contract ReputationTokensInternal is
      * @param data N/A
      */
     function _mint(address to, uint256 amount, bytes memory data) internal {
-        if (amount >= ReputationTokensStorage.layout().maxMintAmountPerTx) {
+        if (amount > ReputationTokensStorage.layout().maxMintAmountPerTx) {
             revert ReputationTokens__AttemptingToMintTooManyTokens();
         }
 
