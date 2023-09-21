@@ -52,7 +52,7 @@ ifeq ($(findstring --network op-mainnet,$(ARGS)),--network op-mainnet)
 endif
 
 ifeq ($(findstring --network base,$(ARGS)),--network base)
-	NETWORK_ARGS := --rpc-url $(OP_MAINNET_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
+	NETWORK_ARGS := --rpc-url $(BASE_GOERLI_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
 endif
 
 deployReputationTokensStandaloneWithData:

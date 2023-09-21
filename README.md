@@ -1,4 +1,6 @@
 forge coverage --report lcov
+make deployReputationTokensStandaloneWithData ARGS="--network base"
+0xebd3f13f12c0b1c8cb0c830cf483f78cc60aff8d
 
 ## Foundry
 

@@ -6,8 +6,8 @@ import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol"
 import {DeployReputationTokensStandalone} from "./DeployReputationTokensStandalone.s.sol";
 
 contract DeployReputationTokensStandaloneWithData is Script {
-    address OWNER_NOMINEE;
-    address ADMIN;
+    address OWNER_NOMINEE = 0xc4f6578c24c599F195c0758aD3D4861758d703A3;
+    address ADMIN = 0xc4f6578c24c599F195c0758aD3D4861758d703A3;
     uint256 constant MAX_MINT_PER_TX = 100;
     string constant BASE_URI =
         "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/";
