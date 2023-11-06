@@ -52,8 +52,21 @@ ifeq ($(findstring --network op-mainnet,$(ARGS)),--network op-mainnet)
 endif
 
 ifeq ($(findstring --network base,$(ARGS)),--network base)
+	NETWORK_ARGS := --rpc-url $(BASE_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
+endif
+
+ifeq ($(findstring --network base-goerli,$(ARGS)),--network base)
 	NETWORK_ARGS := --rpc-url $(BASE_GOERLI_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(BASE_API_KEY) -vvvv
 endif
 
 deployReputationTokensStandaloneWithData:
 	@forge script script/DeployReputationTokensStandaloneWithData.s.sol:DeployReputationTokensStandaloneWithData $(NETWORK_ARGS)
+
+verifyOnBase:
+	@forge verify-contract \
+    --chain-id 8453 \
+    --watch \
+    --constructor-args $(cast abi-encode "constructor(address, address[], uint256, string)" 0xc4f6578c24c599F195c0758aD3D4861758d703A3 "[0xc4f6578c24c599F195c0758aD3D4861758d703A3]" 100 "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/") \
+    --etherscan-api-key "JNHGAYAJ35A4S981QFATUTGQQS2ZVG4NPY" \
+    0x93b0593cae9544d677dc7c9a18cb791e634bf8d9 \
+    src/ReputationTokensStandalone.sol:ReputationTokensStandalone 

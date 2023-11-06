@@ -1,5 +1,12 @@
 Author: Jacob Homanics 
 
+## Deployments
+Version | Network | Deployment
+--- | --- | --- |
+0.1 | Optimism | [0x65ad2263e658e75762253076e2ebfc9211e05d2f](https://optimistic.etherscan.io/address/0x65ad2263e658e75762253076e2ebfc9211e05d2f)
+0.2 | Base | [https://basescan.org/address/0x93b0593cae9544d677dc7c9a18cb791e634bf8d9](https://basescan.org/address/0x93b0593cae9544d677dc7c9a18cb791e634bf8d9)
+0.1 | Polygon | [0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2](https://polygonscan.com/address/0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2)
+
 ## Reputation Tokens
 
 Reputation Tokens is a customized ERC1155 smart contract built to be deployed standalone, proxied, or through Diamonds.
