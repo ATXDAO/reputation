@@ -149,9 +149,13 @@ contract ReputationTokensBase is
         uint256 amount,
         bytes memory data
     ) public override(ERC1155Base, IERC1155) {
-        if (id != 1) {
+        if (!ReputationTokensStorage.layout().tokenTypes[id].isTradeable) {
             revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
+
+        // if (id != 1) {
+        //     revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
+        // }
 
         if (_hasRole(DISTRIBUTOR_ROLE(), from)) {
             revert ReputationTokens__AttemptingToSendIllegalyAsDistributor();
@@ -163,6 +167,13 @@ contract ReputationTokensBase is
 
         super.safeTransferFrom(from, to, id, amount, data);
         emit BurnedRedeemable(from, to, amount);
+    }
+
+    function createTokenType(
+        bool isTradeable,
+        uint256 maxMintAmountPerTx
+    ) external onlyRole(TOKEN_TYPE_CREATOR_ROLE()) {
+        _createTokenType(isTradeable, maxMintAmountPerTx);
     }
 
     //this needs to be called beforehand by address that wants to transfer its tokens:
@@ -196,6 +207,10 @@ contract ReputationTokensBase is
         return keccak256("MINTER_ROLE");
     }
 
+    function TOKEN_TYPE_CREATOR_ROLE() public pure returns (bytes32) {
+        return keccak256("TOKEN_TYPE_CREATOR_ROLE");
+    }
+
     function DISTRIBUTOR_ROLE() public pure returns (bytes32) {
         return keccak256("DISTRIBUTOR_ROLE");
     }
@@ -216,5 +231,9 @@ contract ReputationTokensBase is
 
     function getMaxMintPerTx() external view returns (uint256) {
         return ReputationTokensStorage.layout().maxMintAmountPerTx;
+    }
+
+    function getNumOfTokenTypes() external view returns (uint256) {
+        return ReputationTokensStorage.layout().numOfTokenTypes;
     }
 }

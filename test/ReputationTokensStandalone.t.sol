@@ -12,6 +12,7 @@ contract RepTokensStandaloneTest is Test {
     // State Variables
     ////////////////////////
     address ADMIN = makeAddr("ADMIN");
+    address TOKEN_CREATOR = makeAddr("TOKEN_CREATOR");
     address MINTER = makeAddr("MINTER");
     address DISTRIBUTOR = makeAddr("DISTRIBUTOR");
     address DISTRIBUTOR2 = makeAddr("DISTRIBUTOR2");
@@ -27,6 +28,8 @@ contract RepTokensStandaloneTest is Test {
         "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/";
 
     ReputationTokensStandalone s_repTokens;
+
+    uint256 TOKEN_TYPES_TO_CREATE = 2;
 
     ////////////////////////
     // Modifiers
@@ -67,9 +70,16 @@ contract RepTokensStandaloneTest is Test {
         _;
     }
 
+    modifier m_setupTokenCreator(address addr) {
+        setupTokenCreator(addr);
+        _;
+    }
+
     ////////////////////////
     // Functions
     ////////////////////////
+
+    ReputationTokensStorage.TokenType[] types;
 
     function setUp() public {
         address[] memory admins = new address[](1);
@@ -77,10 +87,21 @@ contract RepTokensStandaloneTest is Test {
         DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
         s_repTokens = deployer.run(ADMIN, admins, MAX_MINT_PER_TX, BASE_URI);
 
+        setupTokenCreator(TOKEN_CREATOR);
         setUpMinter(MINTER);
         setUpDistributor(DISTRIBUTOR);
         setUpBurner(BURNER);
         setUpTokenMigrator(TOKEN_MIGRATOR);
+
+        ReputationTokensStorage.TokenType memory t1 = ReputationTokensStorage
+            .TokenType(false, DEFAULT_MINT_AMOUNT);
+        ReputationTokensStorage.TokenType memory t2 = ReputationTokensStorage
+            .TokenType(true, DEFAULT_MINT_AMOUNT);
+
+        types.push(t1);
+        types.push(t2);
+
+        createTokenTypes(types);
     }
 
     ////////////////////////
@@ -92,21 +113,43 @@ contract RepTokensStandaloneTest is Test {
         assertEq(s_repTokens.uri(1), string.concat(BASE_URI, "1"));
     }
 
+    function createTokenTypes(
+        ReputationTokensStorage.TokenType[] memory tokenTypes
+    ) public {
+        vm.startPrank(TOKEN_CREATOR);
+        for (uint256 i = 0; i < tokenTypes.length; i++) {
+            s_repTokens.createTokenType(
+                tokenTypes[i].isTradeable,
+                tokenTypes[i].maxMintAmountPerTx
+            );
+        }
+        vm.stopPrank();
+    }
+
+    modifier m_createTokenTypes(
+        ReputationTokensStorage.TokenType[] memory tokenTypes
+    ) {
+        createTokenTypes(tokenTypes);
+        _;
+    }
+
     function testMint() public m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT) {
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 0), DEFAULT_MINT_AMOUNT);
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 1), DEFAULT_MINT_AMOUNT);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            assertEq(
+                s_repTokens.balanceOf(DISTRIBUTOR, i),
+                DEFAULT_MINT_AMOUNT
+            );
+        }
     }
 
     function testRevertIfMintingTooManyTokens() external {
-        uint256 mintAmount = 150;
-
         vm.startPrank(MINTER);
         vm.expectRevert(
             IReputationTokensBaseInternal
                 .ReputationTokens__AttemptingToMintTooManyTokens
                 .selector
         );
-        s_repTokens.mint(DISTRIBUTOR, mintAmount, "");
+        s_repTokens.mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT + 1, "");
         vm.stopPrank();
     }
 
@@ -135,11 +178,9 @@ contract RepTokensStandaloneTest is Test {
         s_repTokens.mintBatch(DISTRIBUTORS, MINT_AMOUNTS, "");
         vm.stopPrank();
 
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 0), MINT_AMOUNTS[0]);
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 1), MINT_AMOUNTS[1]);
-
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR2, 0), MINT_AMOUNTS[0]);
-        assertEq(s_repTokens.balanceOf(DISTRIBUTOR2, 1), MINT_AMOUNTS[1]);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), MINT_AMOUNTS[i]);
+        }
     }
 
     function testDistribute()
@@ -150,48 +191,75 @@ contract RepTokensStandaloneTest is Test {
         s_repTokens.distribute(DISTRIBUTOR, USER, DEFAULT_MINT_AMOUNT, "");
         vm.stopPrank();
 
-        assertEq(s_repTokens.balanceOf(USER, 0), DEFAULT_MINT_AMOUNT);
-        assertEq(s_repTokens.balanceOf(USER, 1), DEFAULT_MINT_AMOUNT);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            assertEq(s_repTokens.balanceOf(USER, i), DEFAULT_MINT_AMOUNT);
+        }
+    }
+
+    function uint2str(
+        uint _i
+    ) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len;
+        while (_i != 0) {
+            k = k - 1;
+            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
+            _i /= 10;
+        }
+        return string(bstr);
     }
 
     function testDistributeBatch()
         external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
-        address[] memory USERS = new address[](2);
-        USERS[0] = USER;
-        USERS[1] = USER2;
+        address[] memory USERS = new address[](TOKEN_TYPES_TO_CREATE);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            USERS[i] = makeAddr(string.concat("USER", uint2str(i)));
+        }
 
-        uint256 mintAmount = DEFAULT_MINT_AMOUNT / 2;
-        uint256[] memory MINT_AMOUNTS = new uint256[](2);
-        MINT_AMOUNTS[0] = mintAmount;
-        MINT_AMOUNTS[1] = mintAmount;
+        uint256 mintAmount = DEFAULT_MINT_AMOUNT / TOKEN_TYPES_TO_CREATE;
+        uint256[] memory MINT_AMOUNTS = new uint256[](TOKEN_TYPES_TO_CREATE);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            MINT_AMOUNTS[i] = mintAmount;
+        }
 
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.distributeBatch(DISTRIBUTOR, USERS, MINT_AMOUNTS, "");
         vm.stopPrank();
 
-        assertEq(s_repTokens.balanceOf(USER, 0), mintAmount);
-        assertEq(s_repTokens.balanceOf(USER, 1), mintAmount);
-
-        assertEq(s_repTokens.balanceOf(USER2, 0), mintAmount);
-        assertEq(s_repTokens.balanceOf(USER2, 1), mintAmount);
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            assertEq(s_repTokens.balanceOf(USERS[i], i), mintAmount);
+        }
     }
 
     function testSetDestinationWalletAndDistribute()
         external
+        // m_createTokenTypes(TOKEN_TYPES_TO_CREATE, DEFAULT_MINT_AMOUNT)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_setDestinationWallet(USER, DESTINATION_WALLET)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
-        assertEq(
-            s_repTokens.balanceOf(s_repTokens.getDestinationWallet(USER), 0),
-            DEFAULT_MINT_AMOUNT
-        );
-        assertEq(
-            s_repTokens.balanceOf(s_repTokens.getDestinationWallet(USER), 1),
-            DEFAULT_MINT_AMOUNT
-        );
+        for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
+            assertEq(
+                s_repTokens.balanceOf(
+                    s_repTokens.getDestinationWallet(USER),
+                    i
+                ),
+                DEFAULT_MINT_AMOUNT
+            );
+        }
     }
 
     function testRedeem()
@@ -204,7 +272,7 @@ contract RepTokensStandaloneTest is Test {
         vm.stopPrank();
     }
 
-    function testRevertIfRedeemIsNotToken1()
+    function testRevertIfRedeemIsTokenIsNotTradeable()
         external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
@@ -239,7 +307,7 @@ contract RepTokensStandaloneTest is Test {
         vm.stopPrank();
     }
 
-    function testRevertIfRedeemIsBeingSentToABurner()
+    function testRevertIfRedeemIsNotBeingSentToABurner()
         external
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
@@ -273,16 +341,15 @@ contract RepTokensStandaloneTest is Test {
         s_repTokens.migrateOwnershipOfTokens(USER, USER2);
         vm.stopPrank();
 
-        assertEq(s_repTokens.balanceOf(USER, 0), 0);
-        assertEq(s_repTokens.balanceOf(USER, 1), 0);
-
-        assertEq(s_repTokens.balanceOf(USER2, 0), DEFAULT_MINT_AMOUNT);
-        assertEq(s_repTokens.balanceOf(USER2, 1), DEFAULT_MINT_AMOUNT);
+        for (uint256 i = 0; i < types.length; i++) {
+            assertEq(s_repTokens.balanceOf(USER, i), 0);
+            assertEq(s_repTokens.balanceOf(USER2, i), DEFAULT_MINT_AMOUNT);
+        }
     }
 
-    ////////////////////////
-    // Helper Functions
-    ///////////////////////
+    // ////////////////////////
+    // // Helper Functions
+    // ///////////////////////
     function mint(address to, uint256 amount) public {
         vm.startPrank(MINTER);
         s_repTokens.mint(to, amount, "");
@@ -292,6 +359,12 @@ contract RepTokensStandaloneTest is Test {
     function distribute(address to, uint256 amount) public {
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.distribute(DISTRIBUTOR, to, amount, "");
+        vm.stopPrank();
+    }
+
+    function setupTokenCreator(address addr) public {
+        vm.startPrank(ADMIN);
+        s_repTokens.grantRole(s_repTokens.TOKEN_TYPE_CREATOR_ROLE(), addr);
         vm.stopPrank();
     }
 

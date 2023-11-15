@@ -57,6 +57,23 @@ abstract contract ReputationTokensInternal is
         _setSupportsInterface(type(IERC1155).interfaceId, true);
     }
 
+    function _createTokenType(
+        bool isTradeable,
+        uint256 maxMintAmountPerTx
+    ) internal {
+        ReputationTokensStorage
+            .layout()
+            .tokenTypes[ReputationTokensStorage.layout().numOfTokenTypes]
+            .isTradeable = isTradeable;
+
+        ReputationTokensStorage
+            .layout()
+            .tokenTypes[ReputationTokensStorage.layout().numOfTokenTypes]
+            .maxMintAmountPerTx = maxMintAmountPerTx;
+
+        ReputationTokensStorage.layout().numOfTokenTypes++;
+    }
+
     /**
      * Checks and sets the destination wallet for an address if it is currently set to the zero address.
      * @param addr address who may get their destination wallet set
@@ -80,18 +97,43 @@ abstract contract ReputationTokensInternal is
      * @param data N/A
      */
     function _mint(address to, uint256 amount, bytes memory data) internal {
-        if (amount > ReputationTokensStorage.layout().maxMintAmountPerTx) {
-            revert ReputationTokens__AttemptingToMintTooManyTokens();
-        }
-
         maybeInitializeDestinationWallet(to);
 
-        //mints an amount of lifetime tokens to an address.
-        super._mint(to, 0, amount, data);
-        //mints an amount of transferable tokens to an address.
-        super._mint(to, 1, amount, data);
+        for (
+            uint256 i = 0;
+            i < ReputationTokensStorage.layout().numOfTokenTypes;
+            i++
+        ) {
+            if (
+                amount >
+                ReputationTokensStorage
+                    .layout()
+                    .tokenTypes[i]
+                    .maxMintAmountPerTx
+            ) {
+                revert ReputationTokens__AttemptingToMintTooManyTokens();
+            }
+        }
 
-        emit Mint(msg.sender, to, amount);
+        // if (amount > ReputationTokensStorage.layout().maxMintAmountPerTx) {
+        //     revert ReputationTokens__AttemptingToMintTooManyTokens();
+        // }
+
+        for (
+            uint256 i = 0;
+            i < ReputationTokensStorage.layout().numOfTokenTypes;
+            i++
+        ) {
+            super._mint(to, i, amount, data);
+            emit Mint(msg.sender, to, amount);
+        }
+
+        //mints an amount of lifetime tokens to an address.
+        // super._mint(to, 0, amount, data);
+        //mints an amount of transferable tokens to an address.
+        // super._mint(to, 1, amount, data);
+
+        // emit Mint(msg.sender, to, amount);
     }
 
     /**

@@ -23,6 +23,13 @@ library ReputationTokensStorage {
     struct Layout {
         uint256 maxMintAmountPerTx;
         mapping(address => address) destinationWallets;
+        uint256 numOfTokenTypes;
+        mapping(uint256 => TokenType) tokenTypes;
+    }
+
+    struct TokenType {
+        bool isTradeable;
+        uint256 maxMintAmountPerTx;
     }
 
     ///////////////////
