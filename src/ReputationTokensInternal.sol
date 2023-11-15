@@ -11,6 +11,7 @@ import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
 import {ReputationTokensStorage} from "./ReputationTokensStorage.sol";
+import {TokenTypesStorage} from "./TokenTypesStorage.sol";
 
 /**
  * @title Reputation Tokens Internal
@@ -40,16 +41,12 @@ abstract contract ReputationTokensInternal is
 
     /**
      * Used to initialize the Reputation Tokens System
-     * @param maxMintAmountPerTx The max amount of tokens that can be minted per transaction
      * @param baseUri The base URI that will be used for the token's metadata
      */
-    function _initialize(
-        uint256 maxMintAmountPerTx,
-        string memory baseUri
-    ) internal {
-        ReputationTokensStorage
-            .layout()
-            .maxMintAmountPerTx = maxMintAmountPerTx;
+    function _initialize(string memory baseUri) internal {
+        // ReputationTokensStorage
+        //     .layout()
+        //     .maxMintAmountPerTx = maxMintAmountPerTx;
 
         ERC1155MetadataStorage.layout().baseURI = baseUri;
 
@@ -61,17 +58,17 @@ abstract contract ReputationTokensInternal is
         bool isTradeable,
         uint256 maxMintAmountPerTx
     ) internal {
-        ReputationTokensStorage
+        TokenTypesStorage
             .layout()
-            .tokenTypes[ReputationTokensStorage.layout().numOfTokenTypes]
+            .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
             .isTradeable = isTradeable;
 
-        ReputationTokensStorage
+        TokenTypesStorage
             .layout()
-            .tokenTypes[ReputationTokensStorage.layout().numOfTokenTypes]
+            .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
             .maxMintAmountPerTx = maxMintAmountPerTx;
 
-        ReputationTokensStorage.layout().numOfTokenTypes++;
+        TokenTypesStorage.layout().numOfTokenTypes++;
     }
 
     /**
@@ -101,15 +98,12 @@ abstract contract ReputationTokensInternal is
 
         for (
             uint256 i = 0;
-            i < ReputationTokensStorage.layout().numOfTokenTypes;
+            i < TokenTypesStorage.layout().numOfTokenTypes;
             i++
         ) {
             if (
                 amount >
-                ReputationTokensStorage
-                    .layout()
-                    .tokenTypes[i]
-                    .maxMintAmountPerTx
+                TokenTypesStorage.layout().tokenTypes[i].maxMintAmountPerTx
             ) {
                 revert ReputationTokens__AttemptingToMintTooManyTokens();
             }
@@ -121,7 +115,7 @@ abstract contract ReputationTokensInternal is
 
         for (
             uint256 i = 0;
-            i < ReputationTokensStorage.layout().numOfTokenTypes;
+            i < TokenTypesStorage.layout().numOfTokenTypes;
             i++
         ) {
             super._mint(to, i, amount, data);

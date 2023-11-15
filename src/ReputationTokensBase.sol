@@ -8,6 +8,7 @@ import {AccessControl} from "@solidstate/contracts/access/access_control/AccessC
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
 import {ReputationTokensStorage} from "./ReputationTokensStorage.sol";
+import {TokenTypesStorage} from "./TokenTypesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
 /**
@@ -34,13 +35,11 @@ contract ReputationTokensBase is
      * Used to initialize the Reputation Tokens System
      * @param ownerNominee The nominee that will be set to own the smart contract
      * @param admins The admins who can grant/revoke roles and do other administrative functionality
-     * @param maxMintAmountPerTx The max amount of tokens that can be minted per transaction
      * @param baseUri The base URI that will be used for the token's metadata
      */
     function _initialize(
         address ownerNominee,
         address[] memory admins,
-        uint256 maxMintAmountPerTx,
         string memory baseUri
     ) internal {
         _transferOwnership(ownerNominee);
@@ -49,7 +48,7 @@ contract ReputationTokensBase is
             _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
         }
 
-        super._initialize(maxMintAmountPerTx, baseUri);
+        super._initialize(baseUri);
     }
 
     ///////////////////
@@ -149,7 +148,7 @@ contract ReputationTokensBase is
         uint256 amount,
         bytes memory data
     ) public override(ERC1155Base, IERC1155) {
-        if (!ReputationTokensStorage.layout().tokenTypes[id].isTradeable) {
+        if (!TokenTypesStorage.layout().tokenTypes[id].isTradeable) {
             revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
 
@@ -229,11 +228,11 @@ contract ReputationTokensBase is
         return ReputationTokensStorage.layout().destinationWallets[addr];
     }
 
-    function getMaxMintPerTx() external view returns (uint256) {
-        return ReputationTokensStorage.layout().maxMintAmountPerTx;
+    function getMaxMintPerTx(uint256 index) external view returns (uint256) {
+        return TokenTypesStorage.layout().tokenTypes[index].maxMintAmountPerTx;
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
-        return ReputationTokensStorage.layout().numOfTokenTypes;
+        return TokenTypesStorage.layout().numOfTokenTypes;
     }
 }

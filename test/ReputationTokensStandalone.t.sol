@@ -6,6 +6,7 @@ import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol"
 import {DeployReputationTokensStandalone} from "../script/DeployReputationTokensStandalone.s.sol";
 import {IReputationTokensBaseInternal} from "../src/IReputationTokensBaseInternal.sol";
 import {ReputationTokensStorage} from "../src/ReputationTokensStorage.sol";
+import {TokenTypesStorage} from "../src/TokenTypesStorage.sol";
 
 contract RepTokensStandaloneTest is Test {
     ////////////////////////
@@ -79,13 +80,13 @@ contract RepTokensStandaloneTest is Test {
     // Functions
     ////////////////////////
 
-    ReputationTokensStorage.TokenType[] types;
+    TokenTypesStorage.TokenType[] types;
 
     function setUp() public {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
         DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
-        s_repTokens = deployer.run(ADMIN, admins, MAX_MINT_PER_TX, BASE_URI);
+        s_repTokens = deployer.run(ADMIN, admins, BASE_URI);
 
         setupTokenCreator(TOKEN_CREATOR);
         setUpMinter(MINTER);
@@ -93,10 +94,14 @@ contract RepTokensStandaloneTest is Test {
         setUpBurner(BURNER);
         setUpTokenMigrator(TOKEN_MIGRATOR);
 
-        ReputationTokensStorage.TokenType memory t1 = ReputationTokensStorage
-            .TokenType(false, DEFAULT_MINT_AMOUNT);
-        ReputationTokensStorage.TokenType memory t2 = ReputationTokensStorage
-            .TokenType(true, DEFAULT_MINT_AMOUNT);
+        TokenTypesStorage.TokenType memory t1 = TokenTypesStorage.TokenType(
+            false,
+            DEFAULT_MINT_AMOUNT
+        );
+        TokenTypesStorage.TokenType memory t2 = TokenTypesStorage.TokenType(
+            true,
+            DEFAULT_MINT_AMOUNT
+        );
 
         types.push(t1);
         types.push(t2);
@@ -114,7 +119,7 @@ contract RepTokensStandaloneTest is Test {
     }
 
     function createTokenTypes(
-        ReputationTokensStorage.TokenType[] memory tokenTypes
+        TokenTypesStorage.TokenType[] memory tokenTypes
     ) public {
         vm.startPrank(TOKEN_CREATOR);
         for (uint256 i = 0; i < tokenTypes.length; i++) {
@@ -127,7 +132,7 @@ contract RepTokensStandaloneTest is Test {
     }
 
     modifier m_createTokenTypes(
-        ReputationTokensStorage.TokenType[] memory tokenTypes
+        TokenTypesStorage.TokenType[] memory tokenTypes
     ) {
         createTokenTypes(tokenTypes);
         _;
