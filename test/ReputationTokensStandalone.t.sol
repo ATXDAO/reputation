@@ -5,7 +5,6 @@ import {Test, console} from "forge-std/Test.sol";
 import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol";
 import {DeployReputationTokensStandalone} from "../script/DeployReputationTokensStandalone.s.sol";
 import {IReputationTokensBaseInternal} from "../src/IReputationTokensBaseInternal.sol";
-import {ReputationTokensStorage} from "../src/ReputationTokensStorage.sol";
 import {TokenTypesStorage} from "../src/TokenTypesStorage.sol";
 
 contract RepTokensStandaloneTest is Test {

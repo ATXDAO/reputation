@@ -7,7 +7,7 @@ import {SafeOwnable} from "@solidstate/contracts/access/ownable/SafeOwnable.sol"
 import {AccessControl} from "@solidstate/contracts/access/access_control/AccessControl.sol";
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
-import {ReputationTokensStorage} from "./ReputationTokensStorage.sol";
+import {AddressToAddressMappingStorage} from "./AddressToAddressMappingStorage.sol";
 import {TokenTypesStorage} from "./TokenTypesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
@@ -225,7 +225,7 @@ contract ReputationTokensBase is
     function getDestinationWallet(
         address addr
     ) external view returns (address) {
-        return ReputationTokensStorage.layout().destinationWallets[addr];
+        return AddressToAddressMappingStorage.layout().destinationWallets[addr];
     }
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {

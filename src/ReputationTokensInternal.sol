@@ -10,7 +10,7 @@ import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
-import {ReputationTokensStorage} from "./ReputationTokensStorage.sol";
+import {AddressToAddressMappingStorage} from "./AddressToAddressMappingStorage.sol";
 import {TokenTypesStorage} from "./TokenTypesStorage.sol";
 
 /**
@@ -77,7 +77,7 @@ abstract contract ReputationTokensInternal is
      */
     function maybeInitializeDestinationWallet(address addr) internal {
         if (
-            ReputationTokensStorage.layout().destinationWallets[addr] ==
+            AddressToAddressMappingStorage.layout().destinationWallets[addr] ==
             address(0)
         ) {
             _setDestinationWallet(addr, addr);
@@ -155,9 +155,9 @@ abstract contract ReputationTokensInternal is
         address target,
         address destination
     ) internal {
-        ReputationTokensStorage.layout().destinationWallets[
-            target
-        ] = destination;
+        AddressToAddressMappingStorage.layout().destinationWallets[
+                target
+            ] = destination;
         emit DestinationWalletSet(target, destination);
     }
 
@@ -176,23 +176,24 @@ abstract contract ReputationTokensInternal is
     ) internal {
         maybeInitializeDestinationWallet(to);
 
+        //NEEDS TO SUPPORT ARBITRARY NUMBER OF TOKENS
         super.safeTransferFrom(
             from,
-            ReputationTokensStorage.layout().destinationWallets[to],
+            AddressToAddressMappingStorage.layout().destinationWallets[to],
             0,
             amount,
             data
         );
         super.safeTransferFrom(
             from,
-            ReputationTokensStorage.layout().destinationWallets[to],
+            AddressToAddressMappingStorage.layout().destinationWallets[to],
             1,
             amount,
             data
         );
         emit Distributed(
             from,
-            ReputationTokensStorage.layout().destinationWallets[to],
+            AddressToAddressMappingStorage.layout().destinationWallets[to],
             amount
         );
     }
