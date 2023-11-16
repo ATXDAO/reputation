@@ -7,8 +7,8 @@ import {SafeOwnable} from "@solidstate/contracts/access/ownable/SafeOwnable.sol"
 import {AccessControl} from "@solidstate/contracts/access/access_control/AccessControl.sol";
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
-import {AddressToAddressMappingStorage} from "./AddressToAddressMappingStorage.sol";
-import {TokenTypesStorage} from "./TokenTypesStorage.sol";
+import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
+import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
 /**
@@ -16,6 +16,7 @@ import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
  * @author Jacob Homanics
  *
  * Implements the public and external interactions of Reputation Tokens.
+ * Additionally defines specific roles and gates function interaction with those roles.
  *
  */
 contract ReputationTokensBase is
@@ -23,6 +24,18 @@ contract ReputationTokensBase is
     AccessControl,
     SafeOwnable
 {
+    ///////////////////
+    // State Variables
+    ///////////////////
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant TOKEN_TYPE_CREATOR_ROLE =
+        keccak256("TOKEN_TYPE_CREATOR_ROLE");
+    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE =
+        keccak256("TOKEN_MIGRATOR_ROLE");
+
     ///////////////////
     // Functions
     ///////////////////
@@ -65,8 +78,8 @@ contract ReputationTokensBase is
         address to,
         uint256 amount,
         bytes memory data
-    ) external onlyRole(MINTER_ROLE()) {
-        if (!_hasRole(DISTRIBUTOR_ROLE(), to)) {
+    ) external onlyRole(MINTER_ROLE) {
+        if (!_hasRole(DISTRIBUTOR_ROLE, to)) {
             revert ReputationTokens__AttemptingToMintToNonDistributor();
         }
 
@@ -99,7 +112,7 @@ contract ReputationTokensBase is
         address to,
         uint256 amount,
         bytes memory data
-    ) public onlyRole(DISTRIBUTOR_ROLE()) {
+    ) public onlyRole(DISTRIBUTOR_ROLE) {
         _distribute(from, to, amount, data);
     }
 
@@ -156,11 +169,11 @@ contract ReputationTokensBase is
         //     revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         // }
 
-        if (_hasRole(DISTRIBUTOR_ROLE(), from)) {
+        if (_hasRole(DISTRIBUTOR_ROLE, from)) {
             revert ReputationTokens__AttemptingToSendIllegalyAsDistributor();
         }
 
-        if (!_hasRole(BURNER_ROLE(), to)) {
+        if (!_hasRole(BURNER_ROLE, to)) {
             revert ReputationTokens__AttemptingToSendToNonBurner();
         }
 
@@ -171,7 +184,7 @@ contract ReputationTokensBase is
     function createTokenType(
         bool isTradeable,
         uint256 maxMintAmountPerTx
-    ) external onlyRole(TOKEN_TYPE_CREATOR_ROLE()) {
+    ) external onlyRole(TOKEN_TYPE_CREATOR_ROLE) {
         _createTokenType(isTradeable, maxMintAmountPerTx);
     }
 
@@ -188,7 +201,7 @@ contract ReputationTokensBase is
     function migrateOwnershipOfTokens(
         address from,
         address to
-    ) external onlyRole(TOKEN_MIGRATOR_ROLE()) {
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
         _migrateOwnershipOfTokens(from, to);
     }
 
@@ -200,26 +213,6 @@ contract ReputationTokensBase is
 
     function DEFAULT_ADMIN_ROLE() public pure returns (bytes32) {
         return AccessControlStorage.DEFAULT_ADMIN_ROLE;
-    }
-
-    function MINTER_ROLE() public pure returns (bytes32) {
-        return keccak256("MINTER_ROLE");
-    }
-
-    function TOKEN_TYPE_CREATOR_ROLE() public pure returns (bytes32) {
-        return keccak256("TOKEN_TYPE_CREATOR_ROLE");
-    }
-
-    function DISTRIBUTOR_ROLE() public pure returns (bytes32) {
-        return keccak256("DISTRIBUTOR_ROLE");
-    }
-
-    function BURNER_ROLE() public pure returns (bytes32) {
-        return keccak256("BURNER_ROLE");
-    }
-
-    function TOKEN_MIGRATOR_ROLE() public pure returns (bytes32) {
-        return keccak256("TOKEN_MIGRATOR_ROLE");
     }
 
     function getDestinationWallet(

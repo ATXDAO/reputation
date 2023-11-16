@@ -10,8 +10,8 @@ import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
-import {AddressToAddressMappingStorage} from "./AddressToAddressMappingStorage.sol";
-import {TokenTypesStorage} from "./TokenTypesStorage.sol";
+import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
+import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
 
 /**
  * @title Reputation Tokens Internal
