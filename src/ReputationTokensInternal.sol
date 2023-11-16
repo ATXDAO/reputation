@@ -55,18 +55,17 @@ abstract contract ReputationTokensInternal is
     }
 
     function _createTokenType(
-        bool isTradeable,
-        uint256 maxMintAmountPerTx
+        TokenTypesStorage.TokenType memory tokenType
     ) internal {
         TokenTypesStorage
             .layout()
             .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
-            .isTradeable = isTradeable;
+            .isTradeable = tokenType.isTradeable;
 
         TokenTypesStorage
             .layout()
             .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
-            .maxMintAmountPerTx = maxMintAmountPerTx;
+            .maxMintAmountPerTx = tokenType.maxMintAmountPerTx;
 
         TokenTypesStorage.layout().numOfTokenTypes++;
     }

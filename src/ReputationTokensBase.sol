@@ -165,10 +165,6 @@ contract ReputationTokensBase is
             revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
 
-        // if (id != 1) {
-        //     revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
-        // }
-
         if (_hasRole(DISTRIBUTOR_ROLE, from)) {
             revert ReputationTokens__AttemptingToSendIllegalyAsDistributor();
         }
@@ -181,11 +177,18 @@ contract ReputationTokensBase is
         emit BurnedRedeemable(from, to, amount);
     }
 
+    function batchCreateTokenTypes(
+        TokenTypesStorage.TokenType[] memory tokenTypes
+    ) external {
+        for (uint256 i = 0; i < tokenTypes.length; i++) {
+            createTokenType(tokenTypes[i]);
+        }
+    }
+
     function createTokenType(
-        bool isTradeable,
-        uint256 maxMintAmountPerTx
-    ) external onlyRole(TOKEN_TYPE_CREATOR_ROLE) {
-        _createTokenType(isTradeable, maxMintAmountPerTx);
+        TokenTypesStorage.TokenType memory tokenType
+    ) public onlyRole(TOKEN_TYPE_CREATOR_ROLE) {
+        _createTokenType(tokenType);
     }
 
     //this needs to be called beforehand by address that wants to transfer its tokens:

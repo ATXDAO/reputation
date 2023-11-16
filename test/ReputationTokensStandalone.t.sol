@@ -22,14 +22,13 @@ contract RepTokensStandaloneTest is Test {
     address USER2 = makeAddr("USER2");
     address DESTINATION_WALLET = makeAddr("DESTINATION_WALLET");
 
+    TokenTypesStorage.TokenType[] types;
+    uint256 constant TOKEN_TYPES_TO_CREATE = 2;
     uint256 constant DEFAULT_MINT_AMOUNT = 50;
-    uint256 constant MAX_MINT_PER_TX = 100;
     string constant BASE_URI =
         "ipfs://bafybeiaz55w6kf7ar2g5vzikfbft2qoexknstfouu524l7q3mliutns2u4/";
 
     ReputationTokensStandalone s_repTokens;
-
-    uint256 TOKEN_TYPES_TO_CREATE = 2;
 
     ////////////////////////
     // Modifiers
@@ -75,11 +74,21 @@ contract RepTokensStandaloneTest is Test {
         _;
     }
 
+    modifier m_batchCreateTokenTypes(
+        TokenTypesStorage.TokenType[] memory tokenTypes
+    ) {
+        batchCreateTokenTypes(tokenTypes);
+        _;
+    }
+
+    modifier m_createTokenType(TokenTypesStorage.TokenType memory tokenType) {
+        createTokenType(tokenType);
+        _;
+    }
+
     ////////////////////////
     // Functions
     ////////////////////////
-
-    TokenTypesStorage.TokenType[] types;
 
     function setUp() public {
         address[] memory admins = new address[](1);
@@ -105,7 +114,7 @@ contract RepTokensStandaloneTest is Test {
         types.push(t1);
         types.push(t2);
 
-        createTokenTypes(types);
+        // batchCreateTokenTypes(types);
     }
 
     ////////////////////////
@@ -117,27 +126,26 @@ contract RepTokensStandaloneTest is Test {
         assertEq(s_repTokens.uri(1), string.concat(BASE_URI, "1"));
     }
 
-    function createTokenTypes(
-        TokenTypesStorage.TokenType[] memory tokenTypes
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        for (uint256 i = 0; i < tokenTypes.length; i++) {
-            s_repTokens.createTokenType(
-                tokenTypes[i].isTradeable,
-                tokenTypes[i].maxMintAmountPerTx
-            );
-        }
-        vm.stopPrank();
+    function testDefaultAdminRole() external {
+        assertEq(s_repTokens.DEFAULT_ADMIN_ROLE(), 0x00);
     }
 
-    modifier m_createTokenTypes(
-        TokenTypesStorage.TokenType[] memory tokenTypes
-    ) {
-        createTokenTypes(tokenTypes);
-        _;
+    function testBatchCreateTokenTypes()
+        external
+        m_batchCreateTokenTypes(types)
+    {
+        assertEq(types.length, s_repTokens.getNumOfTokenTypes());
     }
 
-    function testMint() public m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT) {
+    function testCreateTokenTypes() external m_createTokenType(types[0]) {
+        assertEq(1, s_repTokens.getNumOfTokenTypes());
+    }
+
+    function testMint()
+        public
+        m_batchCreateTokenTypes(types)
+        m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
+    {
         for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
             assertEq(
                 s_repTokens.balanceOf(DISTRIBUTOR, i),
@@ -146,7 +154,10 @@ contract RepTokensStandaloneTest is Test {
         }
     }
 
-    function testRevertIfMintingTooManyTokens() external {
+    function testRevertIfMintingTooManyTokens()
+        external
+        m_batchCreateTokenTypes(types)
+    {
         vm.startPrank(MINTER);
         vm.expectRevert(
             IReputationTokensBaseInternal
@@ -157,7 +168,10 @@ contract RepTokensStandaloneTest is Test {
         vm.stopPrank();
     }
 
-    function testRevertIfMintingToNonDistributor() external {
+    function testRevertIfMintingToNonDistributor()
+        external
+        m_batchCreateTokenTypes(types)
+    {
         vm.startPrank(MINTER);
         vm.expectRevert(
             IReputationTokensBaseInternal
@@ -169,7 +183,11 @@ contract RepTokensStandaloneTest is Test {
         vm.stopPrank();
     }
 
-    function testMintBatch() external m_setUpDistributor(DISTRIBUTOR2) {
+    function testMintBatch()
+        external
+        m_setUpDistributor(DISTRIBUTOR2)
+        m_batchCreateTokenTypes(types)
+    {
         address[] memory DISTRIBUTORS = new address[](2);
         DISTRIBUTORS[0] = DISTRIBUTOR;
         DISTRIBUTORS[1] = DISTRIBUTOR2;
@@ -189,6 +207,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testDistribute()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
         vm.startPrank(DISTRIBUTOR);
@@ -200,32 +219,9 @@ contract RepTokensStandaloneTest is Test {
         }
     }
 
-    function uint2str(
-        uint _i
-    ) internal pure returns (string memory _uintAsString) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
-            bytes1 b1 = bytes1(temp);
-            bstr[k] = b1;
-            _i /= 10;
-        }
-        return string(bstr);
-    }
-
     function testDistributeBatch()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
         address[] memory USERS = new address[](TOKEN_TYPES_TO_CREATE);
@@ -250,7 +246,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testSetDestinationWalletAndDistribute()
         external
-        // m_createTokenTypes(TOKEN_TYPES_TO_CREATE, DEFAULT_MINT_AMOUNT)
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_setDestinationWallet(USER, DESTINATION_WALLET)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
@@ -268,6 +264,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testRedeem()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -278,6 +275,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIsTokenIsNotTradeable()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -293,6 +291,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIllegalyAsDistributor()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
     {
         vm.startPrank(DISTRIBUTOR);
@@ -313,6 +312,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIsNotBeingSentToABurner()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -334,6 +334,7 @@ contract RepTokensStandaloneTest is Test {
 
     function testMigrationOfTokens()
         external
+        m_batchCreateTokenTypes(types)
         m_mint(DISTRIBUTOR, DEFAULT_MINT_AMOUNT)
         m_distribute(USER, DEFAULT_MINT_AMOUNT)
     {
@@ -351,9 +352,32 @@ contract RepTokensStandaloneTest is Test {
         }
     }
 
+    function testGetMaxMintPerTx() external m_batchCreateTokenTypes(types) {
+        for (uint256 i = 0; i < types.length; i++) {
+            assertEq(s_repTokens.getMaxMintPerTx(i), DEFAULT_MINT_AMOUNT);
+        }
+    }
+
     // ////////////////////////
     // // Helper Functions
     // ///////////////////////
+
+    function batchCreateTokenTypes(
+        TokenTypesStorage.TokenType[] memory tokenTypes
+    ) public {
+        vm.startPrank(TOKEN_CREATOR);
+        s_repTokens.batchCreateTokenTypes(tokenTypes);
+        vm.stopPrank();
+    }
+
+    function createTokenType(
+        TokenTypesStorage.TokenType memory tokenType
+    ) public {
+        vm.startPrank(TOKEN_CREATOR);
+        s_repTokens.createTokenType(tokenType);
+        vm.stopPrank();
+    }
+
     function mint(address to, uint256 amount) public {
         vm.startPrank(MINTER);
         s_repTokens.mint(to, amount, "");
@@ -400,5 +424,29 @@ contract RepTokensStandaloneTest is Test {
         vm.startPrank(target);
         s_repTokens.setDestinationWallet(destination);
         vm.stopPrank();
+    }
+
+    function uint2str(
+        uint _i
+    ) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len;
+        while (_i != 0) {
+            k = k - 1;
+            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
+            _i /= 10;
+        }
+        return string(bstr);
     }
 }

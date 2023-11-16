@@ -7,6 +7,19 @@ Version | Network | Deployment
 0.2 | Base | [0x93b0593cae9544d677dc7c9a18cb791e634bf8d9](https://basescan.org/address/0x93b0593cae9544d677dc7c9a18cb791e634bf8d9)
 0.1 | Polygon | [0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2](https://polygonscan.com/address/0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2)
 
+## Testing Status
+| File                                                  | % Lines         | % Statements    | % Branches      | % Funcs         |
+|-------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|
+| script/DeployReputationTokensInitializable.s.sol      | 0.00% (0/4)     | 0.00% (0/5)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| script/DeployReputationTokensStandalone.s.sol         | 0.00% (0/4)     | 0.00% (0/5)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| script/DeployReputationTokensStandaloneWithData.s.sol | 0.00% (0/6)     | 0.00% (0/8)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| src/ReputationTokensBase.sol                          | 100.00% (28/28) | 100.00% (34/34) | 100.00% (8/8)   | 100.00% (14/14) |
+| src/ReputationTokensInitializable.sol                 | 100.00% (1/1)   | 100.00% (1/1)   | 100.00% (0/0)   | 100.00% (1/1)   |
+| src/ReputationTokensInternal.sol                      | 100.00% (33/33) | 100.00% (37/37) | 100.00% (4/4)   | 100.00% (8/8)   |
+| src/storage/AddressToAddressMappingStorage.sol        | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| src/storage/TokenTypesStorage.sol                     | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| Total                                                 | 77.50% (62/80)  | 76.60% (72/94)  | 100.00% (12/12) | 82.14% (23/28)  |
+
 ## Reputation Tokens
 
 Reputation Tokens is a customized ERC1155 smart contract built to be deployed standalone, proxied, or through Diamonds.
