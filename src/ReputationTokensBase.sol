@@ -11,6 +11,8 @@ import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingS
 import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
+// TODO: Update Documentation (i.e. function parameters)
+
 /**
  * @title Reputation Tokens Base
  * @author Jacob Homanics
@@ -71,67 +73,57 @@ contract ReputationTokensBase is
     /**
      *
      * @param to The recipient address to be minted tokens to
-     * @param amount The amount of tokens to mint to the recipient address
      * @param data N/A
      */
     function mint(
         address to,
-        uint256 amount,
+        TokenOperation[] memory tokens,
         bytes memory data
     ) external onlyRole(MINTER_ROLE) {
         if (!_hasRole(DISTRIBUTOR_ROLE, to)) {
             revert ReputationTokens__AttemptingToMintToNonDistributor();
         }
 
-        _mint(to, amount, data);
+        _mint(to, tokens, data);
     }
 
     /**
      *
-     * @param to An array of recipient addresses to be sent tokens
-     * @param amount An array of an amount of tokens associated with the array of recipient addresses which define the number of tokens to be minted
      * @param data N/A
      */
     function mintBatch(
-        address[] memory to,
-        uint256[] memory amount,
+        BatchTokenOperation[] memory batchMint,
         bytes memory data
     ) external {
-        _mintBatch(to, amount, data);
+        _mintBatch(batchMint, data);
     }
 
     /**
      * Distributes tokens to a user.
      * @param from The distributor who will be sending distributing tokens
      * @param to The recipient who will receive the distributed tokens
-     * @param amount The amount of tokens the recipient will receive
      * @param data N/A
      */
     function distribute(
         address from,
         address to,
-        uint256 amount,
+        TokenOperation[] memory tokens,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _distribute(from, to, amount, data);
+        _distribute(from, to, tokens, data);
     }
 
     /**
      * Distributes many tokens to many users.
      * @param from The distributor who will be sending distributing tokens
-     * @param to An array of recipient addresses to receive a number of tokens.
-     * @param amount An array of an amount of tokens associated with the array of recipient addresses which define the number of tokens to be distributed
      * @param data N/A
      */
     function distributeBatch(
         address from,
-        address[] memory to,
-        uint256[] memory amount,
+        BatchTokenOperation[] memory batchMint,
         bytes memory data
-    ) external {
-        for (uint256 i = 0; i < to.length; i++) {
-            distribute(from, to[i], amount[i], data);
-        }
+    ) external onlyRole(DISTRIBUTOR_ROLE) {
+        _distributeBatch(from, batchMint, data);
     }
 
     /**
@@ -161,16 +153,16 @@ contract ReputationTokensBase is
         uint256 amount,
         bytes memory data
     ) public override(ERC1155Base, IERC1155) {
-        if (!TokenTypesStorage.layout().tokenTypes[id].isTradeable) {
-            revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
-        }
-
         if (_hasRole(DISTRIBUTOR_ROLE, from)) {
             revert ReputationTokens__AttemptingToSendIllegalyAsDistributor();
         }
 
         if (!_hasRole(BURNER_ROLE, to)) {
             revert ReputationTokens__AttemptingToSendToNonBurner();
+        }
+
+        if (!TokenTypesStorage.layout().tokenTypes[id].isTradeable) {
+            revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
 
         super.safeTransferFrom(from, to, id, amount, data);

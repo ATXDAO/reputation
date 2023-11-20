@@ -44,10 +44,6 @@ abstract contract ReputationTokensInternal is
      * @param baseUri The base URI that will be used for the token's metadata
      */
     function _initialize(string memory baseUri) internal {
-        // ReputationTokensStorage
-        //     .layout()
-        //     .maxMintAmountPerTx = maxMintAmountPerTx;
-
         ERC1155MetadataStorage.layout().baseURI = baseUri;
 
         _setSupportsInterface(type(IERC165).interfaceId, true);
@@ -74,7 +70,7 @@ abstract contract ReputationTokensInternal is
      * Checks and sets the destination wallet for an address if it is currently set to the zero address.
      * @param addr address who may get their destination wallet set
      */
-    function maybeInitializeDestinationWallet(address addr) internal {
+    function initializeDestinationWallet(address addr) internal {
         if (
             AddressToAddressMappingStorage.layout().destinationWallets[addr] ==
             address(0)
@@ -89,59 +85,39 @@ abstract contract ReputationTokensInternal is
      * MAY set the receiver's destination wallet to itself if it is set to the zero address.
      * Mints Tokens 0 and 1 of amount to `to`.
      * @param to receiving address of tokens.
-     * @param amount amount of tokens to send to `to`.
      * @param data N/A
      */
-    function _mint(address to, uint256 amount, bytes memory data) internal {
-        maybeInitializeDestinationWallet(to);
+    function _mint(
+        address to,
+        TokenOperation[] memory tokens,
+        bytes memory data
+    ) internal {
+        initializeDestinationWallet(to);
 
-        for (
-            uint256 i = 0;
-            i < TokenTypesStorage.layout().numOfTokenTypes;
-            i++
-        ) {
+        for (uint256 i = 0; i < tokens.length; i++) {
             if (
-                amount >
-                TokenTypesStorage.layout().tokenTypes[i].maxMintAmountPerTx
-            ) {
-                revert ReputationTokens__AttemptingToMintTooManyTokens();
-            }
+                tokens[i].amount >
+                TokenTypesStorage
+                    .layout()
+                    .tokenTypes[tokens[i].id]
+                    .maxMintAmountPerTx
+            ) revert ReputationTokens__AttemptingToMintTooManyTokens();
+
+            super._mint(to, tokens[i].id, tokens[i].amount, data);
+            emit Mint(msg.sender, to, tokens);
         }
-
-        // if (amount > ReputationTokensStorage.layout().maxMintAmountPerTx) {
-        //     revert ReputationTokens__AttemptingToMintTooManyTokens();
-        // }
-
-        for (
-            uint256 i = 0;
-            i < TokenTypesStorage.layout().numOfTokenTypes;
-            i++
-        ) {
-            super._mint(to, i, amount, data);
-            emit Mint(msg.sender, to, amount);
-        }
-
-        //mints an amount of lifetime tokens to an address.
-        // super._mint(to, 0, amount, data);
-        //mints an amount of transferable tokens to an address.
-        // super._mint(to, 1, amount, data);
-
-        // emit Mint(msg.sender, to, amount);
     }
 
     /**
      *
-     * @param to An array of recipient addresses to be sent tokens
-     * @param amount An array of an amount of tokens associated with the array of recipient addresses which define the number of tokens to be minted
      * @param data N/A
      */
     function _mintBatch(
-        address[] memory to,
-        uint256[] memory amount,
+        BatchTokenOperation[] memory batchMint,
         bytes memory data
     ) internal {
-        for (uint256 i = 0; i < to.length; i++) {
-            _mint(to[i], amount[i], data);
+        for (uint256 i = 0; i < batchMint.length; i++) {
+            _mint(batchMint[i].to, batchMint[i].tokens, data);
         }
     }
 
@@ -164,37 +140,41 @@ abstract contract ReputationTokensInternal is
      * Distributes an amount of tokens to an address
      * @param from A distributor who distributes tokens
      * @param to The recipient who will receive the tokens
-     * @param amount The amount of tokens to distribute to the recipient
      * @param data N/A
      */
     function _distribute(
         address from,
         address to,
-        uint256 amount,
+        TokenOperation[] memory tokens,
         bytes memory data
     ) internal {
-        maybeInitializeDestinationWallet(to);
+        initializeDestinationWallet(to);
 
-        //NEEDS TO SUPPORT ARBITRARY NUMBER OF TOKENS
-        super.safeTransferFrom(
-            from,
-            AddressToAddressMappingStorage.layout().destinationWallets[to],
-            0,
-            amount,
-            data
-        );
-        super.safeTransferFrom(
-            from,
-            AddressToAddressMappingStorage.layout().destinationWallets[to],
-            1,
-            amount,
-            data
-        );
+        for (uint256 i = 0; i < tokens.length; i++) {
+            super.safeTransferFrom(
+                from,
+                AddressToAddressMappingStorage.layout().destinationWallets[to],
+                tokens[i].id,
+                tokens[i].amount,
+                data
+            );
+        }
+
         emit Distributed(
             from,
             AddressToAddressMappingStorage.layout().destinationWallets[to],
-            amount
+            tokens
         );
+    }
+
+    function _distributeBatch(
+        address from,
+        BatchTokenOperation[] memory batchMint,
+        bytes memory data
+    ) internal {
+        for (uint256 i = 0; i < batchMint.length; i++) {
+            _distribute(from, batchMint[i].to, batchMint[i].tokens, data);
+        }
     }
 
     /**

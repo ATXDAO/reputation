@@ -9,12 +9,31 @@ pragma solidity ^0.8.8;
  * Hosts the events for Reputation Tokens.
  */
 interface IReputationTokensInternal {
+    ///////////////////
+    // Types
+    ///////////////////
+    struct TokenOperation {
+        uint256 id;
+        uint256 amount;
+    }
+
+    struct BatchTokenOperation {
+        address to;
+        TokenOperation[] tokens;
+    }
+
     event Mint(
-        address indexed minter,
+        address indexed from,
         address indexed to,
-        uint256 indexed amount
+        TokenOperation[] indexed tokens
     );
-    event Distributed(address indexed from, address indexed to, uint256 amount);
+
+    event Distributed(
+        address indexed from,
+        address indexed to,
+        TokenOperation[] indexed tokens
+    );
+
     event DestinationWalletSet(
         address indexed coreAddress,
         address indexed destination
