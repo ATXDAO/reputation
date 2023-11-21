@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 
 import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
 import {ERC1155Base} from "@solidstate/contracts/token/ERC1155/base/ERC1155Base.sol";

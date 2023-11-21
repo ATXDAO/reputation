@@ -515,7 +515,7 @@ contract RepTokensStandaloneTest is Test {
         address to,
         ReputationTokensInternal.TokenOperation[] memory mintTokens
     ) public {
-        vm.startPrank(MINTER);
+        vm.startPrank(minter);
         s_repTokens.mint(to, mintTokens, "");
         vm.stopPrank();
     }
