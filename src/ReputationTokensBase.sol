@@ -206,10 +206,6 @@ contract ReputationTokensBase is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function DEFAULT_ADMIN_ROLE() public pure returns (bytes32) {
-        return AccessControlStorage.DEFAULT_ADMIN_ROLE;
-    }
-
     function getDestinationWallet(
         address addr
     ) external view returns (address) {

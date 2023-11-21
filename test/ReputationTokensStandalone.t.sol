@@ -461,10 +461,6 @@ contract RepTokensStandaloneTest is Test {
         assertEq(s_repTokens.uri(1), string.concat(BASE_URI, "1"));
     }
 
-    function testDefaultAdminRole() external {
-        assertEq(s_repTokens.DEFAULT_ADMIN_ROLE(), 0x00);
-    }
-
     function testGetMaxMintPerTx() external {
         batchCreateTokenTypes(tokenTypes);
 
