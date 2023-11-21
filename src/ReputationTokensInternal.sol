@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.0;
 
 import {SolidStateERC1155} from "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
 import {ERC1155MetadataStorage} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155MetadataStorage.sol";
@@ -7,6 +7,7 @@ import {ERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/ERC1
 import {IERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
 import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
 import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
+import {ReentrancyGuard} from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
@@ -29,6 +30,7 @@ import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
  */
 abstract contract ReputationTokensInternal is
     SolidStateERC1155,
+    ReentrancyGuard,
     IReputationTokensBaseInternal
 {
     ///////////////////
@@ -147,7 +149,7 @@ abstract contract ReputationTokensInternal is
         address to,
         TokenOperation[] memory tokens,
         bytes memory data
-    ) internal {
+    ) internal nonReentrant {
         initializeDestinationWallet(to);
 
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -184,7 +186,10 @@ abstract contract ReputationTokensInternal is
      *
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
-    function _migrateOwnershipOfTokens(address from, address to) internal {
+    function _migrateOwnershipOfTokens(
+        address from,
+        address to
+    ) internal nonReentrant {
         uint256 lifetimeBalance = balanceOf(from, 0);
         uint256 redeemableBalance = balanceOf(from, 1);
 

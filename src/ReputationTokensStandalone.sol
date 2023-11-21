@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.0;
 
 import {ReputationTokensBase} from "./ReputationTokensBase.sol";
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
@@ -17,7 +17,11 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     // Functions
     ///////////////////
 
-    constructor(address owner, address[] memory admins, string memory baseUri) {
-        _initialize(owner, admins, baseUri);
+    constructor(
+        address ownerNominee,
+        address[] memory admins,
+        string memory baseUri
+    ) {
+        _initialize(ownerNominee, admins, baseUri);
     }
 }

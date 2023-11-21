@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.0;
 
 import {console} from "forge-std/console.sol";
 
@@ -25,10 +25,10 @@ contract ReputationTokensInitializable is ReputationTokensBase, Initializable {
     // External Functions
     ///////////////////
     function initialize(
-        address owner,
+        address ownerNominee,
         address[] memory admins,
         string memory baseUri
     ) external initializer {
-        _initialize(owner, admins, baseUri);
+        _initialize(ownerNominee, admins, baseUri);
     }
 }
