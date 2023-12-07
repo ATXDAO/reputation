@@ -12,7 +12,7 @@ import {ReentrancyGuard} from "@solidstate/contracts/security/reentrancy_guard/R
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
 import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
-import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
+import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 
 /**
  * @title Reputation Tokens Internal
@@ -52,20 +52,33 @@ abstract contract ReputationTokensInternal is
         _setSupportsInterface(type(IERC1155).interfaceId, true);
     }
 
-    function _createTokenType(
-        TokenTypesStorage.TokenType memory tokenType
+    function _createToken(
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) internal {
-        TokenTypesStorage
-            .layout()
-            .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
-            .isTradeable = tokenType.isTradeable;
+        _updateToken(
+            TokensPropertiesStorage.layout().numOfTokens,
+            tokenProperties
+        );
+        TokensPropertiesStorage.layout().numOfTokens++;
 
-        TokenTypesStorage
-            .layout()
-            .tokenTypes[TokenTypesStorage.layout().numOfTokenTypes]
-            .maxMintAmountPerTx = tokenType.maxMintAmountPerTx;
+        emit Create(tokenProperties);
+    }
 
-        TokenTypesStorage.layout().numOfTokenTypes++;
+    function _updateToken(
+        uint256 id,
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
+    ) internal {
+        TokensPropertiesStorage
+            .layout()
+            .tokens[id]
+            .isTradeable = tokenProperties.isTradeable;
+
+        TokensPropertiesStorage
+            .layout()
+            .tokens[id]
+            .maxMintAmountPerTx = tokenProperties.maxMintAmountPerTx;
+
+        emit Update(id, tokenProperties);
     }
 
     /**
@@ -91,22 +104,27 @@ abstract contract ReputationTokensInternal is
      */
     function _mint(
         address to,
-        TokenOperation[] memory tokens,
+        TokenOperation[] memory tokenOperations,
         bytes memory data
     ) internal {
         initializeDestinationWallet(to);
 
-        for (uint256 i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokenOperations.length; i++) {
             if (
-                tokens[i].amount >
-                TokenTypesStorage
+                tokenOperations[i].amount >
+                TokensPropertiesStorage
                     .layout()
-                    .tokenTypes[tokens[i].id]
+                    .tokens[tokenOperations[i].id]
                     .maxMintAmountPerTx
             ) revert ReputationTokens__AttemptingToMintTooManyTokens();
 
-            super._mint(to, tokens[i].id, tokens[i].amount, data);
-            emit Mint(msg.sender, to, tokens);
+            super._mint(
+                to,
+                tokenOperations[i].id,
+                tokenOperations[i].amount,
+                data
+            );
+            emit Mint(msg.sender, to, tokenOperations);
         }
     }
 

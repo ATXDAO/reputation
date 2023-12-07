@@ -7,25 +7,25 @@ pragma solidity ^0.8.18;
  *
  * This smart contract library follows the Diamond Storage Pattern by hosting the state variables for Reputation Tokens.
  */
-library TokenTypesStorage {
+library TokensPropertiesStorage {
     ///////////////////
     // State Variables
     ///////////////////
 
     //give the storage a unique identifier.
     bytes32 internal constant STORAGE_SLOT =
-        keccak256("atxdao.contracts.storage.tokentypesstorage");
+        keccak256("atxdao.contracts.storage.tokenspropertiesstorage");
 
     ///////////////////
     // Types
     ///////////////////
 
     struct Layout {
-        uint256 numOfTokenTypes;
-        mapping(uint256 => TokenType) tokenTypes;
+        uint256 numOfTokens;
+        mapping(uint256 => TokenProperties) tokens;
     }
 
-    struct TokenType {
+    struct TokenProperties {
         bool isTradeable;
         uint256 maxMintAmountPerTx;
     }

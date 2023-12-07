@@ -20,4 +20,5 @@ interface IReputationTokensBaseInternal is IReputationTokensInternal {
     error ReputationTokens__AttemptingToSendNonRedeemableTokens();
     error ReputationTokens__AttemptingToSendIllegalyAsDistributor();
     error ReputationTokens__AttemptingToSendToNonBurner();
+    error ReputationTokens__AttemptingToUpdateNonexistentToken();
 }

@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.18;
 
+import {TokensPropertiesStorage} from "../storage/TokensPropertiesStorage.sol";
+
 /**
  * @title Reputation Tokens Internal Interface
  * @author Jacob Homanics
@@ -21,6 +23,12 @@ interface IReputationTokensInternal {
         address to;
         TokenOperation[] tokens;
     }
+
+    event Create(TokensPropertiesStorage.TokenProperties);
+    event Update(
+        uint256 indexed id,
+        TokensPropertiesStorage.TokenProperties indexed properties
+    );
 
     event Mint(
         address indexed from,

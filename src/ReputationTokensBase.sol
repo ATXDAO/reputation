@@ -8,7 +8,7 @@ import {AccessControl} from "@solidstate/contracts/access/access_control/AccessC
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
 import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
-import {TokenTypesStorage} from "./storage/TokenTypesStorage.sol";
+import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 
 // TODO: Update Documentation (i.e. function parameters)
@@ -31,8 +31,10 @@ contract ReputationTokensBase is
     ///////////////////
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant TOKEN_TYPE_CREATOR_ROLE =
-        keccak256("TOKEN_TYPE_CREATOR_ROLE");
+    bytes32 public constant TOKEN_CREATOR_ROLE =
+        keccak256("TOKEN_CREATOR_ROLE");
+    bytes32 public constant TOKEN_UPDATER_ROLE =
+        keccak256("TOKEN_UPDATER_ROLE");
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant TOKEN_MIGRATOR_ROLE =
@@ -161,7 +163,7 @@ contract ReputationTokensBase is
             revert ReputationTokens__AttemptingToSendToNonBurner();
         }
 
-        if (!TokenTypesStorage.layout().tokenTypes[id].isTradeable) {
+        if (!TokensPropertiesStorage.layout().tokens[id].isTradeable) {
             revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
 
@@ -169,18 +171,37 @@ contract ReputationTokensBase is
         emit BurnedRedeemable(from, to, amount);
     }
 
-    function batchCreateTokenTypes(
-        TokenTypesStorage.TokenType[] memory tokenTypes
+    function createToken(
+        TokensPropertiesStorage.TokenProperties memory tokenProperty
+    ) public onlyRole(TOKEN_CREATOR_ROLE) {
+        _createToken(tokenProperty);
+    }
+
+    function batchCreateTokens(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
     ) external {
-        for (uint256 i = 0; i < tokenTypes.length; i++) {
-            createTokenType(tokenTypes[i]);
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            createToken(tokensProperties[i]);
         }
     }
 
-    function createTokenType(
-        TokenTypesStorage.TokenType memory tokenType
-    ) public onlyRole(TOKEN_TYPE_CREATOR_ROLE) {
-        _createTokenType(tokenType);
+    function updateToken(
+        uint256 id,
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
+    ) public onlyRole(TOKEN_UPDATER_ROLE) {
+        if (id >= TokensPropertiesStorage.layout().numOfTokens)
+            revert ReputationTokens__AttemptingToUpdateNonexistentToken();
+
+        _updateToken(id, tokenProperties);
+    }
+
+    function batchUpdateTokens(
+        uint256[] memory ids,
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
+    ) external {
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            updateToken(ids[i], tokensProperties[i]);
+        }
     }
 
     //this needs to be called beforehand by address that wants to transfer its tokens:
@@ -213,10 +234,17 @@ contract ReputationTokensBase is
     }
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {
-        return TokenTypesStorage.layout().tokenTypes[index].maxMintAmountPerTx;
+        return
+            TokensPropertiesStorage.layout().tokens[index].maxMintAmountPerTx;
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
-        return TokenTypesStorage.layout().numOfTokenTypes;
+        return TokensPropertiesStorage.layout().numOfTokens;
+    }
+
+    function getTokenProperties(
+        uint256 id
+    ) external view returns (TokensPropertiesStorage.TokenProperties memory) {
+        return TokensPropertiesStorage.layout().tokens[id];
     }
 }

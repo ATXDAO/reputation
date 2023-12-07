@@ -10,15 +10,15 @@ Version | Network | Deployment
 ## Testing Status
 | File                                                  | % Lines         | % Statements    | % Branches      | % Funcs         |
 |-------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|
-| script/DeployReputationTokensInitializable.s.sol      | 0.00% (0/4)     | 0.00% (0/5)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| script/DeployReputationTokensStandalone.s.sol         | 0.00% (0/4)     | 0.00% (0/5)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| script/DeployReputationTokensInitializable.s.sol      | 100.00% (4/4)   | 100.00% (5/5)   | 100.00% (0/0)   | 100.00% (1/1)   |
+| script/DeployReputationTokensStandalone.s.sol         | 100.00% (4/4)   | 100.00% (5/5)   | 100.00% (0/0)   | 100.00% (1/1)   |
 | script/DeployReputationTokensStandaloneWithData.s.sol | 0.00% (0/6)     | 0.00% (0/8)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| src/ReputationTokensBase.sol                          | 100.00% (28/28) | 100.00% (34/34) | 100.00% (8/8)   | 100.00% (14/14) |
+| src/ReputationTokensBase.sol                          | 93.75% (30/32)  | 89.47% (34/38)  | 100.00% (10/10) | 93.75% (15/16)  |
 | src/ReputationTokensInitializable.sol                 | 100.00% (1/1)   | 100.00% (1/1)   | 100.00% (0/0)   | 100.00% (1/1)   |
-| src/ReputationTokensInternal.sol                      | 100.00% (33/33) | 100.00% (37/37) | 100.00% (4/4)   | 100.00% (8/8)   |
+| src/ReputationTokensInternal.sol                      | 100.00% (33/33) | 100.00% (43/43) | 100.00% (4/4)   | 100.00% (10/10) |
 | src/storage/AddressToAddressMappingStorage.sol        | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| src/storage/TokenTypesStorage.sol                     | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| Total                                                 | 77.50% (62/80)  | 76.60% (72/94)  | 100.00% (12/12) | 82.14% (23/28)  |
+| src/storage/TokensPropertiesStorage.sol               | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
+| Total                                                 | 85.71% (72/84)  | 84.62% (88/104) | 100.00% (14/14) | 87.50% (28/32)  |
 
 ## Reputation Tokens
 
