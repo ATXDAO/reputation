@@ -163,7 +163,9 @@ contract ReputationTokensBase is
             revert ReputationTokens__AttemptingToSendToNonBurner();
         }
 
-        if (!TokensPropertiesStorage.layout().tokens[id].isTradeable) {
+        if (
+            !TokensPropertiesStorage.layout().tokensProperties[id].isTradeable
+        ) {
             revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
         }
 
@@ -235,7 +237,10 @@ contract ReputationTokensBase is
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {
         return
-            TokensPropertiesStorage.layout().tokens[index].maxMintAmountPerTx;
+            TokensPropertiesStorage
+                .layout()
+                .tokensProperties[index]
+                .maxMintAmountPerTx;
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
@@ -245,6 +250,6 @@ contract ReputationTokensBase is
     function getTokenProperties(
         uint256 id
     ) external view returns (TokensPropertiesStorage.TokenProperties memory) {
-        return TokensPropertiesStorage.layout().tokens[id];
+        return TokensPropertiesStorage.layout().tokensProperties[id];
     }
 }

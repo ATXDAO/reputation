@@ -70,12 +70,12 @@ abstract contract ReputationTokensInternal is
     ) internal {
         TokensPropertiesStorage
             .layout()
-            .tokens[id]
+            .tokensProperties[id]
             .isTradeable = tokenProperties.isTradeable;
 
         TokensPropertiesStorage
             .layout()
-            .tokens[id]
+            .tokensProperties[id]
             .maxMintAmountPerTx = tokenProperties.maxMintAmountPerTx;
 
         emit Update(id, tokenProperties);
@@ -114,7 +114,7 @@ abstract contract ReputationTokensInternal is
                 tokenOperations[i].amount >
                 TokensPropertiesStorage
                     .layout()
-                    .tokens[tokenOperations[i].id]
+                    .tokensProperties[tokenOperations[i].id]
                     .maxMintAmountPerTx
             ) revert ReputationTokens__AttemptingToMintTooManyTokens();
 
