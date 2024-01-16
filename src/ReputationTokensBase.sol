@@ -206,9 +206,6 @@ contract ReputationTokensBase is
         }
     }
 
-    //this needs to be called beforehand by address that wants to transfer its tokens:
-    //
-
     /**
      * Migrates all tokens to a new address only by authorized accounts.
      * @param from The address who is migrating their tokens.
@@ -221,35 +218,5 @@ contract ReputationTokensBase is
         address to
     ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
         _migrateOwnershipOfTokens(from, to);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    // External & Public View & Pure Functions
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-
-    function getDestinationWallet(
-        address addr
-    ) external view returns (address) {
-        return AddressToAddressMappingStorage.layout().destinationWallets[addr];
-    }
-
-    function getMaxMintPerTx(uint256 index) external view returns (uint256) {
-        return
-            TokensPropertiesStorage
-                .layout()
-                .tokensProperties[index]
-                .maxMintAmountPerTx;
-    }
-
-    function getNumOfTokenTypes() external view returns (uint256) {
-        return TokensPropertiesStorage.layout().numOfTokens;
-    }
-
-    function getTokenProperties(
-        uint256 id
-    ) external view returns (TokensPropertiesStorage.TokenProperties memory) {
-        return TokensPropertiesStorage.layout().tokensProperties[id];
     }
 }
