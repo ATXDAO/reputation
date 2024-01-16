@@ -22,7 +22,7 @@ library TokensPropertiesStorage {
 
     struct Layout {
         uint256 numOfTokens;
-        mapping(uint256 => TokenProperties) tokens;
+        mapping(uint256 => TokenProperties) tokensProperties;
     }
 
     struct TokenProperties {
