@@ -19,9 +19,9 @@ interface IReputationTokensInternal {
         uint256 amount;
     }
 
-    struct BatchTokenOperation {
+    struct TokensOperations {
         address to;
-        TokenOperation[] tokens;
+        TokenOperation[] operations;
     }
 
     event Create(TokensPropertiesStorage.TokenProperties);

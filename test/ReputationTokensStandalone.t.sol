@@ -180,13 +180,14 @@ contract RepTokensStandaloneTest is Test {
     function testMint() public {
         batchCreateTokens(tokensProperties);
 
-        ReputationTokensInternal.TokenOperation[]
+        ReputationTokensInternal.TokensOperations
             memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
                 TOKEN_TYPES_TO_CREATE,
                 DEFAULT_MINT_AMOUNT
             );
 
-        mint(MINTER, DISTRIBUTOR, tokenOperations);
+        mint(MINTER, tokenOperations);
 
         for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
             assertEq(
@@ -199,8 +200,9 @@ contract RepTokensStandaloneTest is Test {
     function testRevertIfMintingTooManyTokens() external {
         batchCreateTokens(tokensProperties);
 
-        ReputationTokensInternal.TokenOperation[]
-            memory tokenOperations = createTokenOperationsSequential(
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
                 TOKEN_TYPES_TO_CREATE,
                 DEFAULT_MINT_AMOUNT + 1
             );
@@ -212,15 +214,16 @@ contract RepTokensStandaloneTest is Test {
                 .selector
         );
 
-        s_repTokens.mint(DISTRIBUTOR, tokenOperations, "");
+        s_repTokens.mint(mintOperations, "");
         vm.stopPrank();
     }
 
     function testRevertIfMintingToNonDistributor() external {
         batchCreateTokens(tokensProperties);
 
-        ReputationTokensInternal.TokenOperation[]
+        ReputationTokensInternal.TokensOperations
             memory tokenOperations = createTokenOperationsSequential(
+                USER,
                 TOKEN_TYPES_TO_CREATE,
                 DEFAULT_MINT_AMOUNT
             );
@@ -232,7 +235,7 @@ contract RepTokensStandaloneTest is Test {
                 .selector
         );
 
-        s_repTokens.mint(USER, tokenOperations, "");
+        s_repTokens.mint(tokenOperations, "");
         vm.stopPrank();
     }
 
@@ -246,24 +249,30 @@ contract RepTokensStandaloneTest is Test {
         distributors[0] = DISTRIBUTOR;
         distributors[1] = distributor2;
 
-        ReputationTokensInternal.TokenOperation[]
-            memory tokenOperations = createTokenOperationsSequential(
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations1 = createTokenOperationsSequential(
+                DISTRIBUTOR,
                 TOKEN_TYPES_TO_CREATE,
                 DEFAULT_MINT_AMOUNT
             );
 
-        ReputationTokensInternal.BatchTokenOperation[]
-            memory batchMint = new ReputationTokensInternal.BatchTokenOperation[](
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations2 = createTokenOperationsSequential(
+                distributor2,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        ReputationTokensInternal.TokensOperations[]
+            memory batchMintOperations = new ReputationTokensInternal.TokensOperations[](
                 distributors.length
             );
 
-        for (uint256 i = 0; i < batchMint.length; i++) {
-            batchMint[i].to = distributors[i];
-            batchMint[i].tokens = tokenOperations;
-        }
+        batchMintOperations[0] = mintOperations1;
+        batchMintOperations[1] = mintOperations2;
 
         vm.startPrank(MINTER);
-        s_repTokens.mintBatch(batchMint, "");
+        s_repTokens.mintBatch(batchMintOperations, "");
         vm.stopPrank();
 
         for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
@@ -282,16 +291,24 @@ contract RepTokensStandaloneTest is Test {
         uint256 numOfTokens = TOKEN_TYPES_TO_CREATE;
         address user = makeAddr("USER");
 
-        ReputationTokensInternal.TokenOperation[]
+        ReputationTokensInternal.TokensOperations
             memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
                 numOfTokens,
                 DEFAULT_MINT_AMOUNT
             );
 
-        mint(MINTER, DISTRIBUTOR, tokenOperations);
+        mint(MINTER, tokenOperations);
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                user,
+                numOfTokens,
+                DEFAULT_MINT_AMOUNT
+            );
 
         vm.startPrank(DISTRIBUTOR);
-        s_repTokens.distribute(DISTRIBUTOR, user, tokenOperations, "");
+        s_repTokens.distribute(DISTRIBUTOR, distributeOperations, "");
         vm.stopPrank();
 
         for (uint256 i = 0; i < numOfTokens; i++) {
@@ -303,41 +320,42 @@ contract RepTokensStandaloneTest is Test {
     function testDistributeBatch() external {
         batchCreateTokens(tokensProperties);
 
-        ReputationTokensInternal.TokenOperation[]
+        ReputationTokensInternal.TokensOperations
             memory mintOps = createTokenOperationsSequential(
+                DISTRIBUTOR,
                 TOKEN_TYPES_TO_CREATE,
                 DEFAULT_MINT_AMOUNT
             );
 
-        mint(MINTER, DISTRIBUTOR, mintOps);
+        mint(MINTER, mintOps);
 
         address[] memory users = generateUsers(5);
 
-        ReputationTokensInternal.BatchTokenOperation[]
-            memory batchOp = new ReputationTokensInternal.BatchTokenOperation[](
+        ReputationTokensInternal.TokensOperations[]
+            memory batchOps = new ReputationTokensInternal.TokensOperations[](
                 users.length
             );
 
-        ReputationTokensInternal.TokenOperation[]
-            memory distributeOps = createTokenOperationsSequential(
-                mintOps.length,
-                DEFAULT_MINT_AMOUNT / users.length
-            );
+        for (uint256 i = 0; i < batchOps.length; i++) {
+            ReputationTokensInternal.TokensOperations
+                memory distributeOps = createTokenOperationsSequential(
+                    users[i],
+                    TOKEN_TYPES_TO_CREATE,
+                    DEFAULT_MINT_AMOUNT / users.length
+                );
 
-        for (uint256 i = 0; i < batchOp.length; i++) {
-            batchOp[i].to = users[i];
-            batchOp[i].tokens = distributeOps;
+            batchOps[i] = distributeOps;
         }
 
         vm.startPrank(DISTRIBUTOR);
-        s_repTokens.distributeBatch(DISTRIBUTOR, batchOp, "");
+        s_repTokens.distributeBatch(DISTRIBUTOR, batchOps, "");
         vm.stopPrank();
 
         for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
             assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), 0);
-            for (uint256 j = 0; j < batchOp.length; j++) {
+            for (uint256 j = 0; j < batchOps.length; j++) {
                 assertEq(
-                    s_repTokens.balanceOf(batchOp[j].to, i),
+                    s_repTokens.balanceOf(batchOps[j].to, i),
                     DEFAULT_MINT_AMOUNT / users.length
                 );
             }
@@ -349,16 +367,25 @@ contract RepTokensStandaloneTest is Test {
 
         uint256 numOfTokens = 1;
 
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                numOfTokens
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                numOfTokens,
+                DEFAULT_MINT_AMOUNT
             );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
-        mint(MINTER, DISTRIBUTOR, mintTokens);
+
+        mint(MINTER, tokenOperations);
 
         setDestinationWallet(USER, DESTINATION_WALLET);
-        distribute(DISTRIBUTOR, USER, mintTokens);
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                USER,
+                numOfTokens,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        distribute(DISTRIBUTOR, distributeOperations);
 
         for (uint256 i = 0; i < numOfTokens; i++) {
             assertEq(
@@ -378,18 +405,23 @@ contract RepTokensStandaloneTest is Test {
 
     function testRedeem() external {
         batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                tokensProperties.length
+
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
             );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
 
-        mintTokens[1].id = 1;
-        mintTokens[1].amount = DEFAULT_MINT_AMOUNT;
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                USER,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
 
-        mint(MINTER, DISTRIBUTOR, mintTokens);
-        distribute(DISTRIBUTOR, USER, mintTokens);
+        mint(MINTER, tokenOperations);
+        distribute(DISTRIBUTOR, distributeOperations);
 
         vm.startPrank(USER);
         s_repTokens.safeTransferFrom(USER, BURNER, 1, DEFAULT_MINT_AMOUNT, "");
@@ -398,14 +430,23 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIsTokenIsNotTradeable() external {
         batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                1
+
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
             );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
-        mint(MINTER, DISTRIBUTOR, mintTokens);
-        distribute(DISTRIBUTOR, USER, mintTokens);
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                USER,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        mint(MINTER, mintOperations);
+        distribute(DISTRIBUTOR, distributeOperations);
 
         vm.startPrank(USER);
         vm.expectRevert(
@@ -419,16 +460,14 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIllegalyAsDistributor() external {
         batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                tokensProperties.length
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
             );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
-        mintTokens[1].id = 1;
-        mintTokens[1].amount = DEFAULT_MINT_AMOUNT;
 
-        mint(MINTER, DISTRIBUTOR, mintTokens);
+        mint(MINTER, mintOperations);
 
         vm.startPrank(DISTRIBUTOR);
         vm.expectRevert(
@@ -448,17 +487,23 @@ contract RepTokensStandaloneTest is Test {
 
     function testRevertIfRedeemIsNotBeingSentToABurner() external {
         batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                tokensProperties.length
-            );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
-        mintTokens[1].id = 1;
-        mintTokens[1].amount = DEFAULT_MINT_AMOUNT;
 
-        mint(MINTER, DISTRIBUTOR, mintTokens);
-        distribute(DISTRIBUTOR, USER, mintTokens);
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                USER,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        mint(MINTER, mintOperations);
+        distribute(DISTRIBUTOR, distributeOperations);
 
         vm.startPrank(USER);
         vm.expectRevert(
@@ -478,17 +523,23 @@ contract RepTokensStandaloneTest is Test {
 
     function testMigrationOfTokens() external {
         batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokenOperation[]
-            memory mintTokens = new ReputationTokensInternal.TokenOperation[](
-                tokensProperties.length
-            );
-        mintTokens[0].id = 0;
-        mintTokens[0].amount = DEFAULT_MINT_AMOUNT;
-        mintTokens[1].id = 1;
-        mintTokens[1].amount = DEFAULT_MINT_AMOUNT;
 
-        mint(MINTER, DISTRIBUTOR, mintTokens);
-        distribute(DISTRIBUTOR, USER, mintTokens);
+        ReputationTokensInternal.TokensOperations
+            memory mintOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                USER,
+                TOKEN_TYPES_TO_CREATE,
+                DEFAULT_MINT_AMOUNT
+            );
+
+        mint(MINTER, mintOperations);
+        distribute(DISTRIBUTOR, distributeOperations);
 
         vm.startPrank(USER);
         s_repTokens.setApprovalForAll(TOKEN_MIGRATOR, true);
@@ -556,17 +607,18 @@ contract RepTokensStandaloneTest is Test {
     }
 
     function createTokenOperationsSequential(
+        address to,
         uint256 length,
         uint256 amount
-    ) public pure returns (ReputationTokensInternal.TokenOperation[] memory) {
-        ReputationTokensInternal.TokenOperation[]
-            memory tokenOperations = new ReputationTokensInternal.TokenOperation[](
-                length
-            );
+    ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](length);
+        tokenOperations.to = to;
 
         for (uint256 i = 0; i < length; i++) {
-            tokenOperations[i].id = i;
-            tokenOperations[i].amount = amount;
+            tokenOperations.operations[i].id = i;
+            tokenOperations.operations[i].amount = amount;
         }
 
         return tokenOperations;
@@ -574,21 +626,19 @@ contract RepTokensStandaloneTest is Test {
 
     function mint(
         address minter,
-        address to,
-        ReputationTokensInternal.TokenOperation[] memory mintTokens
+        ReputationTokensInternal.TokensOperations memory operations
     ) public {
         vm.startPrank(minter);
-        s_repTokens.mint(to, mintTokens, "");
+        s_repTokens.mint(operations, "");
         vm.stopPrank();
     }
 
     function distribute(
         address distributor,
-        address to,
-        ReputationTokensInternal.TokenOperation[] memory tokenOps
+        ReputationTokensInternal.TokensOperations memory tokenOps
     ) public {
         vm.startPrank(distributor);
-        s_repTokens.distribute(distributor, to, tokenOps, "");
+        s_repTokens.distribute(distributor, tokenOps, "");
         vm.stopPrank();
     }
 

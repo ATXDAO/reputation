@@ -99,32 +99,35 @@ abstract contract ReputationTokensInternal is
      * amount MUST BE lower than maxMintPerTx.
      * MAY set the receiver's destination wallet to itself if it is set to the zero address.
      * Mints Tokens 0 and 1 of amount to `to`.
-     * @param to receiving address of tokens.
+     * @param tokensOperations receiving address of tokens.
      * @param data N/A
      */
     function _mint(
-        address to,
-        TokenOperation[] memory tokenOperations,
+        TokensOperations memory tokensOperations,
         bytes memory data
     ) internal {
-        initializeDestinationWallet(to);
+        initializeDestinationWallet(tokensOperations.to);
 
-        for (uint256 i = 0; i < tokenOperations.length; i++) {
+        for (uint256 i = 0; i < tokensOperations.operations.length; i++) {
             if (
-                tokenOperations[i].amount >
+                tokensOperations.operations[i].amount >
                 TokensPropertiesStorage
                     .layout()
-                    .tokensProperties[tokenOperations[i].id]
+                    .tokensProperties[tokensOperations.operations[i].id]
                     .maxMintAmountPerTx
             ) revert ReputationTokens__AttemptingToMintTooManyTokens();
 
             super._mint(
-                to,
-                tokenOperations[i].id,
-                tokenOperations[i].amount,
+                tokensOperations.to,
+                tokensOperations.operations[i].id,
+                tokensOperations.operations[i].amount,
                 data
             );
-            emit Mint(msg.sender, to, tokenOperations);
+            emit Mint(
+                msg.sender,
+                tokensOperations.to,
+                tokensOperations.operations
+            );
         }
     }
 
@@ -133,11 +136,11 @@ abstract contract ReputationTokensInternal is
      * @param data N/A
      */
     function _mintBatch(
-        BatchTokenOperation[] memory batchMint,
+        TokensOperations[] memory tokensOperations,
         bytes memory data
     ) internal {
-        for (uint256 i = 0; i < batchMint.length; i++) {
-            _mint(batchMint[i].to, batchMint[i].tokens, data);
+        for (uint256 i = 0; i < tokensOperations.length; i++) {
+            _mint(tokensOperations[i], data);
         }
     }
 
@@ -159,41 +162,44 @@ abstract contract ReputationTokensInternal is
     /**
      * Distributes an amount of tokens to an address
      * @param from A distributor who distributes tokens
-     * @param to The recipient who will receive the tokens
+     * @param tokensOperations The recipient who will receive the tokens
      * @param data N/A
      */
     function _distribute(
         address from,
-        address to,
-        TokenOperation[] memory tokens,
+        TokensOperations memory tokensOperations,
         bytes memory data
     ) internal nonReentrant {
-        initializeDestinationWallet(to);
+        initializeDestinationWallet(tokensOperations.to);
 
-        for (uint256 i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokensOperations.operations.length; i++) {
             super.safeTransferFrom(
                 from,
-                AddressToAddressMappingStorage.layout().destinationWallets[to],
-                tokens[i].id,
-                tokens[i].amount,
+                AddressToAddressMappingStorage.layout().destinationWallets[
+                    tokensOperations.to
+                ],
+                tokensOperations.operations[i].id,
+                tokensOperations.operations[i].amount,
                 data
             );
         }
 
         emit Distributed(
             from,
-            AddressToAddressMappingStorage.layout().destinationWallets[to],
-            tokens
+            AddressToAddressMappingStorage.layout().destinationWallets[
+                tokensOperations.to
+            ],
+            tokensOperations.operations
         );
     }
 
     function _distributeBatch(
         address from,
-        BatchTokenOperation[] memory batchMint,
+        TokensOperations[] memory tokensOperations,
         bytes memory data
     ) internal {
-        for (uint256 i = 0; i < batchMint.length; i++) {
-            _distribute(from, batchMint[i].to, batchMint[i].tokens, data);
+        for (uint256 i = 0; i < tokensOperations.length; i++) {
+            _distribute(from, tokensOperations[i], data);
         }
     }
 

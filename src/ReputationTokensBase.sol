@@ -74,19 +74,18 @@ contract ReputationTokensBase is
 
     /**
      *
-     * @param to The recipient address to be minted tokens to
+     * @param tokensOperations The recipient address to be minted tokens to
      * @param data N/A
      */
     function mint(
-        address to,
-        TokenOperation[] memory tokens,
+        TokensOperations memory tokensOperations,
         bytes memory data
     ) external onlyRole(MINTER_ROLE) {
-        if (!_hasRole(DISTRIBUTOR_ROLE, to)) {
+        if (!_hasRole(DISTRIBUTOR_ROLE, tokensOperations.to)) {
             revert ReputationTokens__AttemptingToMintToNonDistributor();
         }
 
-        _mint(to, tokens, data);
+        _mint(tokensOperations, data);
     }
 
     /**
@@ -94,25 +93,24 @@ contract ReputationTokensBase is
      * @param data N/A
      */
     function mintBatch(
-        BatchTokenOperation[] memory batchMint,
+        TokensOperations[] memory tokensOperations,
         bytes memory data
     ) external {
-        _mintBatch(batchMint, data);
+        _mintBatch(tokensOperations, data);
     }
 
     /**
      * Distributes tokens to a user.
      * @param from The distributor who will be sending distributing tokens
-     * @param to The recipient who will receive the distributed tokens
+     * @param tokensOperations The recipient who will receive the distributed tokens
      * @param data N/A
      */
     function distribute(
         address from,
-        address to,
-        TokenOperation[] memory tokens,
+        TokensOperations memory tokensOperations,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _distribute(from, to, tokens, data);
+        _distribute(from, tokensOperations, data);
     }
 
     /**
@@ -122,10 +120,10 @@ contract ReputationTokensBase is
      */
     function distributeBatch(
         address from,
-        BatchTokenOperation[] memory batchMint,
+        TokensOperations[] memory tokensOperations,
         bytes memory data
     ) external onlyRole(DISTRIBUTOR_ROLE) {
-        _distributeBatch(from, batchMint, data);
+        _distributeBatch(from, tokensOperations, data);
     }
 
     /**
