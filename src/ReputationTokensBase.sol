@@ -35,6 +35,9 @@ contract ReputationTokensBase is
         keccak256("TOKEN_CREATOR_ROLE");
     bytes32 public constant TOKEN_UPDATER_ROLE =
         keccak256("TOKEN_UPDATER_ROLE");
+    bytes32 public constant TOKEN_URI_SETTER_ROLE =
+        keccak256("TOKEN_URI_SETTER_ROLE");
+
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     bytes32 public constant TOKEN_MIGRATOR_ROLE =
@@ -52,12 +55,10 @@ contract ReputationTokensBase is
      * Used to initialize the Reputation Tokens System
      * @param ownerNominee The nominee that will be set to own the smart contract
      * @param admins The admins who can grant/revoke roles and do other administrative functionality
-     * @param baseUri The base URI that will be used for the token's metadata
      */
     function _initialize(
         address ownerNominee,
-        address[] memory admins,
-        string memory baseUri
+        address[] memory admins // string memory baseUri
     ) internal {
         _transferOwnership(ownerNominee);
 
@@ -65,7 +66,7 @@ contract ReputationTokensBase is
             _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
         }
 
-        super._initialize(baseUri);
+        // super._initialize(baseUri);
     }
 
     ///////////////////
@@ -84,6 +85,13 @@ contract ReputationTokensBase is
 
     function mintBatch(TokensOperations[] memory tokensOperations) external {
         _mintBatch(tokensOperations, "");
+    }
+
+    function setTokenURI(
+        uint256 tokenId,
+        string memory tokenURI
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+        _setTokenURI(tokenId, tokenURI);
     }
 
     /**

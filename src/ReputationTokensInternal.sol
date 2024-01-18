@@ -41,12 +41,8 @@ abstract contract ReputationTokensInternal is
     // Internal Functions
     ///////////////////
 
-    /**
-     * Used to initialize the Reputation Tokens System
-     * @param baseUri The base URI that will be used for the token's metadata
-     */
-    function _initialize(string memory baseUri) internal {
-        ERC1155MetadataStorage.layout().baseURI = baseUri;
+    function _initialize() internal {
+        // ERC1155MetadataStorage.layout().baseURI = baseUri;
 
         _setSupportsInterface(type(IERC165).interfaceId, true);
         _setSupportsInterface(type(IERC1155).interfaceId, true);

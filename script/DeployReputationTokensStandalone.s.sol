@@ -7,14 +7,12 @@ import {ReputationTokensStandalone} from "../src/ReputationTokensStandalone.sol"
 contract DeployReputationTokensStandalone is Script {
     function run(
         address ownerNominee,
-        address[] memory admins,
-        string memory baseUri
+        address[] memory admins
     ) external returns (ReputationTokensStandalone) {
         vm.startBroadcast();
         ReputationTokensStandalone repTokens = new ReputationTokensStandalone(
             ownerNominee,
-            admins,
-            baseUri
+            admins
         );
         vm.stopBroadcast();
 

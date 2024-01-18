@@ -15,6 +15,7 @@ contract RepTokensStandaloneTest is Test {
     address ADMIN = makeAddr("ADMIN");
     address TOKEN_CREATOR = makeAddr("TOKEN_CREATOR");
     address TOKEN_UPDATER = makeAddr("TOKEN_UPDATER");
+    address TOKEN_URI_SETTER = makeAddr("TOKEN_URI_SETTER");
     address MINTER = makeAddr("MINTER");
     address DISTRIBUTOR = makeAddr("DISTRIBUTOR");
     address BURNER = makeAddr("BURNER");
@@ -45,12 +46,13 @@ contract RepTokensStandaloneTest is Test {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
         DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
-        s_repTokens = deployer.run(ADMIN, admins, BASE_URI);
+        s_repTokens = deployer.run(ADMIN, admins);
     }
 
     function setUpRoles() public {
         setUpRole(s_repTokens.TOKEN_CREATOR_ROLE(), TOKEN_CREATOR);
         setUpRole(s_repTokens.TOKEN_UPDATER_ROLE(), TOKEN_UPDATER);
+        setUpRole(s_repTokens.TOKEN_URI_SETTER_ROLE(), TOKEN_URI_SETTER);
         setUpRole(s_repTokens.MINTER_ROLE(), MINTER);
         setUpRole(s_repTokens.DISTRIBUTOR_ROLE(), DISTRIBUTOR);
         setUpRole(s_repTokens.BURNER_ROLE(), BURNER);
@@ -98,6 +100,32 @@ contract RepTokensStandaloneTest is Test {
 
     function testBatchCreateTokens() external {
         testBatchCreateTokens(tokensProperties);
+    }
+
+    function testUpdateTokens(
+        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
+    ) public {
+        batchCreateTokens(_tokensProperties);
+
+        uint256[] memory ids = new uint256[](_tokensProperties.length);
+
+        for (uint256 i = 0; i < _tokensProperties.length; i++) {
+            ids[i] = i;
+        }
+
+        batchUpdateTokens(ids, _tokensProperties);
+
+        for (uint256 i = 0; i < _tokensProperties.length; i++) {
+            assertEq(
+                s_repTokens.getTokenProperties(i).isTradeable,
+                _tokensProperties[i].isTradeable
+            );
+
+            assertEq(
+                s_repTokens.getTokenProperties(i).maxMintAmountPerTx,
+                _tokensProperties[i].maxMintAmountPerTx
+            );
+        }
     }
 
     function testUpdateToken(
@@ -555,9 +583,21 @@ contract RepTokensStandaloneTest is Test {
         }
     }
 
-    function testURI() external {
-        assertEq(s_repTokens.uri(0), string.concat(BASE_URI, "0"));
-        assertEq(s_repTokens.uri(1), string.concat(BASE_URI, "1"));
+    function testSetTokenURI(
+        uint256 numOfTokens,
+        string[] memory uris
+    ) external {
+        vm.assume(numOfTokens < uris.length);
+
+        vm.startPrank(TOKEN_URI_SETTER);
+        for (uint256 i = 0; i < numOfTokens; i++) {
+            s_repTokens.setTokenURI(i, uris[i]);
+        }
+        vm.stopPrank();
+
+        for (uint256 i = 0; i < numOfTokens; i++) {
+            assertEq(s_repTokens.uri(i), uris[i]);
+        }
     }
 
     function testGetMaxMintPerTx() external {

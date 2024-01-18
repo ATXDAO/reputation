@@ -19,12 +19,8 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     // Functions
     ///////////////////
 
-    constructor(
-        address ownerNominee,
-        address[] memory admins,
-        string memory baseUri
-    ) {
-        _initialize(ownerNominee, admins, baseUri);
+    constructor(address ownerNominee, address[] memory admins) {
+        _initialize(ownerNominee, admins);
     }
 
     ////////////////////////////////////////////////////////////////////////////

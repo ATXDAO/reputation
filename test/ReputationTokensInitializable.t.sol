@@ -26,6 +26,6 @@ contract RepTokensInitializableTest is Test {
     function testInitialize() public {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
-        s_repTokens.initialize(ADMIN, admins, "");
+        s_repTokens.initialize(ADMIN, admins);
     }
 }

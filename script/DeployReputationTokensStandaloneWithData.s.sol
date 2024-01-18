@@ -18,8 +18,7 @@ contract DeployReputationTokensStandaloneWithData is Script {
         vm.startBroadcast();
         ReputationTokensStandalone repTokens = new ReputationTokensStandalone(
             OWNER_NOMINEE,
-            admins,
-            BASE_URI
+            admins
         );
         vm.stopBroadcast();
 
