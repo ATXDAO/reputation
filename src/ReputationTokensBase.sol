@@ -72,31 +72,18 @@ contract ReputationTokensBase is
     // External Functions
     ///////////////////
 
-    /**
-     *
-     * @param tokensOperations The recipient address to be minted tokens to
-     * @param data N/A
-     */
     function mint(
-        TokensOperations memory tokensOperations,
-        bytes memory data
+        TokensOperations memory tokensOperations
     ) external onlyRole(MINTER_ROLE) {
         if (!_hasRole(DISTRIBUTOR_ROLE, tokensOperations.to)) {
             revert ReputationTokens__AttemptingToMintToNonDistributor();
         }
 
-        _mint(tokensOperations, data);
+        _mint(tokensOperations, "");
     }
 
-    /**
-     *
-     * @param data N/A
-     */
-    function mintBatch(
-        TokensOperations[] memory tokensOperations,
-        bytes memory data
-    ) external {
-        _mintBatch(tokensOperations, data);
+    function mintBatch(TokensOperations[] memory tokensOperations) external {
+        _mintBatch(tokensOperations, "");
     }
 
     /**

@@ -214,7 +214,7 @@ contract RepTokensStandaloneTest is Test {
                 .selector
         );
 
-        s_repTokens.mint(mintOperations, "");
+        s_repTokens.mint(mintOperations);
         vm.stopPrank();
     }
 
@@ -235,7 +235,7 @@ contract RepTokensStandaloneTest is Test {
                 .selector
         );
 
-        s_repTokens.mint(tokenOperations, "");
+        s_repTokens.mint(tokenOperations);
         vm.stopPrank();
     }
 
@@ -272,7 +272,7 @@ contract RepTokensStandaloneTest is Test {
         batchMintOperations[1] = mintOperations2;
 
         vm.startPrank(MINTER);
-        s_repTokens.mintBatch(batchMintOperations, "");
+        s_repTokens.mintBatch(batchMintOperations);
         vm.stopPrank();
 
         for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
@@ -629,7 +629,7 @@ contract RepTokensStandaloneTest is Test {
         ReputationTokensInternal.TokensOperations memory operations
     ) public {
         vm.startPrank(minter);
-        s_repTokens.mint(operations, "");
+        s_repTokens.mint(operations);
         vm.stopPrank();
     }
 
