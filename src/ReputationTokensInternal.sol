@@ -7,12 +7,12 @@ import {ERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/ERC1
 import {IERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
 import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
 import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
-import {ReentrancyGuard} from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
 import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
+import {Test, console} from "forge-std/Test.sol";
 
 /**
  * @title Reputation Tokens Internal
@@ -30,7 +30,6 @@ import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
  */
 abstract contract ReputationTokensInternal is
     SolidStateERC1155,
-    ReentrancyGuard,
     IReputationTokensBaseInternal
 {
     ///////////////////
@@ -51,23 +50,31 @@ abstract contract ReputationTokensInternal is
     function _createToken(
         TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) internal {
-        _updateToken(
-            TokensPropertiesStorage.layout().numOfTokens,
-            tokenProperties
-        );
+        uint256 tokenId = TokensPropertiesStorage.layout().numOfTokens;
         TokensPropertiesStorage.layout().numOfTokens++;
+
+        _updateTokenProperties(tokenId, tokenProperties);
 
         emit Create(tokenProperties);
     }
 
-    function _updateToken(
+    function _updateTokenProperties(
         uint256 id,
         TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) internal {
+        if (id >= TokensPropertiesStorage.layout().numOfTokens) {
+            revert ReputationTokens__CannotUpdateNonexistentTokenType();
+        }
+
         TokensPropertiesStorage
             .layout()
             .tokensProperties[id]
-            .isTradeable = tokenProperties.isTradeable;
+            .isRedeemable = tokenProperties.isRedeemable;
+
+        TokensPropertiesStorage
+            .layout()
+            .tokensProperties[id]
+            .isSoulbound = tokenProperties.isSoulbound;
 
         TokensPropertiesStorage
             .layout()
@@ -111,7 +118,13 @@ abstract contract ReputationTokensInternal is
                     .layout()
                     .tokensProperties[tokensOperations.operations[i].id]
                     .maxMintAmountPerTx
-            ) revert ReputationTokens__AttemptingToMintTooManyTokens();
+            ) revert ReputationTokens__MintAmountExceedsLimit();
+
+            TokensPropertiesStorage.layout().s_distributableBalance[
+                tokensOperations.to
+            ][tokensOperations.operations[i].id] += tokensOperations
+                .operations[i]
+                .amount;
 
             super._mint(
                 tokensOperations.to,
@@ -165,10 +178,14 @@ abstract contract ReputationTokensInternal is
         address from,
         TokensOperations memory tokensOperations,
         bytes memory data
-    ) internal nonReentrant {
+    ) internal {
         initializeDestinationWallet(tokensOperations.to);
 
         for (uint256 i = 0; i < tokensOperations.operations.length; i++) {
+            TokensPropertiesStorage.layout().s_distributableBalance[from][
+                    tokensOperations.operations[i].id
+                ] -= tokensOperations.operations[i].amount;
+
             super.safeTransferFrom(
                 from,
                 AddressToAddressMappingStorage.layout().destinationWallets[
@@ -206,10 +223,7 @@ abstract contract ReputationTokensInternal is
      *
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
-    function _migrateOwnershipOfTokens(
-        address from,
-        address to
-    ) internal nonReentrant {
+    function _migrateOwnershipOfTokens(address from, address to) internal {
         uint256 lifetimeBalance = balanceOf(from, 0);
         uint256 redeemableBalance = balanceOf(from, 1);
 

@@ -22,11 +22,23 @@ library TokensPropertiesStorage {
 
     struct Layout {
         uint256 numOfTokens;
+        mapping(address distributor => mapping(uint256 tokenId => uint256)) s_distributableBalance;
         mapping(uint256 => TokenProperties) tokensProperties;
     }
 
+    // enum TokenType {
+    //     Default,
+    //     Redeemable,
+    //     Soulbound
+    // }
+
     struct TokenProperties {
-        bool isTradeable;
+        bool isSoulbound;
+        bool isRedeemable;
+        // bool isFreelyTransferable;
+
+        // bool isTradeable;
+        // TokenType tokenType;
         uint256 maxMintAmountPerTx;
     }
 

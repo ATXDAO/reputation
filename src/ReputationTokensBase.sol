@@ -77,7 +77,7 @@ contract ReputationTokensBase is
         TokensOperations memory tokensOperations
     ) external onlyRole(MINTER_ROLE) {
         if (!_hasRole(DISTRIBUTOR_ROLE, tokensOperations.to)) {
-            revert ReputationTokens__AttemptingToMintToNonDistributor();
+            revert ReputationTokens__CanOnlyMintToDistributor();
         }
 
         _mint(tokensOperations, "");
@@ -129,47 +129,43 @@ contract ReputationTokensBase is
         _setDestinationWallet(msg.sender, destination);
     }
 
-    /**
-     * A customization of the default safeTransferFrom function.
-     * The caller
-     * CAN ONLY send tokens with an ID of 1.
-     * MUST NOT be a distributor.
-     * MUST be sending tokens to an address with the BURNER_ROLE.
-     * @param from address who is sending tokens.
-     * @param to address who is receiving tokens.
-     * @param id tokenId
-     * @param amount amount of tokens to send to the recipient.
-     * @param data N/A
-     */
     function safeTransferFrom(
         address from,
         address to,
         uint256 id,
         uint256 amount,
         bytes memory data
-    ) public override(ERC1155Base, IERC1155) nonReentrant {
+    ) public override(ERC1155Base, IERC1155) {
+        if (TokensPropertiesStorage.layout().tokensProperties[id].isSoulbound) {
+            if (
+                TokensPropertiesStorage
+                    .layout()
+                    .tokensProperties[id]
+                    .isRedeemable
+            ) {
+                if (!_hasRole(BURNER_ROLE, to)) {
+                    revert ReputationTokens__AttemptingToSendRedeemableToNonBurner();
+                } else {
+                    emit BurnedRedeemable(from, to, amount);
+                }
+            } else {
+                revert ReputationTokens__AttemptingToSendSoulboundToken();
+            }
+        }
+
         if (_hasRole(DISTRIBUTOR_ROLE, from)) {
-            revert ReputationTokens__AttemptingToSendIllegalyAsDistributor();
-        }
-
-        if (!_hasRole(BURNER_ROLE, to)) {
-            revert ReputationTokens__AttemptingToSendToNonBurner();
-        }
-
-        if (
-            !TokensPropertiesStorage.layout().tokensProperties[id].isTradeable
-        ) {
-            revert ReputationTokens__AttemptingToSendNonRedeemableTokens();
+            if (amount > getTransferrableBalance(from, id)) {
+                revert ReputationTokens__AttemptingToSendTokensFlaggedForDistribution();
+            }
         }
 
         super.safeTransferFrom(from, to, id, amount, data);
-        emit BurnedRedeemable(from, to, amount);
     }
 
     function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperty
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) public onlyRole(TOKEN_CREATOR_ROLE) {
-        _createToken(tokenProperty);
+        _createToken(tokenProperties);
     }
 
     function batchCreateTokens(
@@ -180,22 +176,19 @@ contract ReputationTokensBase is
         }
     }
 
-    function updateToken(
+    function updateTokenProperties(
         uint256 id,
         TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) public onlyRole(TOKEN_UPDATER_ROLE) {
-        if (id >= TokensPropertiesStorage.layout().numOfTokens)
-            revert ReputationTokens__AttemptingToUpdateNonexistentToken();
-
-        _updateToken(id, tokenProperties);
+        _updateTokenProperties(id, tokenProperties);
     }
 
-    function batchUpdateTokens(
+    function batchUpdateTokensProperties(
         uint256[] memory ids,
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties
     ) external {
         for (uint256 i = 0; i < tokensProperties.length; i++) {
-            updateToken(ids[i], tokensProperties[i]);
+            _updateTokenProperties(ids[i], tokensProperties[i]);
         }
     }
 
@@ -211,5 +204,28 @@ contract ReputationTokensBase is
         address to
     ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
         _migrateOwnershipOfTokens(from, to);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // External & Public View & Pure Functions
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    function getTransferrableBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 transferrableAmount) {
+        uint256 balance = balanceOf(addr, tokenId);
+        transferrableAmount = balance - getDistributableBalance(addr, tokenId);
+    }
+
+    function getDistributableBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 distributableAmount) {
+        distributableAmount = TokensPropertiesStorage
+            .layout()
+            .s_distributableBalance[addr][tokenId];
     }
 }

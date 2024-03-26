@@ -8,7 +8,7 @@ import {IReputationTokensBaseInternal} from "../src/IReputationTokensBaseInterna
 import {TokensPropertiesStorage} from "../src/storage/TokensPropertiesStorage.sol";
 import {ReputationTokensInternal} from "../src/ReputationTokensInternal.sol";
 
-contract RepTokensStandaloneTest is Test {
+contract ReputationTokensTest__Base is Test {
     ////////////////////////
     // State Variables
     ////////////////////////
@@ -36,10 +36,10 @@ contract RepTokensStandaloneTest is Test {
     // Functions
     ////////////////////////
 
-    function setUp() public {
+    function setUp() public virtual {
         setUpDeploy();
         setUpRoles();
-        setUpTokenTypes();
+        setUpTokenProperties();
     }
 
     function setUpDeploy() public {
@@ -59,7 +59,7 @@ contract RepTokensStandaloneTest is Test {
         setUpRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), TOKEN_MIGRATOR);
     }
 
-    function setUpTokenTypes() public {
+    function setUpTokenProperties() public {
         TokensPropertiesStorage.TokenProperties
             memory t1 = TokensPropertiesStorage.TokenProperties(
                 true,
@@ -73,8 +73,16 @@ contract RepTokensStandaloneTest is Test {
                 DEFAULT_MINT_AMOUNT
             );
 
+        TokensPropertiesStorage.TokenProperties
+            memory t3 = TokensPropertiesStorage.TokenProperties(
+                false,
+                false,
+                DEFAULT_MINT_AMOUNT
+            );
+
         s_tokensProperties.push(t1);
         s_tokensProperties.push(t2);
+        s_tokensProperties.push(t3);
     }
 
     ////////////////////////
@@ -667,6 +675,26 @@ contract RepTokensStandaloneTest is Test {
     //     s_repTokens.updateToken(id, tokenProperties);
     //     vm.stopPrank();
     // }
+
+    function createTokenOperationsSequential(
+        address to,
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
+    ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](
+            tokensProperties.length
+        );
+        tokenOperations.to = to;
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            tokenOperations.operations[i].id = i;
+            tokenOperations.operations[i].amount = tokensProperties[i]
+                .maxMintAmountPerTx;
+        }
+
+        return tokenOperations;
+    }
 
     function createTokenOperationsSequential(
         address to,
