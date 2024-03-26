@@ -49,13 +49,15 @@ abstract contract ReputationTokensInternal is
 
     function _createToken(
         TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) internal {
-        uint256 tokenId = TokensPropertiesStorage.layout().numOfTokens;
+    ) internal returns (uint256 tokenId) {
+        uint256 newTokenId = TokensPropertiesStorage.layout().numOfTokens;
         TokensPropertiesStorage.layout().numOfTokens++;
 
-        _updateTokenProperties(tokenId, tokenProperties);
+        _updateTokenProperties(newTokenId, tokenProperties);
 
         emit Create(tokenProperties);
+
+        tokenId = newTokenId;
     }
 
     function _updateTokenProperties(
@@ -191,16 +193,6 @@ abstract contract ReputationTokensInternal is
             ],
             tokensOperations.operations
         );
-    }
-
-    function _distributeBatch(
-        address from,
-        TokensOperations[] memory tokensOperations,
-        bytes memory data
-    ) internal {
-        for (uint256 i = 0; i < tokensOperations.length; i++) {
-            _distribute(from, tokensOperations[i], data);
-        }
     }
 
     /**

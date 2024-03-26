@@ -19,12 +19,14 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     function testCreateToken(
         TokensPropertiesStorage.TokenProperties memory tokenProperties
     ) public {
-        createToken(tokenProperties);
+        uint256 tokenId = createToken(tokenProperties);
 
         assertEq(s_repTokens.getNumOfTokenTypes(), 1);
 
         TokensPropertiesStorage.TokenProperties
-            memory createdTokenProperties = s_repTokens.getTokenProperties(0);
+            memory createdTokenProperties = s_repTokens.getTokenProperties(
+                tokenId
+            );
 
         assertEq(
             createdTokenProperties.maxMintAmountPerTx,
@@ -81,9 +83,10 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
 
     function createToken(
         TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public {
+    ) public returns (uint256) {
         vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.createToken(tokenProperties);
+        uint256 tokenId = s_repTokens.createToken(tokenProperties);
         vm.stopPrank();
+        return tokenId;
     }
 }

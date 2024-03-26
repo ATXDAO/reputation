@@ -120,7 +120,9 @@ contract ReputationTokensBase is
         TokensOperations[] memory tokensOperations,
         bytes memory data
     ) external onlyRole(DISTRIBUTOR_ROLE) {
-        _distributeBatch(from, tokensOperations, data);
+        for (uint256 i = 0; i < tokensOperations.length; i++) {
+            distribute(from, tokensOperations[i], data);
+        }
     }
 
     /**
@@ -166,8 +168,8 @@ contract ReputationTokensBase is
 
     function createToken(
         TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public onlyRole(TOKEN_CREATOR_ROLE) {
-        _createToken(tokenProperties);
+    ) public onlyRole(TOKEN_CREATOR_ROLE) returns (uint256 tokenId) {
+        tokenId = _createToken(tokenProperties);
     }
 
     function batchCreateTokens(

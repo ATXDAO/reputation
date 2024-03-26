@@ -678,6 +678,29 @@ contract ReputationTokensTest__Base is Test {
 
     function createTokenOperationsSequential(
         address to,
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        uint256 amount
+    ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](
+            tokensProperties.length * amount
+        );
+        tokenOperations.to = to;
+
+        for (uint256 j = 0; j < amount; j++) {
+            for (uint256 i = 0; i < tokensProperties.length; i++) {
+                tokenOperations.operations[i].id = i;
+                tokenOperations.operations[i].amount = tokensProperties[i]
+                    .maxMintAmountPerTx;
+            }
+        }
+
+        return tokenOperations;
+    }
+
+    function createTokenOperationsSequential(
+        address to,
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties
     ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
         ReputationTokensInternal.TokensOperations memory tokenOperations;
@@ -731,11 +754,10 @@ contract ReputationTokensTest__Base is Test {
     }
 
     function distribute(
-        address distributor,
         ReputationTokensInternal.TokensOperations memory tokenOps
     ) public {
-        vm.startPrank(distributor);
-        s_repTokens.distribute(distributor, tokenOps, "");
+        vm.startPrank(DISTRIBUTOR);
+        s_repTokens.distribute(DISTRIBUTOR, tokenOps, "");
         vm.stopPrank();
     }
 
