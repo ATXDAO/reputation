@@ -722,6 +722,14 @@ contract ReputationTokensTest__Base is Test {
         vm.stopPrank();
     }
 
+    function batchMint(
+        ReputationTokensInternal.TokensOperations[] memory operations
+    ) public {
+        vm.startPrank(MINTER);
+        s_repTokens.batchMint(operations);
+        vm.stopPrank();
+    }
+
     function distribute(
         address distributor,
         ReputationTokensInternal.TokensOperations memory tokenOps

@@ -50,8 +50,7 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
 
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             vm.assume(
-                tokensProperties[i].maxMintAmountPerTx !=
-                    115792089237316195423570985008687907853269984665640564039457584007913129639935
+                tokensProperties[i].maxMintAmountPerTx != type(uint256).max
             );
         }
 
@@ -93,43 +92,6 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
         mint(operations);
     }
 
-    // function testMintBatch() external {
-    //     address distributor2 = vm.addr(5);
-    //     setUpRole(s_repTokens.DISTRIBUTOR_ROLE(), distributor2);
-    //     batchCreateTokens(tokensProperties);
-    //     address[] memory distributors = new address[](2);
-    //     distributors[0] = DISTRIBUTOR;
-    //     distributors[1] = distributor2;
-    //     ReputationTokensInternal.TokensOperations
-    //         memory mintOperations1 = createTokenOperationsSequential(
-    //             DISTRIBUTOR,
-    //             TOKEN_TYPES_TO_CREATE,
-    //             DEFAULT_MINT_AMOUNT
-    //         );
-    //     ReputationTokensInternal.TokensOperations
-    //         memory mintOperations2 = createTokenOperationsSequential(
-    //             distributor2,
-    //             TOKEN_TYPES_TO_CREATE,
-    //             DEFAULT_MINT_AMOUNT
-    //         );
-    //     ReputationTokensInternal.TokensOperations[]
-    //         memory batchMintOperations = new ReputationTokensInternal.TokensOperations[](
-    //             distributors.length
-    //         );
-    //     batchMintOperations[0] = mintOperations1;
-    //     batchMintOperations[1] = mintOperations2;
-    //     vm.startPrank(MINTER);
-    //     s_repTokens.mintBatch(batchMintOperations);
-    //     vm.stopPrank();
-    //     for (uint256 i = 0; i < TOKEN_TYPES_TO_CREATE; i++) {
-    //         for (uint256 j = 0; j < distributors.length; j++) {
-    //             assertEq(
-    //                 s_repTokens.balanceOf(distributors[j], i),
-    //                 DEFAULT_MINT_AMOUNT
-    //             );
-    //         }
-    //     }
-    // }
     // function testDistribute() external {
     //     batchCreateTokens(tokensProperties);
     //     uint256 numOfTokens = TOKEN_TYPES_TO_CREATE;

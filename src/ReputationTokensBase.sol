@@ -75,7 +75,7 @@ contract ReputationTokensBase is
 
     function mint(
         TokensOperations memory tokensOperations
-    ) external onlyRole(MINTER_ROLE) {
+    ) public onlyRole(MINTER_ROLE) {
         if (!_hasRole(DISTRIBUTOR_ROLE, tokensOperations.to)) {
             revert ReputationTokens__CanOnlyMintToDistributor();
         }
@@ -83,8 +83,10 @@ contract ReputationTokensBase is
         _mint(tokensOperations, "");
     }
 
-    function mintBatch(TokensOperations[] memory tokensOperations) external {
-        _mintBatch(tokensOperations, "");
+    function batchMint(TokensOperations[] memory tokensOperations) external {
+        for (uint256 i = 0; i < tokensOperations.length; i++) {
+            mint(tokensOperations[i]);
+        }
     }
 
     function setTokenURI(

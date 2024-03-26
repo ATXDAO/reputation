@@ -141,19 +141,6 @@ abstract contract ReputationTokensInternal is
     }
 
     /**
-     *
-     * @param data N/A
-     */
-    function _mintBatch(
-        TokensOperations[] memory tokensOperations,
-        bytes memory data
-    ) internal {
-        for (uint256 i = 0; i < tokensOperations.length; i++) {
-            _mint(tokensOperations[i], data);
-        }
-    }
-
-    /**
      * Sets the target's destination wallet to an address
      * @param target The address who will get its destination wallet set
      * @param destination The address that will receive tokens on behalf of `target`
