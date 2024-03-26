@@ -676,6 +676,32 @@ contract ReputationTokensTest__Base is Test {
     //     vm.stopPrank();
     // }
 
+    function createTokenOperationsSequentialHalf(
+        address to,
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        uint256 divisibleAmount
+    ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](
+            tokensProperties.length
+        );
+        tokenOperations.to = to;
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            tokenOperations.operations[i].id = i;
+            if (tokensProperties[i].maxMintAmountPerTx > 0) {
+                tokenOperations.operations[i].amount =
+                    tokensProperties[i].maxMintAmountPerTx /
+                    divisibleAmount;
+            } else {
+                tokenOperations.operations[i].amount = 0;
+            }
+        }
+
+        return tokenOperations;
+    }
+
     function createTokenOperationsSequential(
         address to,
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties,

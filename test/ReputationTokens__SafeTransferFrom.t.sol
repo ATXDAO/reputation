@@ -55,6 +55,78 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         }
     }
 
+    function testRevertSafeTransferFromAsDistrubtor(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address user,
+        address recipient
+    ) external {
+        vm.assume(user != address(0));
+        vm.assume(recipient != address(0));
+
+        uint256 divisbleAmount = 2;
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            vm.assume(
+                tokensProperties[i].maxMintAmountPerTx % divisbleAmount == 0
+            );
+        }
+
+        batchCreateTokens(tokensProperties);
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                tokensProperties
+            );
+        mint(tokenOperations);
+
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequentialHalf(
+                DISTRIBUTOR,
+                tokensProperties,
+                divisbleAmount
+            );
+
+        uint256[] memory originalDistributableBalances = new uint256[](
+            distributeOperations.operations.length
+        );
+
+        for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
+            originalDistributableBalances[i] = s_repTokens
+                .getDistributableBalance(DISTRIBUTOR, i);
+        }
+
+        distribute(distributeOperations);
+
+        for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
+            assertEq(
+                s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
+                originalDistributableBalances[i] -
+                    distributeOperations.operations[i].amount
+            );
+        }
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            if (!tokensProperties[i].isSoulbound) {
+                uint256 originalTransferrableAmount = s_repTokens
+                    .getTransferrableBalance(DISTRIBUTOR, i);
+
+                vm.prank(DISTRIBUTOR);
+                s_repTokens.safeTransferFrom(
+                    DISTRIBUTOR,
+                    recipient,
+                    i,
+                    distributeOperations.operations[i].amount,
+                    ""
+                );
+
+                assertEq(
+                    s_repTokens.getTransferrableBalance(DISTRIBUTOR, i),
+                    originalTransferrableAmount -
+                        distributeOperations.operations[i].amount
+                );
+            }
+        }
+    }
+
     // function testRedeem() external {
     //     batchCreateTokens(tokensProperties);
     //     ReputationTokensInternal.TokensOperations

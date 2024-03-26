@@ -149,18 +149,14 @@ contract ReputationTokensBase is
             ) {
                 if (!_hasRole(BURNER_ROLE, to)) {
                     revert ReputationTokens__AttemptingToSendRedeemableToNonBurner();
-                } else {
-                    emit BurnedRedeemable(from, to, amount);
                 }
             } else {
                 revert ReputationTokens__AttemptingToSendSoulboundToken();
             }
         }
 
-        if (_hasRole(DISTRIBUTOR_ROLE, from)) {
-            if (amount > getTransferrableBalance(from, id)) {
-                revert ReputationTokens__AttemptingToSendTokensFlaggedForDistribution();
-            }
+        if (amount > getTransferrableBalance(from, id)) {
+            revert ReputationTokens__AttemptingToSendTokensFlaggedForDistribution();
         }
 
         super.safeTransferFrom(from, to, id, amount, data);

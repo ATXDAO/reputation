@@ -46,11 +46,7 @@ interface IReputationTokensInternal {
         address indexed coreAddress,
         address indexed destination
     );
-    event BurnedRedeemable(
-        address indexed from,
-        address indexed to,
-        uint256 amount
-    );
+
     event OwnershipOfTokensMigrated(
         address indexed from,
         address indexed to,
