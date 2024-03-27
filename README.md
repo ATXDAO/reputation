@@ -1,90 +1,80 @@
-Author: Jacob Homanics 
+# 🏗 Scaffold-ETH 2
 
-## Deployments
-Version | Network | Deployment
---- | --- | --- |
-0.1 | Optimism | [0x65ad2263e658e75762253076e2ebfc9211e05d2f](https://optimistic.etherscan.io/address/0x65ad2263e658e75762253076e2ebfc9211e05d2f)
-0.2 | Base | [0x93b0593cae9544d677dc7c9a18cb791e634bf8d9](https://basescan.org/address/0x93b0593cae9544d677dc7c9a18cb791e634bf8d9)
-0.1 | Polygon | [0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2](https://polygonscan.com/address/0x57AA5fd0914A46b8A426cC33DB842D1BB1aeADa2)
+<h4 align="center">
+  <a href="https://docs.scaffoldeth.io">Documentation</a> |
+  <a href="https://scaffoldeth.io">Website</a>
+</h4>
 
-## Testing Status
-| File                                                  | % Lines         | % Statements    | % Branches      | % Funcs         |
-|-------------------------------------------------------|-----------------|-----------------|-----------------|-----------------|
-| script/DeployReputationTokensInitializable.s.sol      | 100.00% (4/4)   | 100.00% (5/5)   | 100.00% (0/0)   | 100.00% (1/1)   |
-| script/DeployReputationTokensStandalone.s.sol         | 100.00% (4/4)   | 100.00% (5/5)   | 100.00% (0/0)   | 100.00% (1/1)   |
-| script/DeployReputationTokensStandaloneWithData.s.sol | 0.00% (0/6)     | 0.00% (0/8)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| src/ReputationTokensBase.sol                          | 93.75% (30/32)  | 89.47% (34/38)  | 100.00% (10/10) | 93.75% (15/16)  |
-| src/ReputationTokensInitializable.sol                 | 100.00% (1/1)   | 100.00% (1/1)   | 100.00% (0/0)   | 100.00% (1/1)   |
-| src/ReputationTokensInternal.sol                      | 100.00% (33/33) | 100.00% (43/43) | 100.00% (4/4)   | 100.00% (10/10) |
-| src/storage/AddressToAddressMappingStorage.sol        | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| src/storage/TokensPropertiesStorage.sol               | 0.00% (0/2)     | 0.00% (0/2)     | 100.00% (0/0)   | 0.00% (0/1)     |
-| Total                                                 | 85.71% (72/84)  | 84.62% (88/104) | 100.00% (14/14) | 87.50% (28/32)  |
+🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
 
-## Reputation Tokens
+⚙️ Built using NextJS, RainbowKit, Hardhat, Wagmi, Viem, and Typescript.
 
-Reputation Tokens is a customized ERC1155 smart contract built to be deployed standalone, proxied, or through Diamonds.
-They allow for an entity to track trust with another entity in relation to eachother.
-Additionally, they allow an entity to burn their tokens in exchange for a reward from the other entity.
-The system handles minting, distributing, burning, token migration, and destination wallets.
+- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
+- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
+- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
+- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
+- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
 
-### Overview
+![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
 
-Admin -> Grants/Revokes Minter, Distributor, Burner, and Token Migrator roles.
+## Requirements
 
-### Minting
+Before you begin, you need to install the following tools:
 
-Minter -> mints tokens to -> Distributor 
+- [Node (>= v18.17)](https://nodejs.org/en/download/)
+- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
+- [Git](https://git-scm.com/downloads)
 
-An authorized entity can mint tokens ONLY to a distributor.
+## Quickstart
 
-### Distributor
+To get started with Scaffold-ETH 2, follow the steps below:
 
-Distributor -> distributes tokens to -> Users
+1. Clone this repo & install dependencies
 
-An authorized entity can distribute (transfer) tokens to ANY user.
-
-### User
-
-User -> burns tokens to -> Burner
-
-Any user with a balance can send tokens ONLY with an ID of 1 to ONLY Burners.
-NOTE: There is no role defined for User. If an address does not contain distributor role, then it can be assumed a User.
-
-### Token Migrator
-
-User -> Approves for Token Migrator to send the user's tokens on their behalf -> Token Migrator -> sends tokens to -> a new User.
-
-## Usage
-
-### Test
-
-```shell
-$ forge test
+```
+git clone https://github.com/scaffold-eth/scaffold-eth-2.git
+cd scaffold-eth-2
+yarn install
 ```
 
-### Coverage
+2. Run a local network in the first terminal:
 
-```shell
-$ forge coverage
+```
+yarn chain
 ```
 
-### Gas Snapshots
+This command starts a local Ethereum network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `hardhat.config.ts`.
 
-```shell
-$ forge snapshot
+3. On a second terminal, deploy the test contract:
+
+```
+yarn deploy
 ```
 
-### Deploy
+This command deploys a test smart contract to the local network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network. You can also customize the deploy script.
 
-```shell
-cp .env.example .env
-#Fill out .env with appropriate properties
+4. On a third terminal, start your NextJS app:
 
-$ make deployReputationTokensStandaloneWithData ARGS="--network $NETWORK"
+```
+yarn start
 ```
 
-### Extra
+Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
 
-```shell
-forge coverage --report lcov
-```
+Run smart contract test with `yarn hardhat:test`
+
+- Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
+- Edit your frontend in `packages/nextjs/pages`
+- Edit your deployment scripts in `packages/hardhat/deploy`
+
+## Documentation
+
+Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+
+To know more about its features, check out our [website](https://scaffoldeth.io).
+
+## Contributing to Scaffold-ETH 2
+
+We welcome contributions to Scaffold-ETH 2!
+
+Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
