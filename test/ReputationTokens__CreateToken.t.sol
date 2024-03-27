@@ -10,9 +10,6 @@ import {ReputationTokensInternal} from "../src/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
-    // function setUp() public override {
-    //     super.setUp();
-    // }
     ////////////////////////
     // Tests
     ////////////////////////
