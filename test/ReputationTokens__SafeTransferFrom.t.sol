@@ -118,11 +118,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         distribute(distributeOperations);
 
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            if (
-                s_repTokens.getTokenProperties(i).isSoulbound &&
-                !s_repTokens.getTokenProperties(i).isRedeemable
-            ) {
+        for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
+            TokensPropertiesStorage.TokenProperties
+                memory tokenProperties = s_repTokens.getTokenProperties(i);
+
+            if (tokenProperties.isSoulbound && !tokenProperties.isRedeemable) {
                 vm.prank(user);
 
                 vm.expectRevert(
@@ -135,7 +135,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
                     user,
                     recipient,
                     i,
-                    tokensProperties[i].maxMintAmountPerTx,
+                    distributeOperations.operations[i].amount,
                     ""
                 );
             }
@@ -165,11 +165,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         distribute(distributeOperations);
 
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            if (
-                s_repTokens.getTokenProperties(i).isSoulbound &&
-                s_repTokens.getTokenProperties(i).isRedeemable
-            ) {
+        for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
+            TokensPropertiesStorage.TokenProperties
+                memory tokenProperties = s_repTokens.getTokenProperties(i);
+
+            if (tokenProperties.isSoulbound && tokenProperties.isRedeemable) {
                 vm.prank(user);
 
                 vm.expectRevert(
@@ -182,7 +182,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
                     user,
                     recipient,
                     i,
-                    tokensProperties[i].maxMintAmountPerTx,
+                    distributeOperations.operations[i].amount,
                     ""
                 );
             }
@@ -310,89 +310,5 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
                 );
             }
         }
-    }
-
-    // function testMigrationOfTokens() external {
-    //     batchCreateTokens(tokensProperties);
-    //     ReputationTokensInternal.TokensOperations
-    //         memory mintOperations = createTokenOperationsSequential(
-    //             DISTRIBUTOR,
-    //             TOKEN_TYPES_TO_CREATE,
-    //             DEFAULT_MINT_AMOUNT
-    //         );
-    //     ReputationTokensInternal.TokensOperations
-    //         memory distributeOperations = createTokenOperationsSequential(
-    //             USER,
-    //             TOKEN_TYPES_TO_CREATE,
-    //             DEFAULT_MINT_AMOUNT
-    //         );
-    //     mint(mintOperations);
-    //     distribute(DISTRIBUTOR, distributeOperations);
-    //     vm.startPrank(USER);
-    //     s_repTokens.setApprovalForAll(TOKEN_MIGRATOR, true);
-    //     vm.stopPrank();
-    //     vm.startPrank(TOKEN_MIGRATOR);
-    //     s_repTokens.migrateOwnershipOfTokens(USER, USER2);
-    //     vm.stopPrank();
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         assertEq(s_repTokens.balanceOf(USER, i), 0);
-    //         assertEq(s_repTokens.balanceOf(USER2, i), DEFAULT_MINT_AMOUNT);
-    //     }
-    // }
-    // function testSetTokenURI(
-    //     uint256 numOfTokens,
-    //     string[] memory uris
-    // ) external {
-    //     vm.assume(numOfTokens < uris.length);
-    //     vm.startPrank(TOKEN_URI_SETTER);
-    //     for (uint256 i = 0; i < numOfTokens; i++) {
-    //         s_repTokens.setTokenURI(i, uris[i]);
-    //     }
-    //     vm.stopPrank();
-    //     for (uint256 i = 0; i < numOfTokens; i++) {
-    //         assertEq(s_repTokens.uri(i), uris[i]);
-    //     }
-    // }
-    // function testGetMaxMintPerTx() external {
-    //     batchCreateTokens(tokensProperties);
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         assertEq(s_repTokens.getMaxMintPerTx(i), DEFAULT_MINT_AMOUNT);
-    //     }
-    // }
-    // // ////////////////////////
-    // // // Helper Functions
-    // // ///////////////////////
-    function batchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.batchCreateTokens(tokenProperties);
-        vm.stopPrank();
-    }
-
-    function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.createToken(tokenProperties);
-        vm.stopPrank();
-    }
-
-    function batchUpdateTokensProperties(
-        uint256[] memory ids,
-        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
-    ) public {
-        vm.startPrank(TOKEN_UPDATER);
-        s_repTokens.batchUpdateTokensProperties(ids, _tokensProperties);
-        vm.stopPrank();
-    }
-
-    function updateToken(
-        uint256 id,
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_UPDATER);
-        s_repTokens.updateTokenProperties(id, tokenProperties);
-        vm.stopPrank();
     }
 }

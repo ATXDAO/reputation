@@ -66,24 +66,4 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
             );
         }
     }
-
-    // // ////////////////////////
-    // // // Helper Functions
-    // // ///////////////////////
-    function batchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.batchCreateTokens(tokenProperties);
-        vm.stopPrank();
-    }
-
-    function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public returns (uint256) {
-        vm.startPrank(TOKEN_CREATOR);
-        uint256 tokenId = s_repTokens.createToken(tokenProperties);
-        vm.stopPrank();
-        return tokenId;
-    }
 }

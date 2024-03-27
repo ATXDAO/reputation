@@ -50,6 +50,44 @@ contract ReputationTokensTest__Base is Test {
         setUpRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), TOKEN_MIGRATOR);
     }
 
+    ////////////////////////
+    // Helper Functions
+    ////////////////////////
+    function batchCreateTokens(
+        TokensPropertiesStorage.TokenProperties[] memory tokenProperties
+    ) public {
+        vm.startPrank(TOKEN_CREATOR);
+        s_repTokens.batchCreateTokens(tokenProperties);
+        vm.stopPrank();
+    }
+
+    function createToken(
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
+    ) public returns (uint256) {
+        vm.startPrank(TOKEN_CREATOR);
+        uint256 tokenId = s_repTokens.createToken(tokenProperties);
+        vm.stopPrank();
+        return tokenId;
+    }
+
+    function batchUpdateTokensProperties(
+        uint256[] memory ids,
+        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
+    ) public {
+        vm.startPrank(TOKEN_UPDATER);
+        s_repTokens.batchUpdateTokensProperties(ids, _tokensProperties);
+        vm.stopPrank();
+    }
+
+    function updateToken(
+        uint256 id,
+        TokensPropertiesStorage.TokenProperties memory tokenProperties
+    ) public {
+        vm.startPrank(TOKEN_UPDATER);
+        s_repTokens.updateTokenProperties(id, tokenProperties);
+        vm.stopPrank();
+    }
+
     function createTokenOperationsSequentialHalf(
         address to,
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties,

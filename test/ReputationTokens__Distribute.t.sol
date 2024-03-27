@@ -77,41 +77,4 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         setDestinationWallet(user, destinationWallet);
         assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
     }
-
-    // // ////////////////////////
-    // // // Helper Functions
-    // // ///////////////////////
-    function batchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.batchCreateTokens(tokenProperties);
-        vm.stopPrank();
-    }
-
-    function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_CREATOR);
-        s_repTokens.createToken(tokenProperties);
-        vm.stopPrank();
-    }
-
-    function batchUpdateTokensProperties(
-        uint256[] memory ids,
-        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
-    ) public {
-        vm.startPrank(TOKEN_UPDATER);
-        s_repTokens.batchUpdateTokensProperties(ids, _tokensProperties);
-        vm.stopPrank();
-    }
-
-    function updateToken(
-        uint256 id,
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public {
-        vm.startPrank(TOKEN_UPDATER);
-        s_repTokens.updateTokenProperties(id, tokenProperties);
-        vm.stopPrank();
-    }
 }
