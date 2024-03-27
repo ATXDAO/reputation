@@ -48,28 +48,6 @@ contract ReputationTokensBase is
     ///////////////////
 
     ///////////////////
-    // Internal Functions
-    ///////////////////
-
-    /**
-     * Used to initialize the Reputation Tokens System
-     * @param ownerNominee The nominee that will be set to own the smart contract
-     * @param admins The admins who can grant/revoke roles and do other administrative functionality
-     */
-    function _initialize(
-        address ownerNominee,
-        address[] memory admins // string memory baseUri
-    ) internal {
-        _transferOwnership(ownerNominee);
-
-        for (uint256 i = 0; i < admins.length; i++) {
-            _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
-        }
-
-        // super._initialize(baseUri);
-    }
-
-    ///////////////////
     // External Functions
     ///////////////////
 

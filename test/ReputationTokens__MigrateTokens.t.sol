@@ -47,33 +47,40 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
         vm.stopPrank();
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             assertEq(s_repTokens.balanceOf(user, i), 0);
-            // assertEq(
-            //     s_repTokens.balanceOf(user2, i),
-            //     tokensProperties[i].maxMintAmountPerTx
-            // );
+            assertEq(
+                s_repTokens.balanceOf(user2, i),
+                tokensProperties[i].maxMintAmountPerTx
+            );
         }
     }
 
-    // function testSetTokenURI(
-    //     uint256 numOfTokens,
-    //     string[] memory uris
-    // ) external {
-    //     vm.assume(numOfTokens < uris.length);
-    //     vm.startPrank(TOKEN_URI_SETTER);
-    //     for (uint256 i = 0; i < numOfTokens; i++) {
-    //         s_repTokens.setTokenURI(i, uris[i]);
-    //     }
-    //     vm.stopPrank();
-    //     for (uint256 i = 0; i < numOfTokens; i++) {
-    //         assertEq(s_repTokens.uri(i), uris[i]);
-    //     }
-    // }
-    // function testGetMaxMintPerTx() external {
-    //     batchCreateTokens(tokensProperties);
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         assertEq(s_repTokens.getMaxMintPerTx(i), DEFAULT_MINT_AMOUNT);
-    //     }
-    // }
+    function testSetTokenURI(
+        uint256 numOfTokens,
+        string[] memory uris
+    ) external {
+        vm.assume(numOfTokens < uris.length);
+        vm.startPrank(TOKEN_URI_SETTER);
+        for (uint256 i = 0; i < numOfTokens; i++) {
+            s_repTokens.setTokenURI(i, uris[i]);
+        }
+        vm.stopPrank();
+        for (uint256 i = 0; i < numOfTokens; i++) {
+            assertEq(s_repTokens.uri(i), uris[i]);
+        }
+    }
+
+    function testGetMaxMintPerTx(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
+    ) external {
+        batchCreateTokens(tokensProperties);
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            assertEq(
+                s_repTokens.getMaxMintPerTx(i),
+                tokensProperties[i].maxMintAmountPerTx
+            );
+        }
+    }
+
     // // ////////////////////////
     // // // Helper Functions
     // // ///////////////////////

@@ -5,6 +5,8 @@ import {ReputationTokensBase} from "./ReputationTokensBase.sol";
 import {AccessControlStorage} from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
+import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
+import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
 
 /**
  * @title Reputation Tokens Standalone
@@ -20,7 +22,14 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     ///////////////////
 
     constructor(address ownerNominee, address[] memory admins) {
-        _initialize(ownerNominee, admins);
+        _transferOwnership(ownerNominee);
+
+        for (uint256 i = 0; i < admins.length; i++) {
+            _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
+        }
+
+        _setSupportsInterface(type(IERC165).interfaceId, true);
+        _setSupportsInterface(type(IERC1155).interfaceId, true);
     }
 
     ////////////////////////////////////////////////////////////////////////////
