@@ -55,12 +55,157 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         }
     }
 
-    function testRevertSafeTransferFromAsDistrubtor(
+    function testRevertIfTryingToSendSoulboundToken(
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
         address user,
         address recipient
     ) external {
         vm.assume(user != address(0));
+        vm.assume(recipient != address(0));
+
+        batchCreateTokens(tokensProperties);
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                tokensProperties
+            );
+        mint(tokenOperations);
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                user,
+                tokensProperties
+            );
+
+        distribute(distributeOperations);
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            if (
+                s_repTokens.getTokenProperties(i).isSoulbound &&
+                !s_repTokens.getTokenProperties(i).isRedeemable
+            ) {
+                vm.prank(user);
+
+                vm.expectRevert(
+                    IReputationTokensBaseInternal
+                        .ReputationTokens__CannotTransferSoulboundToken
+                        .selector
+                );
+
+                s_repTokens.safeTransferFrom(
+                    user,
+                    recipient,
+                    i,
+                    tokensProperties[i].maxMintAmountPerTx,
+                    ""
+                );
+            }
+        }
+    }
+
+    function testRevertIfTryingToTransferRedeemableToNonBurner(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address user,
+        address recipient
+    ) external {
+        vm.assume(user != address(0));
+        vm.assume(recipient != address(0));
+
+        batchCreateTokens(tokensProperties);
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                tokensProperties
+            );
+        mint(tokenOperations);
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                user,
+                tokensProperties
+            );
+
+        distribute(distributeOperations);
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            if (
+                s_repTokens.getTokenProperties(i).isSoulbound &&
+                s_repTokens.getTokenProperties(i).isRedeemable
+            ) {
+                vm.prank(user);
+
+                vm.expectRevert(
+                    IReputationTokensBaseInternal
+                        .ReputationTokens__CannotTransferRedeemableToNonBurner
+                        .selector
+                );
+
+                s_repTokens.safeTransferFrom(
+                    user,
+                    recipient,
+                    i,
+                    tokensProperties[i].maxMintAmountPerTx,
+                    ""
+                );
+            }
+        }
+    }
+
+    function testRevertSafeTransferFromCantSendThatManyTransferrableTokensAsDistributor(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address user,
+        address recipient
+    ) external {
+        vm.assume(user != address(0));
+        vm.assume(recipient != address(0));
+
+        uint256 divisbleAmount = 2;
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            vm.assume(
+                tokensProperties[i].maxMintAmountPerTx % divisbleAmount == 0
+            );
+
+            vm.assume(tokensProperties[i].maxMintAmountPerTx != 0);
+        }
+
+        batchCreateTokens(tokensProperties);
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                tokensProperties
+            );
+        mint(tokenOperations);
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequentialHalf(
+                DISTRIBUTOR,
+                tokensProperties,
+                divisbleAmount
+            );
+
+        distribute(distributeOperations);
+
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            if (!tokensProperties[i].isSoulbound) {
+                vm.prank(DISTRIBUTOR);
+
+                vm.expectRevert(
+                    IReputationTokensBaseInternal
+                        .ReputationTokens__CantSendThatManyTransferrableTokens
+                        .selector
+                );
+                s_repTokens.safeTransferFrom(
+                    DISTRIBUTOR,
+                    recipient,
+                    i,
+                    tokensProperties[i].maxMintAmountPerTx,
+                    ""
+                );
+            }
+        }
+    }
+
+    function testSafeTransferFromDistributableBalancesChecks(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address recipient
+    ) external {
         vm.assume(recipient != address(0));
 
         uint256 divisbleAmount = 2;

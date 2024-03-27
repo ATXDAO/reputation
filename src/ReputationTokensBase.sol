@@ -83,7 +83,9 @@ contract ReputationTokensBase is
         _mint(tokensOperations, "");
     }
 
-    function batchMint(TokensOperations[] memory tokensOperations) external {
+    function batchMint(
+        TokensOperations[] memory tokensOperations
+    ) external onlyRole(MINTER_ROLE) {
         for (uint256 i = 0; i < tokensOperations.length; i++) {
             mint(tokensOperations[i]);
         }
@@ -148,15 +150,15 @@ contract ReputationTokensBase is
                     .isRedeemable
             ) {
                 if (!_hasRole(BURNER_ROLE, to)) {
-                    revert ReputationTokens__AttemptingToSendRedeemableToNonBurner();
+                    revert ReputationTokens__CannotTransferRedeemableToNonBurner();
                 }
             } else {
-                revert ReputationTokens__AttemptingToSendSoulboundToken();
+                revert ReputationTokens__CannotTransferSoulboundToken();
             }
         }
 
         if (amount > getTransferrableBalance(from, id)) {
-            revert ReputationTokens__AttemptingToSendTokensFlaggedForDistribution();
+            revert ReputationTokens__CantSendThatManyTransferrableTokens();
         }
 
         super.safeTransferFrom(from, to, id, amount, data);

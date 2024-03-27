@@ -19,8 +19,8 @@ interface IReputationTokensBaseInternal is IReputationTokensInternal {
     error ReputationTokens__MintAmountExceedsLimit();
     error ReputationTokens__CanOnlyMintToDistributor();
     // error ReputationTokens__AttemptingToSendNonRedeemableTokens();
-    error ReputationTokens__AttemptingToSendTokensFlaggedForDistribution();
-    error ReputationTokens__AttemptingToSendRedeemableToNonBurner();
+    error ReputationTokens__CantSendThatManyTransferrableTokens();
+    error ReputationTokens__CannotTransferRedeemableToNonBurner();
     error ReputationTokens__AttemptingToUpdateNonexistentToken();
-    error ReputationTokens__AttemptingToSendSoulboundToken();
+    error ReputationTokens__CannotTransferSoulboundToken();
 }
