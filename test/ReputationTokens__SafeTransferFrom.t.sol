@@ -51,6 +51,50 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         }
     }
 
+    function testSafeTransferFromBurnAsUser(
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address user
+    ) external {
+        vm.assume(user != address(0));
+
+        batchCreateTokens(tokensProperties);
+        ReputationTokensInternal.TokensOperations
+            memory tokenOperations = createTokenOperationsSequential(
+                DISTRIBUTOR,
+                tokensProperties
+            );
+        mint(tokenOperations);
+        ReputationTokensInternal.TokensOperations
+            memory distributeOperations = createTokenOperationsSequential(
+                user,
+                tokensProperties
+            );
+
+        distribute(distributeOperations);
+
+        for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
+            TokensPropertiesStorage.TokenProperties
+                memory tokenProperties = s_repTokens.getTokenProperties(i);
+            if (tokenProperties.isSoulbound) {
+                if (tokenProperties.isRedeemable) {
+                    vm.prank(user);
+                    s_repTokens.safeTransferFrom(
+                        user,
+                        BURNER,
+                        i,
+                        distributeOperations.operations[i].amount,
+                        ""
+                    );
+
+                    assertEq(
+                        s_repTokens.getBurnedBalance(BURNER, i),
+                        distributeOperations.operations[i].amount
+                    );
+                }
+            }
+        }
+    }
+
     function testRevertIfTryingToSendSoulboundToken(
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
         address user,

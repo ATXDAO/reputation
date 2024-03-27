@@ -127,10 +127,12 @@ contract ReputationTokensBase is
                     .tokensProperties[id]
                     .isRedeemable
             ) {
-                if (!_hasRole(BURNER_ROLE, to)) {
-                    revert ReputationTokens__CannotTransferRedeemableToNonBurner();
+                if (_hasRole(BURNER_ROLE, to)) {
+                    TokensPropertiesStorage.layout().s_burnedBalance[to][
+                            id
+                        ] += amount;
                 } else {
-                    //TODO:// run delegate code on burner if it exists
+                    revert ReputationTokens__CannotTransferRedeemableToNonBurner();
                 }
             } else {
                 revert ReputationTokens__CannotTransferSoulboundToken();
@@ -197,16 +199,28 @@ contract ReputationTokensBase is
     function getTransferrableBalance(
         address addr,
         uint256 tokenId
-    ) public view returns (uint256 transferrableAmount) {
+    ) public view returns (uint256 transferrableBalance) {
         uint256 balance = balanceOf(addr, tokenId);
-        transferrableAmount = balance - getDistributableBalance(addr, tokenId);
+        transferrableBalance =
+            balance -
+            getDistributableBalance(addr, tokenId) -
+            getBurnedBalance(addr, tokenId);
+    }
+
+    function getBurnedBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 burnedBalance) {
+        burnedBalance = TokensPropertiesStorage.layout().s_burnedBalance[addr][
+            tokenId
+        ];
     }
 
     function getDistributableBalance(
         address addr,
         uint256 tokenId
-    ) public view returns (uint256 distributableAmount) {
-        distributableAmount = TokensPropertiesStorage
+    ) public view returns (uint256 distributableBalance) {
+        distributableBalance = TokensPropertiesStorage
             .layout()
             .s_distributableBalance[addr][tokenId];
     }

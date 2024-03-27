@@ -71,13 +71,14 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
     }
 
     function testRevertIfMintingToNonDistributor(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+        address user
     ) external {
         batchCreateTokens(tokensProperties);
 
         ReputationTokensInternal.TokensOperations
             memory operations = createTokenOperationsSequential(
-                USER,
+                user,
                 tokensProperties
             );
         vm.expectRevert(

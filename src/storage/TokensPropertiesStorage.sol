@@ -23,6 +23,7 @@ library TokensPropertiesStorage {
     struct Layout {
         uint256 numOfTokens;
         mapping(address distributor => mapping(uint256 tokenId => uint256)) s_distributableBalance;
+        mapping(address burner => mapping(uint256 tokenId => uint256)) s_burnedBalance;
         mapping(uint256 => TokenProperties) tokensProperties;
     }
 
