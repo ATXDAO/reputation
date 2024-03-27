@@ -50,7 +50,6 @@ interface IReputationTokensInternal {
     event OwnershipOfTokensMigrated(
         address indexed from,
         address indexed to,
-        uint256 lifetimeBalance,
-        uint256 redeemableBalance
+        uint256 balance
     );
 }

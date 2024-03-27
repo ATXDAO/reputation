@@ -203,16 +203,15 @@ abstract contract ReputationTokensInternal is
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
     function _migrateOwnershipOfTokens(address from, address to) internal {
-        uint256 lifetimeBalance = balanceOf(from, 0);
-        uint256 redeemableBalance = balanceOf(from, 1);
+        for (
+            uint256 i = 0;
+            i < TokensPropertiesStorage.layout().numOfTokens;
+            i++
+        ) {
+            uint256 balanceOfFrom = balanceOf(from, i);
+            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
 
-        super.safeTransferFrom(from, to, 0, lifetimeBalance, "");
-        super.safeTransferFrom(from, to, 1, redeemableBalance, "");
-        emit OwnershipOfTokensMigrated(
-            from,
-            to,
-            lifetimeBalance,
-            redeemableBalance
-        );
+            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+        }
     }
 }

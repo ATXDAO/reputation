@@ -151,6 +151,8 @@ contract ReputationTokensBase is
             ) {
                 if (!_hasRole(BURNER_ROLE, to)) {
                     revert ReputationTokens__CannotTransferRedeemableToNonBurner();
+                } else {
+                    //TODO:// run delegate code on burner if it exists
                 }
             } else {
                 revert ReputationTokens__CannotTransferSoulboundToken();

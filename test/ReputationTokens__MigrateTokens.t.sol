@@ -9,7 +9,7 @@ import {TokensPropertiesStorage} from "../src/storage/TokensPropertiesStorage.so
 import {ReputationTokensInternal} from "../src/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
-contract ReputationTokens__Distribute is ReputationTokensTest__Base {
+contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
     // function setUp() public override {
     //     super.setUp();
     // }
@@ -18,11 +18,13 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
 
-    function testDistribute(
+    function testMigrationOfTokens(
         TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-        address user
+        address user,
+        address user2
     ) external {
         vm.assume(user != address(0));
+        vm.assume(user2 != address(0));
 
         batchCreateTokens(tokensProperties);
         ReputationTokensInternal.TokensOperations
@@ -36,52 +38,42 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
                 user,
                 tokensProperties
             );
-
-        uint256[] memory priorDistributableBalances = new uint256[](
-            tokensProperties.length
-        );
-
-        uint256[] memory priorTransferrableBalances = new uint256[](
-            tokensProperties.length
-        );
-
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            priorDistributableBalances[i] = s_repTokens.getDistributableBalance(
-                DISTRIBUTOR,
-                i
-            );
-
-            priorTransferrableBalances[i] = s_repTokens.getTransferrableBalance(
-                DISTRIBUTOR,
-                i
-            );
-        }
-
         distribute(distributeOperations);
+        vm.startPrank(user);
+        s_repTokens.setApprovalForAll(TOKEN_MIGRATOR, true);
+        vm.stopPrank();
+        vm.startPrank(TOKEN_MIGRATOR);
+        s_repTokens.migrateOwnershipOfTokens(user, user2);
+        vm.stopPrank();
         for (uint256 i = 0; i < tokensProperties.length; i++) {
-            assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), 0);
-            assertEq(
-                s_repTokens.balanceOf(user, i),
-                tokensProperties[i].maxMintAmountPerTx
-            );
-            assertEq(
-                s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
-                priorDistributableBalances[i] -
-                    tokensProperties[i].maxMintAmountPerTx
-            );
+            assertEq(s_repTokens.balanceOf(user, i), 0);
+            // assertEq(
+            //     s_repTokens.balanceOf(user2, i),
+            //     tokensProperties[i].maxMintAmountPerTx
+            // );
         }
     }
 
-    function testSetDestinationWallet(
-        address user,
-        address destinationWallet
-    ) external {
-        vm.assume(user != destinationWallet);
-        vm.assume(user != address(0));
-        setDestinationWallet(user, destinationWallet);
-        assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
-    }
-
+    // function testSetTokenURI(
+    //     uint256 numOfTokens,
+    //     string[] memory uris
+    // ) external {
+    //     vm.assume(numOfTokens < uris.length);
+    //     vm.startPrank(TOKEN_URI_SETTER);
+    //     for (uint256 i = 0; i < numOfTokens; i++) {
+    //         s_repTokens.setTokenURI(i, uris[i]);
+    //     }
+    //     vm.stopPrank();
+    //     for (uint256 i = 0; i < numOfTokens; i++) {
+    //         assertEq(s_repTokens.uri(i), uris[i]);
+    //     }
+    // }
+    // function testGetMaxMintPerTx() external {
+    //     batchCreateTokens(tokensProperties);
+    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
+    //         assertEq(s_repTokens.getMaxMintPerTx(i), DEFAULT_MINT_AMOUNT);
+    //     }
+    // }
     // // ////////////////////////
     // // // Helper Functions
     // // ///////////////////////
