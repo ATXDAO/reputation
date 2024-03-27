@@ -166,6 +166,14 @@ abstract contract ReputationTokensInternal is
                     tokensOperations.operations[i].id
                 ] -= tokensOperations.operations[i].amount;
 
+            emit Distributed(
+                from,
+                AddressToAddressMappingStorage.layout().destinationWallets[
+                    tokensOperations.to
+                ],
+                tokensOperations.operations
+            );
+
             super.safeTransferFrom(
                 from,
                 AddressToAddressMappingStorage.layout().destinationWallets[
@@ -176,14 +184,6 @@ abstract contract ReputationTokensInternal is
                 data
             );
         }
-
-        emit Distributed(
-            from,
-            AddressToAddressMappingStorage.layout().destinationWallets[
-                tokensOperations.to
-            ],
-            tokensOperations.operations
-        );
     }
 
     /**
@@ -200,9 +200,9 @@ abstract contract ReputationTokensInternal is
             i++
         ) {
             uint256 balanceOfFrom = balanceOf(from, i);
-            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
-
             emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+
+            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
         }
     }
 }
