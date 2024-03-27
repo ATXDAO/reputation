@@ -1,46 +1,30 @@
 {
-  "name": "se-2",
+  "name": "@se-2/foundry",
   "version": "0.0.1",
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
   "scripts": {
-    "account": "yarn workspace @se-2/foundry account",
-    "chain": "yarn workspace @se-2/foundry chain",
-    "compile": "yarn workspace @se-2/foundry compile",
-    "deploy": "yarn workspace @se-2/foundry deploy",
-    "deploy:verify": "yarn workspace @se-2/foundry deploy:verify",
-    "flatten": "yarn workspace @se-2/foundry flatten",
-    "fork": "yarn workspace @se-2/foundry fork",
-    "format": "yarn next:format && yarn foundry:format",
-    "foundry:format": "yarn workspace @se-2/foundry format",
-    "foundry:lint": "yarn workspace @se-2/foundry lint",
-    "foundry:test": "yarn workspace @se-2/foundry test",
-    "generate": "yarn workspace @se-2/foundry generate",
-    "postinstall": "husky install",
-    "next:build": "yarn workspace @se-2/nextjs build",
-    "next:check-types": "yarn workspace @se-2/nextjs check-types",
-    "next:format": "yarn workspace @se-2/nextjs format",
-    "next:lint": "yarn workspace @se-2/nextjs lint",
-    "precommit": "lint-staged",
-    "prepare": "install-self-peers -- --ignore-scripts",
-    "start": "yarn workspace @se-2/nextjs dev",
-    "test": "yarn foundry:test",
-    "vercel": "vercel",
-    "vercel:yolo": "vercel --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true",
-    "verify": "yarn workspace @se-2/foundry verify"
+    "account": "node script/ListAccount.js",
+    "chain": "anvil --config-out localhost.json",
+    "compile": "forge compile",
+    "deploy": "forge build --build-info --build-info-path out/build-info/ && forge script script/Deploy.s.sol --rpc-url ${1:-default_network} --broadcast --legacy && node script/generateTsAbis.js",
+    "deploy:verify": "forge build --build-info --build-info-path out/build-info/ && forge script script/Deploy.s.sol --rpc-url ${1:-default_network} --broadcast --legacy --verify ; node script/generateTsAbis.js",
+    "flatten": "forge flatten",
+    "fork": "anvil --fork-url ${0:-mainnet} --chain-id 31337 --config-out localhost.json",
+    "format": "forge fmt && prettier --write ./script/**/*.js",
+    "generate": "node script/generateAccount.js",
+    "lint": "forge fmt --check && prettier --check ./script/**/*.js",
+    "test": "forge test",
+    "verify": "forge build --build-info --build-info-path out/build-info/ && forge script script/VerifyAll.s.sol --ffi --rpc-url ${1:-default_network}"
   },
-  "resolutions": {
-    "usehooks-ts@^2.7.2": "patch:usehooks-ts@npm:^2.7.2#./.yarn/patches/usehooks-ts-npm-2.7.2-fceffe0e43.patch"
+  "dependencies": {
+    "dotenv": "~16.3.1",
+    "envfile": "~6.18.0",
+    "ethers": "~5.7.1",
+    "prettier": "~2.8.8",
+    "qrcode": "~1.5.3",
+    "toml": "~3.0.0"
   },
   "devDependencies": {
-    "husky": "~8.0.3",
-    "lint-staged": "~13.2.2",
-    "next": "~14.0.4",
-    "vercel": "~32.4.1"
-  },
-  "packageManager": "yarn@3.2.3"
+    "@types/prettier": "2",
+    "@types/qrcode": "1"
+  }
 }
