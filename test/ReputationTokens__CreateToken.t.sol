@@ -2,10 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStorage.sol";
-import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokensStandalone} from
+    "../contracts/ReputationTokensStandalone.sol";
+import {IReputationTokensBaseInternal} from
+    "../contracts/IReputationTokensBaseInternal.sol";
+import {TokensPropertiesStorage} from
+    "../contracts/storage/TokensPropertiesStorage.sol";
+import {ReputationTokensInternal} from
+    "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
@@ -18,20 +22,15 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     ) public {
         tokenTypeId = bound(tokenTypeId, 0, 2);
 
-        TokensPropertiesStorage.TokenProperties
-            memory tokenProperties = TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(tokenTypeId),
-                false,
-                false,
-                maxMintAmountPerTx
-            );
+        TokensPropertiesStorage.TokenProperties memory tokenProperties =
+        TokensPropertiesStorage.TokenProperties(
+            TokensPropertiesStorage.TokenType(tokenTypeId), maxMintAmountPerTx
+        );
 
         uint256 tokenId = createToken(tokenProperties);
 
-        TokensPropertiesStorage.TokenProperties
-            memory createdTokenProperties = s_repTokens.getTokenProperties(
-                tokenId
-            );
+        TokensPropertiesStorage.TokenProperties memory createdTokenProperties =
+            s_repTokens.getTokenProperties(tokenId);
 
         assertEq(uint8(createdTokenProperties.tokenType), tokenTypeId);
 
@@ -44,17 +43,12 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     function testBatchCreateTokens(uint256 numToCreate) public {
         vm.assume(numToCreate < 1000);
 
-        TokensPropertiesStorage.TokenProperties[]
-            memory tokensProperties = new TokensPropertiesStorage.TokenProperties[](
-                numToCreate
-            );
+        TokensPropertiesStorage.TokenProperties[] memory tokensProperties =
+            new TokensPropertiesStorage.TokenProperties[](numToCreate);
 
         for (uint256 i = 0; i < numToCreate; i++) {
             tokensProperties[i] = TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                false,
-                false,
-                0
+                TokensPropertiesStorage.TokenType.Default, 0
             );
         }
         batchCreateTokens(tokensProperties);

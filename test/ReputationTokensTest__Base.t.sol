@@ -2,11 +2,16 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from "../contracts/ReputationTokensStandalone.sol";
-import {DeployReputationTokensStandalone} from "../script/DeployReputationTokensStandalone.s.sol";
-import {IReputationTokensBaseInternal} from "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStorage.sol";
-import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokensStandalone} from
+    "../contracts/ReputationTokensStandalone.sol";
+import {DeployReputationTokensStandalone} from
+    "../script/DeployReputationTokensStandalone.s.sol";
+import {IReputationTokensBaseInternal} from
+    "../contracts/IReputationTokensBaseInternal.sol";
+import {TokensPropertiesStorage} from
+    "../contracts/storage/TokensPropertiesStorage.sol";
+import {ReputationTokensInternal} from
+    "../contracts/ReputationTokensInternal.sol";
 
 contract ReputationTokensTest__Base is Test {
     ////////////////////////
@@ -69,22 +74,27 @@ contract ReputationTokensTest__Base is Test {
         return tokenId;
     }
 
+    function createDefaultTokenWithAMintAmount() public returns (uint256) {
+        return createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType.Default, 100
+            )
+        );
+    }
+
     function createDefaultToken() public returns (uint256) {
-        return
-            createToken(
-                TokensPropertiesStorage.TokenProperties(
-                    TokensPropertiesStorage.TokenType.Soulbound,
-                    false,
-                    false,
-                    0
-                )
-            );
+        return createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType.Default, 0
+            )
+        );
     }
 
     modifier onlyValidAddress(uint256 id) {
         vm.assume(id > 0);
         vm.assume(
-            id <
+            id
+                <
                 115792089237316195423570985008687907852837564279074904382605163141518161494337
         );
         _;
@@ -215,17 +225,17 @@ contract ReputationTokensTest__Base is Test {
         vm.stopPrank();
     }
 
-    function batchMint(
-        ReputationTokensInternal.Sequence[] memory sequences
-    ) public {
+    function batchMint(ReputationTokensInternal.Sequence[] memory sequences)
+        public
+    {
         vm.startPrank(MINTER);
         s_repTokens.batchMint(sequences);
         vm.stopPrank();
     }
 
-    function distribute(
-        ReputationTokensInternal.Sequence memory sequence
-    ) public {
+    function distribute(ReputationTokensInternal.Sequence memory sequence)
+        public
+    {
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.distribute(DISTRIBUTOR, sequence, "");
         vm.stopPrank();

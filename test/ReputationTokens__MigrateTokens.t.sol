@@ -2,10 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStorage.sol";
-import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokensStandalone} from
+    "../contracts/ReputationTokensStandalone.sol";
+import {IReputationTokensBaseInternal} from
+    "../contracts/IReputationTokensBaseInternal.sol";
+import {TokensPropertiesStorage} from
+    "../contracts/storage/TokensPropertiesStorage.sol";
+import {ReputationTokensInternal} from
+    "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
@@ -14,14 +18,7 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
     ////////////////////////
 
     function testMigrationOfTokens() external {
-        uint256 tokenId = createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                false,
-                false,
-                100
-            )
-        );
+        uint256 tokenId = createDefaultTokenWithAMintAmount();
 
         address user1 = vm.addr(15);
         address user2 = vm.addr(16);
@@ -36,8 +33,8 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
         mint(mintSequence);
 
         ReputationTokensInternal.Sequence memory distributeSequence;
-        distributeSequence
-            .operations = new ReputationTokensInternal.Operation[](1);
+        distributeSequence.operations =
+            new ReputationTokensInternal.Operation[](1);
         distributeSequence.to = user1;
 
         distributeSequence.operations[0].id = tokenId;
@@ -72,14 +69,7 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
     }
 
     function testGetMaxMintPerTx() external {
-        uint256 tokenId = createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                false,
-                false,
-                100
-            )
-        );
+        uint256 tokenId = createDefaultTokenWithAMintAmount();
 
         assertEq(s_repTokens.getMaxMintPerTx(tokenId), 100);
     }

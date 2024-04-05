@@ -2,10 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStorage.sol";
-import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokensStandalone} from
+    "../contracts/ReputationTokensStandalone.sol";
+import {IReputationTokensBaseInternal} from
+    "../contracts/IReputationTokensBaseInternal.sol";
+import {TokensPropertiesStorage} from
+    "../contracts/storage/TokensPropertiesStorage.sol";
+import {ReputationTokensInternal} from
+    "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
@@ -22,15 +26,11 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     }
 
     function createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-        bool isSoulbound,
-        bool isRedeemable
+        TokensPropertiesStorage.TokenType tokenType
     ) public returns (uint256 tokenId) {
         tokenId = createToken(
             TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                isSoulbound,
-                isRedeemable,
-                DEFAULT_MAX_MINT_AMOUNT
+                tokenType, DEFAULT_MAX_MINT_AMOUNT
             )
         );
 
@@ -44,8 +44,8 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         mint(mintSequence);
 
         ReputationTokensInternal.Sequence memory distributeSequence;
-        distributeSequence
-            .operations = new ReputationTokensInternal.Operation[](1);
+        distributeSequence.operations =
+            new ReputationTokensInternal.Operation[](1);
         distributeSequence.to = user1;
 
         distributeSequence.operations[0].id = tokenId;
@@ -54,33 +54,24 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         distribute(distributeSequence);
     }
 
-    function createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero()
-        internal
-        returns (uint256 tokenId)
-    {
+    function createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero(
+    ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            true,
-            false
+            TokensPropertiesStorage.TokenType.Soulbound
         );
     }
 
-    function createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero()
-        internal
-        returns (uint256 tokenId)
-    {
+    function createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero(
+    ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            true,
-            true
+            TokensPropertiesStorage.TokenType.Redeemable
         );
     }
 
-    function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero()
-        internal
-        returns (uint256 tokenId)
-    {
+    function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero(
+    ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            false,
-            false
+            TokensPropertiesStorage.TokenType.Default
         );
     }
 
@@ -89,28 +80,22 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     ////////////////////////
 
     function testSafeTransferFrom() public {
-        uint256 tokenId = createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
+        uint256 tokenId =
+        createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
 
         vm.prank(user1);
         s_repTokens.safeTransferFrom(
-            user1,
-            transferRecipient,
-            tokenId,
-            DEFAULT_MAX_MINT_AMOUNT,
-            ""
+            user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
         );
     }
 
     function testSafeTransferFromBurn() public {
-        uint256 tokenId = createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
+        uint256 tokenId =
+        createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
 
         vm.prank(user1);
         s_repTokens.safeTransferFrom(
-            user1,
-            BURNER,
-            tokenId,
-            DEFAULT_MAX_MINT_AMOUNT,
-            ""
+            user1, BURNER, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
         );
 
         assertEq(
@@ -120,7 +105,8 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     }
 
     function testRevertSafeTransferFromSoulbound() public {
-        uint256 tokenId = createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero();
+        uint256 tokenId =
+        createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero();
 
         vm.prank(user1);
 
@@ -131,16 +117,13 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         );
 
         s_repTokens.safeTransferFrom(
-            user1,
-            transferRecipient,
-            tokenId,
-            DEFAULT_MAX_MINT_AMOUNT,
-            ""
+            user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
         );
     }
 
     function testRevertIfTryingToTransferRedeemableToNonBurner() external {
-        uint256 tokenId = createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
+        uint256 tokenId =
+        createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
 
         vm.prank(user1);
 
@@ -151,18 +134,15 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         );
 
         s_repTokens.safeTransferFrom(
-            user1,
-            transferRecipient,
-            tokenId,
-            DEFAULT_MAX_MINT_AMOUNT,
-            ""
+            user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
         );
     }
 
     function testRevertSafeTransferFromCantSendThatManyTransferrableTokens()
         external
     {
-        uint256 tokenId = createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
+        uint256 tokenId =
+        createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
 
         vm.prank(user1);
 

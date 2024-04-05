@@ -2,10 +2,14 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStorage.sol";
-import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokensStandalone} from
+    "../contracts/ReputationTokensStandalone.sol";
+import {IReputationTokensBaseInternal} from
+    "../contracts/IReputationTokensBaseInternal.sol";
+import {TokensPropertiesStorage} from
+    "../contracts/storage/TokensPropertiesStorage.sol";
+import {ReputationTokensInternal} from
+    "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__Distribute is ReputationTokensTest__Base {
@@ -16,14 +20,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
     function testDistribute(uint256 userId) public onlyValidAddress(userId) {
         address user = vm.addr(userId);
 
-        uint256 tokenId = createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                false,
-                false,
-                100
-            )
-        );
+        uint256 tokenId = createDefaultTokenWithAMintAmount();
 
         ReputationTokensInternal.Sequence memory mintSequence;
         mintSequence.operations = new ReputationTokensInternal.Operation[](1);
@@ -35,17 +32,15 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         mint(mintSequence);
 
         ReputationTokensInternal.Sequence memory distributeSequence;
-        distributeSequence
-            .operations = new ReputationTokensInternal.Operation[](1);
+        distributeSequence.operations =
+            new ReputationTokensInternal.Operation[](1);
         distributeSequence.to = user;
 
         distributeSequence.operations[0].id = tokenId;
         distributeSequence.operations[0].amount = 100;
 
-        uint256 priorDistributableBalance = s_repTokens.getDistributableBalance(
-            DISTRIBUTOR,
-            0
-        );
+        uint256 priorDistributableBalance =
+            s_repTokens.getDistributableBalance(DISTRIBUTOR, 0);
 
         distribute(distributeSequence);
 
@@ -63,14 +58,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         address user = vm.addr(15);
 
-        uint256 tokenId = createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType(0),
-                false,
-                false,
-                100
-            )
-        );
+        uint256 tokenId = createDefaultTokenWithAMintAmount();
 
         ReputationTokensInternal.Sequence memory mintSequence;
         mintSequence.operations = new ReputationTokensInternal.Operation[](1);
@@ -81,15 +69,13 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         mint(mintSequence);
 
-        ReputationTokensInternal.Sequence[]
-            memory distributeSequences = new ReputationTokensInternal.Sequence[](
-                numOfSequences
-            );
+        ReputationTokensInternal.Sequence[] memory distributeSequences =
+            new ReputationTokensInternal.Sequence[](numOfSequences);
 
         for (uint256 i = 0; i < distributeSequences.length; i++) {
             distributeSequences[i].to = user;
-            distributeSequences[i]
-                .operations = new ReputationTokensInternal.Operation[](1);
+            distributeSequences[i].operations =
+                new ReputationTokensInternal.Operation[](1);
             distributeSequences[i].operations[0].id = tokenId;
             distributeSequences[i].operations[0].amount = 100 / numOfSequences;
         }

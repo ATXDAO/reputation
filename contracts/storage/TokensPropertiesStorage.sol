@@ -35,8 +35,8 @@ library TokensPropertiesStorage {
 
     struct TokenProperties {
         TokenType tokenType;
-        bool isSoulbound;
-        bool isRedeemable;
+        // bool isSoulbound;
+        // bool isRedeemable;
         uint256 maxMintAmountPerTx;
     }
 

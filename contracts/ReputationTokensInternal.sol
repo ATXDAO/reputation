@@ -64,15 +64,15 @@ abstract contract ReputationTokensInternal is
             .tokensProperties[id]
             .tokenType = tokenProperties.tokenType;
 
-        TokensPropertiesStorage
-            .layout()
-            .tokensProperties[id]
-            .isRedeemable = tokenProperties.isRedeemable;
+        // TokensPropertiesStorage
+        //     .layout()
+        //     .tokensProperties[id]
+        //     .isRedeemable = tokenProperties.isRedeemable;
 
-        TokensPropertiesStorage
-            .layout()
-            .tokensProperties[id]
-            .isSoulbound = tokenProperties.isSoulbound;
+        // TokensPropertiesStorage
+        //     .layout()
+        //     .tokensProperties[id]
+        //     .isSoulbound = tokenProperties.isSoulbound;
 
         TokensPropertiesStorage
             .layout()
