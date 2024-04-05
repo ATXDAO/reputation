@@ -25,77 +25,47 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
             )
         );
 
-        ReputationTokensInternal.TokensOperations memory tokenOperations;
-        tokenOperations
+        ReputationTokensInternal.TokensOperations memory mintOperations;
+        mintOperations
             .operations = new ReputationTokensInternal.TokenOperation[](1);
-        tokenOperations.to = user;
+        mintOperations.to = DISTRIBUTOR;
 
-        tokenOperations.operations[0].id = 0;
-        tokenOperations.operations[0].amount = 100;
+        mintOperations.operations[0].id = 0;
+        mintOperations.operations[0].amount = 100;
+
+        mint(mintOperations);
+
+        ReputationTokensInternal.TokensOperations memory distributeOperations;
+        distributeOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](1);
+        distributeOperations.to = user;
+
+        distributeOperations.operations[0].id = 0;
+        distributeOperations.operations[0].amount = 100;
+
+        uint256 priorDistributableBalance = s_repTokens.getDistributableBalance(
+            DISTRIBUTOR,
+            0
+        );
+
+        distribute(distributeOperations);
+
+        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, 0), 0);
+        assertEq(s_repTokens.balanceOf(user, 0), 100);
+        assertEq(
+            s_repTokens.getDistributableBalance(DISTRIBUTOR, 0),
+            priorDistributableBalance - 100
+        );
+        assertEq(s_repTokens.getTransferrableBalance(user, 0), 100);
     }
 
-    // function testDistribute(
-    //     TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-
-    //     address user
-    // ) external {
-    //     vm.assume(user != address(0));
-
-    //     batchCreateTokens(tokensProperties);
-    //     ReputationTokensInternal.TokensOperations
-    //         memory tokenOperations = createTokenOperationsSequential(
-    //             DISTRIBUTOR,
-    //             tokensProperties
-    //         );
-    //     mint(tokenOperations);
-    //     ReputationTokensInternal.TokensOperations
-    //         memory distributeOperations = createTokenOperationsSequential(
-    //             user,
-    //             tokensProperties
-    //         );
-
-    //     uint256[] memory priorDistributableBalances = new uint256[](
-    //         tokensProperties.length
-    //     );
-
-    //     uint256[] memory priorTransferrableBalances = new uint256[](
-    //         tokensProperties.length
-    //     );
-
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         priorDistributableBalances[i] = s_repTokens.getDistributableBalance(
-    //             DISTRIBUTOR,
-    //             i
-    //         );
-
-    //         priorTransferrableBalances[i] = s_repTokens.getTransferrableBalance(
-    //             DISTRIBUTOR,
-    //             i
-    //         );
-    //     }
-
-    //     distribute(distributeOperations);
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), 0);
-    //         assertEq(
-    //             s_repTokens.balanceOf(user, i),
-    //             tokensProperties[i].maxMintAmountPerTx
-    //         );
-    //         assertEq(
-    //             s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
-    //             priorDistributableBalances[i] -
-    //                 tokensProperties[i].maxMintAmountPerTx
-    //         );
-    //     }
-    // }
-
-    // function testSetDestinationWallet(
-    //     address user,
-    //     address destinationWallet
-    // ) external {
-    //     vm.assume(user != destinationWallet);
-    //     vm.assume(user != address(0));
-    //     setDestinationWallet(user, destinationWallet);
-    //     assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
-    // }
+    function testSetDestinationWallet(
+        uint256 userId,
+        uint256 destinationWalletId
+    ) external onlyValidAddress(userId) onlyValidAddress(destinationWalletId) {
+        address user = vm.addr(userId);
+        address destinationWallet = vm.addr(destinationWalletId);
+        setDestinationWallet(user, destinationWallet);
+        assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
+    }
 }
