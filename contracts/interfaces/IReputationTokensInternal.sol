@@ -2,7 +2,8 @@
 
 pragma solidity ^0.8.18;
 
-import {TokensPropertiesStorage} from "../storage/TokensPropertiesStorage.sol";
+// import {TokensPropertiesStorage} from "../storage/TokensPropertiesStorage.sol";
+// import {ReputationTokensInternal} from "../ReputationTokensInternal.sol";
 
 /**
  * @title Reputation Tokens Internal Interface
@@ -11,38 +12,38 @@ import {TokensPropertiesStorage} from "../storage/TokensPropertiesStorage.sol";
  * Hosts the events for Reputation Tokens.
  */
 interface IReputationTokensInternal {
-    ///////////////////
-    // Types
-    ///////////////////
-    struct Operation {
-        uint256 id;
-        uint256 amount;
-    }
+///////////////////
+// Types
+///////////////////
+// struct Operation {
+//     uint256 id;
+//     uint256 amount;
+// }
 
-    struct Sequence {
-        address to;
-        Operation[] operations;
-    }
+// struct Sequence {
+//     address to;
+//     Operation[] operations;
+// }
 
-    event Create(TokensPropertiesStorage.TokenProperties);
-    event Update(
-        uint256 indexed id,
-        TokensPropertiesStorage.TokenProperties indexed properties
-    );
+// event Create(TokenProperties);
+// event Update(
+//     uint256 indexed id,
+//     TokensPropertiesStorage.TokenProperties indexed properties
+// );
 
-    event Mint(
-        address indexed from, address indexed to, Operation[] indexed operations
-    );
+// event Mint(
+//     address indexed from, address indexed to, Operation[] indexed operations
+// );
 
-    event Distributed(
-        address indexed from, address indexed to, Operation[] indexed operations
-    );
+// event Distributed(
+//     address indexed from, address indexed to, Operation[] indexed operations
+// );
 
-    event DestinationWalletSet(
-        address indexed coreAddress, address indexed destination
-    );
+// event DestinationWalletSet(
+//     address indexed coreAddress, address indexed destination
+// );
 
-    event OwnershipOfTokensMigrated(
-        address indexed from, address indexed to, uint256 balance
-    );
+// event OwnershipOfTokensMigrated(
+//     address indexed from, address indexed to, uint256 balance
+// );
 }

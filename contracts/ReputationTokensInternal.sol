@@ -11,8 +11,7 @@ import {IERC1155Metadata} from
     "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
-import {IReputationTokensBaseInternal} from
-    "./IReputationTokensBaseInternal.sol";
+import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
 import {AddressToAddressMappingStorage} from
     "./storage/AddressToAddressMappingStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
@@ -30,12 +29,41 @@ import {Test, console} from "forge-std/Test.sol";
  * @dev This contract inherits from SolidStateERC1155. Which is a smart contract that follows the Diamond Storage Pattern and
  *      allows for easy creation of ERC1155 compliant smart contracts.
  *      Source code and info found here: https://github.com/solidstate-network/solidstate-solidity
- * @dev This contract inherits from IReputationTokensBaseInternal. Which contains the errors and events for Reputation Tokens.
+ * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
 abstract contract ReputationTokensInternal is
     SolidStateERC1155,
-    IReputationTokensBaseInternal
+    IReputationTokensErrors
 {
+    mapping(address => address) destinationWallets;
+    uint256 numOfTokens;
+    mapping(address distributor => mapping(uint256 tokenId => uint256))
+        s_distributableBalance;
+    mapping(address burner => mapping(uint256 tokenId => uint256))
+        s_burnedBalance;
+    mapping(uint256 => TokenProperties) tokensProperties;
+
+    enum TokenType {
+        Default,
+        Redeemable,
+        Soulbound
+    }
+
+    struct TokenProperties {
+        TokenType tokenType;
+        uint256 maxMintAmountPerTx;
+    }
+
+    struct Operation {
+        uint256 id;
+        uint256 amount;
+    }
+
+    struct Sequence {
+        address to;
+        Operation[] operations;
+    }
+
     ///////////////////
     // Functions
     ///////////////////
@@ -44,34 +72,34 @@ abstract contract ReputationTokensInternal is
     // Internal Functions
     ///////////////////
 
-    function _createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) internal returns (uint256 tokenId) {
-        uint256 newTokenId = TokensPropertiesStorage.layout().numOfTokens;
-        TokensPropertiesStorage.layout().numOfTokens++;
+    function _createToken(TokenProperties memory tokenProperties)
+        internal
+        returns (uint256 tokenId)
+    {
+        uint256 newTokenId = numOfTokens;
+        numOfTokens++;
 
         _updateTokenProperties(newTokenId, tokenProperties);
 
-        emit Create(tokenProperties);
+        // emit Create(tokenProperties);
 
         tokenId = newTokenId;
     }
 
     function _updateTokenProperties(
         uint256 id,
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
+        TokenProperties memory tokenProperties
     ) internal {
-        if (id >= TokensPropertiesStorage.layout().numOfTokens) {
+        if (id >= numOfTokens) {
             revert ReputationTokens__CannotUpdateNonexistentTokenType();
         }
 
-        TokensPropertiesStorage.layout().tokensProperties[id].tokenType =
-            tokenProperties.tokenType;
+        tokensProperties[id].tokenType = tokenProperties.tokenType;
 
-        TokensPropertiesStorage.layout().tokensProperties[id].maxMintAmountPerTx
-        = tokenProperties.maxMintAmountPerTx;
+        tokensProperties[id].maxMintAmountPerTx =
+            tokenProperties.maxMintAmountPerTx;
 
-        emit Update(id, tokenProperties);
+        // emit Update(id, tokenProperties);
     }
 
     /**
@@ -79,10 +107,7 @@ abstract contract ReputationTokensInternal is
      * @param addr address who may get their destination wallet set
      */
     function initializeDestinationWallet(address addr) internal {
-        if (
-            AddressToAddressMappingStorage.layout().destinationWallets[addr]
-                == address(0)
-        ) {
+        if (destinationWallets[addr] == address(0)) {
             _setDestinationWallet(addr, addr);
         }
     }
@@ -101,12 +126,11 @@ abstract contract ReputationTokensInternal is
         for (uint256 i = 0; i < sequence.operations.length; i++) {
             if (
                 sequence.operations[i].amount
-                    > TokensPropertiesStorage.layout().tokensProperties[sequence
-                        .operations[i].id].maxMintAmountPerTx
+                    > tokensProperties[sequence.operations[i].id].maxMintAmountPerTx
             ) revert ReputationTokens__MintAmountExceedsLimit();
 
-            TokensPropertiesStorage.layout().s_distributableBalance[sequence.to][sequence
-                .operations[i].id] += sequence.operations[i].amount;
+            s_distributableBalance[sequence.to][sequence.operations[i].id] +=
+                sequence.operations[i].amount;
 
             super._mint(
                 sequence.to,
@@ -114,7 +138,7 @@ abstract contract ReputationTokensInternal is
                 sequence.operations[i].amount,
                 data
             );
-            emit Mint(msg.sender, sequence.to, sequence.operations);
+            // emit Mint(msg.sender, sequence.to, sequence.operations);
         }
     }
 
@@ -127,9 +151,8 @@ abstract contract ReputationTokensInternal is
         address target,
         address destination
     ) internal {
-        AddressToAddressMappingStorage.layout().destinationWallets[target] =
-            destination;
-        emit DestinationWalletSet(target, destination);
+        destinationWallets[target] = destination;
+        // emit DestinationWalletSet(target, destination);
     }
 
     /**
@@ -146,20 +169,19 @@ abstract contract ReputationTokensInternal is
         initializeDestinationWallet(sequence.to);
 
         for (uint256 i = 0; i < sequence.operations.length; i++) {
-            TokensPropertiesStorage.layout().s_distributableBalance[from][sequence
-                .operations[i].id] -= sequence.operations[i].amount;
+            s_distributableBalance[from][sequence.operations[i].id] -=
+                sequence.operations[i].amount;
 
-            emit Distributed(
-                from,
-                AddressToAddressMappingStorage.layout().destinationWallets[sequence
-                    .to],
-                sequence.operations
-            );
+            // emit Distributed(
+            //     from,
+            //     AddressToAddressMappingStorage.layout().destinationWallets[sequence
+            //         .to],
+            //     sequence.operations
+            // );
 
             super.safeTransferFrom(
                 from,
-                AddressToAddressMappingStorage.layout().destinationWallets[sequence
-                    .to],
+                destinationWallets[sequence.to],
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
                 data
@@ -175,11 +197,9 @@ abstract contract ReputationTokensInternal is
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
     function _migrateOwnershipOfTokens(address from, address to) internal {
-        for (
-            uint256 i = 0; i < TokensPropertiesStorage.layout().numOfTokens; i++
-        ) {
+        for (uint256 i = 0; i < numOfTokens; i++) {
             uint256 balanceOfFrom = balanceOf(from, i);
-            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+            // emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
 
             super.safeTransferFrom(from, to, i, balanceOfFrom, "");
         }

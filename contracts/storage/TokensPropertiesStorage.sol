@@ -20,33 +20,33 @@ library TokensPropertiesStorage {
     // Types
     ///////////////////
 
-    struct Layout {
-        uint256 numOfTokens;
-        mapping(address distributor => mapping(uint256 tokenId => uint256))
-            s_distributableBalance;
-        mapping(address burner => mapping(uint256 tokenId => uint256))
-            s_burnedBalance;
-        mapping(uint256 => TokenProperties) tokensProperties;
-    }
+    // struct Layout {
+    //     uint256 numOfTokens;
+    //     mapping(address distributor => mapping(uint256 tokenId => uint256))
+    //         s_distributableBalance;
+    //     mapping(address burner => mapping(uint256 tokenId => uint256))
+    //         s_burnedBalance;
+    //     mapping(uint256 => TokenProperties) tokensProperties;
+    // }
 
-    enum TokenType {
-        Default,
-        Redeemable,
-        Soulbound
-    }
+    // enum TokenType {
+    //     Default,
+    //     Redeemable,
+    //     Soulbound
+    // }
 
-    struct TokenProperties {
-        TokenType tokenType;
-        uint256 maxMintAmountPerTx;
-    }
+    // struct TokenProperties {
+    //     TokenType tokenType;
+    //     uint256 maxMintAmountPerTx;
+    // }
 
     ///////////////////
     // Internal Functions
     ///////////////////
-    function layout() internal pure returns (Layout storage l) {
-        bytes32 slot = STORAGE_SLOT;
-        assembly {
-            l.slot := slot
-        }
-    }
+    // function layout() internal pure returns (Layout storage l) {
+    //     bytes32 slot = STORAGE_SLOT;
+    //     assembly {
+    //         l.slot := slot
+    //     }
+    // }
 }

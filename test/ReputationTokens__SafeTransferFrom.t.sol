@@ -4,10 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {ReputationTokensStandalone} from
     "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from
-    "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from
-    "../contracts/storage/TokensPropertiesStorage.sol";
+import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
 import {ReputationTokensInternal} from
     "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
@@ -26,10 +23,10 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     }
 
     function createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-        TokensPropertiesStorage.TokenType tokenType
+        ReputationTokensInternal.TokenType tokenType
     ) public returns (uint256 tokenId) {
         tokenId = createToken(
-            TokensPropertiesStorage.TokenProperties(
+            ReputationTokensInternal.TokenProperties(
                 tokenType, DEFAULT_MAX_MINT_AMOUNT
             )
         );
@@ -57,21 +54,21 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            TokensPropertiesStorage.TokenType.Soulbound
+            ReputationTokensInternal.TokenType.Soulbound
         );
     }
 
     function createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            TokensPropertiesStorage.TokenType.Redeemable
+            ReputationTokensInternal.TokenType.Redeemable
         );
     }
 
     function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            TokensPropertiesStorage.TokenType.Default
+            ReputationTokensInternal.TokenType.Default
         );
     }
 
@@ -111,7 +108,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         vm.prank(user1);
 
         vm.expectRevert(
-            IReputationTokensBaseInternal
+            IReputationTokensErrors
                 .ReputationTokens__CannotTransferSoulboundToken
                 .selector
         );
@@ -128,7 +125,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         vm.prank(user1);
 
         vm.expectRevert(
-            IReputationTokensBaseInternal
+            IReputationTokensErrors
                 .ReputationTokens__CannotTransferRedeemableToNonBurner
                 .selector
         );
@@ -147,7 +144,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         vm.prank(user1);
 
         vm.expectRevert(
-            IReputationTokensBaseInternal
+            IReputationTokensErrors
                 .ReputationTokens__CantSendThatManyTransferrableTokens
                 .selector
         );

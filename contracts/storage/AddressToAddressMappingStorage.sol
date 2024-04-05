@@ -20,17 +20,17 @@ library AddressToAddressMappingStorage {
     // Types
     ///////////////////
 
-    struct Layout {
-        mapping(address => address) destinationWallets;
-    }
+    // struct Layout {
+    //     mapping(address => address) destinationWallets;
+    // }
 
-    ///////////////////
-    // Internal Functions
-    ///////////////////
-    function layout() internal pure returns (Layout storage l) {
-        bytes32 slot = STORAGE_SLOT;
-        assembly {
-            l.slot := slot
-        }
-    }
+    // ///////////////////
+    // // Internal Functions
+    // ///////////////////
+    // function layout() internal pure returns (Layout storage l) {
+    //     bytes32 slot = STORAGE_SLOT;
+    //     assembly {
+    //         l.slot := slot
+    //     }
+    // }
 }

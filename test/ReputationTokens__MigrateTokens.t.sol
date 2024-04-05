@@ -4,10 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {ReputationTokensStandalone} from
     "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from
-    "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from
-    "../contracts/storage/TokensPropertiesStorage.sol";
+import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
 import {ReputationTokensInternal} from
     "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";

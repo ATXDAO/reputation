@@ -11,14 +11,13 @@ import {IReputationTokensInternal} from
  * Hosts the error messages for Reputation Tokens Internal.
  * Additionally, inherits the proper events as well from Reputation Tokens Internal Interface.
  */
-interface IReputationTokensBaseInternal is IReputationTokensInternal {
+interface IReputationTokensErrors is IReputationTokensInternal {
     ///////////////////
     // Errors
     ///////////////////
     error ReputationTokens__CannotUpdateNonexistentTokenType();
     error ReputationTokens__MintAmountExceedsLimit();
     error ReputationTokens__CanOnlyMintToDistributor();
-    // error ReputationTokens__AttemptingToSendNonRedeemableTokens();
     error ReputationTokens__CantSendThatManyTransferrableTokens();
     error ReputationTokens__CannotTransferRedeemableToNonBurner();
     error ReputationTokens__AttemptingToUpdateNonexistentToken();

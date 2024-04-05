@@ -6,10 +6,8 @@ import {ReputationTokensStandalone} from
     "../contracts/ReputationTokensStandalone.sol";
 import {DeployReputationTokensStandalone} from
     "../script/DeployReputationTokensStandalone.s.sol";
-import {IReputationTokensBaseInternal} from
-    "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from
-    "../contracts/storage/TokensPropertiesStorage.sol";
+import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
+
 import {ReputationTokensInternal} from
     "../contracts/ReputationTokensInternal.sol";
 
@@ -58,7 +56,7 @@ contract ReputationTokensTest__Base is Test {
     // Helper Functions
     ////////////////////////
     function batchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokenProperties
+        ReputationTokensInternal.TokenProperties[] memory tokenProperties
     ) public {
         vm.startPrank(TOKEN_CREATOR);
         s_repTokens.batchCreateTokens(tokenProperties);
@@ -66,7 +64,7 @@ contract ReputationTokensTest__Base is Test {
     }
 
     function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
+        ReputationTokensInternal.TokenProperties memory tokenProperties
     ) public returns (uint256) {
         vm.startPrank(TOKEN_CREATOR);
         uint256 tokenId = s_repTokens.createToken(tokenProperties);
@@ -76,16 +74,16 @@ contract ReputationTokensTest__Base is Test {
 
     function createDefaultTokenWithAMintAmount() public returns (uint256) {
         return createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType.Default, 100
+            ReputationTokensInternal.TokenProperties(
+                ReputationTokensInternal.TokenType.Default, 100
             )
         );
     }
 
     function createDefaultToken() public returns (uint256) {
         return createToken(
-            TokensPropertiesStorage.TokenProperties(
-                TokensPropertiesStorage.TokenType.Default, 0
+            ReputationTokensInternal.TokenProperties(
+                ReputationTokensInternal.TokenType.Default, 0
             )
         );
     }
@@ -102,7 +100,7 @@ contract ReputationTokensTest__Base is Test {
 
     function batchUpdateTokensProperties(
         uint256[] memory ids,
-        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
+        ReputationTokensInternal.TokenProperties[] memory _tokensProperties
     ) public {
         vm.startPrank(TOKEN_UPDATER);
         s_repTokens.batchUpdateTokensProperties(ids, _tokensProperties);
@@ -111,7 +109,7 @@ contract ReputationTokensTest__Base is Test {
 
     function updateToken(
         uint256 id,
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
+        ReputationTokensInternal.TokenProperties memory tokenProperties
     ) public {
         vm.startPrank(TOKEN_UPDATER);
         s_repTokens.updateTokenProperties(id, tokenProperties);

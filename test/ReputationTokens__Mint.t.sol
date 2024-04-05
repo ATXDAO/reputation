@@ -4,10 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {ReputationTokensStandalone} from
     "../contracts/ReputationTokensStandalone.sol";
-import {IReputationTokensBaseInternal} from
-    "../contracts/IReputationTokensBaseInternal.sol";
-import {TokensPropertiesStorage} from
-    "../contracts/storage/TokensPropertiesStorage.sol";
+import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
 import {ReputationTokensInternal} from
     "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
@@ -64,7 +61,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
         sequence.operations[0].amount = 150;
 
         vm.expectRevert(
-            IReputationTokensBaseInternal
+            IReputationTokensErrors
                 .ReputationTokens__MintAmountExceedsLimit
                 .selector
         );
@@ -92,7 +89,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
         sequence.operations[0].amount = 100;
 
         vm.expectRevert(
-            IReputationTokensBaseInternal
+            IReputationTokensErrors
                 .ReputationTokens__CanOnlyMintToDistributor
                 .selector
         );

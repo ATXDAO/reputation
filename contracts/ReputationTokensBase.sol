@@ -125,20 +125,13 @@ contract ReputationTokensBase is
         uint256 amount,
         bytes memory data
     ) public override(ERC1155Base, IERC1155) {
-        if (
-            TokensPropertiesStorage.layout().tokensProperties[id].tokenType
-                == TokensPropertiesStorage.TokenType.Soulbound
-        ) {
+        if (tokensProperties[id].tokenType == TokenType.Soulbound) {
             revert ReputationTokens__CannotTransferSoulboundToken();
         }
 
-        if (
-            TokensPropertiesStorage.layout().tokensProperties[id].tokenType
-                == TokensPropertiesStorage.TokenType.Redeemable
-        ) {
+        if (tokensProperties[id].tokenType == TokenType.Redeemable) {
             if (_hasRole(BURNER_ROLE, to)) {
-                TokensPropertiesStorage.layout().s_burnedBalance[to][id] +=
-                    amount;
+                s_burnedBalance[to][id] += amount;
             } else {
                 revert ReputationTokens__CannotTransferRedeemableToNonBurner();
             }
@@ -151,15 +144,17 @@ contract ReputationTokensBase is
         super.safeTransferFrom(from, to, id, amount, data);
     }
 
-    function createToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
-    ) public onlyRole(TOKEN_CREATOR_ROLE) returns (uint256 tokenId) {
+    function createToken(TokenProperties memory tokenProperties)
+        public
+        onlyRole(TOKEN_CREATOR_ROLE)
+        returns (uint256 tokenId)
+    {
         tokenId = _createToken(tokenProperties);
     }
 
-    function batchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
-    ) external {
+    function batchCreateTokens(TokenProperties[] memory tokensProperties)
+        external
+    {
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             createToken(tokensProperties[i]);
         }
@@ -167,14 +162,14 @@ contract ReputationTokensBase is
 
     function updateTokenProperties(
         uint256 id,
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
+        TokenProperties memory tokenProperties
     ) public onlyRole(TOKEN_UPDATER_ROLE) {
         _updateTokenProperties(id, tokenProperties);
     }
 
     function batchUpdateTokensProperties(
         uint256[] memory ids,
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
+        TokenProperties[] memory tokensProperties
     ) external {
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             _updateTokenProperties(ids[i], tokensProperties[i]);
@@ -214,15 +209,13 @@ contract ReputationTokensBase is
         address addr,
         uint256 tokenId
     ) public view returns (uint256 burnedBalance) {
-        burnedBalance =
-            TokensPropertiesStorage.layout().s_burnedBalance[addr][tokenId];
+        burnedBalance = s_burnedBalance[addr][tokenId];
     }
 
     function getDistributableBalance(
         address addr,
         uint256 tokenId
     ) public view returns (uint256 distributableBalance) {
-        distributableBalance = TokensPropertiesStorage.layout()
-            .s_distributableBalance[addr][tokenId];
+        distributableBalance = s_distributableBalance[addr][tokenId];
     }
 }

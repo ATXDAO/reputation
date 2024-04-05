@@ -45,23 +45,22 @@ contract ReputationTokensStandalone is ReputationTokensBase {
         view
         returns (address)
     {
-        return AddressToAddressMappingStorage.layout().destinationWallets[addr];
+        return destinationWallets[addr];
     }
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {
-        return TokensPropertiesStorage.layout().tokensProperties[index]
-            .maxMintAmountPerTx;
+        return tokensProperties[index].maxMintAmountPerTx;
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
-        return TokensPropertiesStorage.layout().numOfTokens;
+        return numOfTokens;
     }
 
     function getTokenProperties(uint256 id)
         external
         view
-        returns (TokensPropertiesStorage.TokenProperties memory)
+        returns (TokenProperties memory)
     {
-        return TokensPropertiesStorage.layout().tokensProperties[id];
+        return tokensProperties[id];
     }
 }
