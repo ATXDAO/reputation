@@ -84,19 +84,21 @@ contract ReputationTokensInternal is
     // Events
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    event Create(
-        uint256 indexed tokenId,
-        TokenType indexed tokenType,
-        uint256 indexed maxMintAmountPerTx
-    );
-    event Update(uint256 indexed id, TokenProperties indexed properties);
+    event Create(uint256 indexed tokenId);
+    event Update(uint256 indexed tokenId);
 
     event Mint(
-        address indexed from, address indexed to, Operation[] indexed operations
+        address indexed from,
+        address indexed to,
+        uint256 tokenId,
+        uint256 amount
     );
 
     event Distributed(
-        address indexed from, address indexed to, Operation[] indexed operations
+        address indexed from,
+        address indexed to,
+        uint256 tokenId,
+        uint256 amount
     );
 
     event DestinationWalletSet(
@@ -130,7 +132,7 @@ contract ReputationTokensInternal is
 
         _updateTokenProperties(newTokenId, tokenProperties);
 
-        // emit Create(tokenProperties);
+        emit Create(tokenId);
 
         tokenId = newTokenId;
     }
@@ -148,7 +150,7 @@ contract ReputationTokensInternal is
         tokensProperties[id].maxMintAmountPerTx =
             tokenProperties.maxMintAmountPerTx;
 
-        // emit Update(id, tokenProperties);
+        emit Update(id);
     }
 
     /**
@@ -187,21 +189,14 @@ contract ReputationTokensInternal is
                 sequence.operations[i].amount,
                 data
             );
-            // emit Mint(msg.sender, sequence.to, sequence.operations);
-        }
-    }
 
-    /**
-     * Sets the target's destination wallet to an address
-     * @param target The address who will get its destination wallet set
-     * @param destination The address that will receive tokens on behalf of `target`
-     */
-    function _setDestinationWallet(
-        address target,
-        address destination
-    ) internal {
-        s_destinationWallets[target] = destination;
-        // emit DestinationWalletSet(target, destination);
+            emit Mint(
+                msg.sender,
+                sequence.to,
+                sequence.operations[i].id,
+                sequence.operations[i].amount
+            );
+        }
     }
 
     /**
@@ -221,12 +216,12 @@ contract ReputationTokensInternal is
             s_distributableBalance[from][sequence.operations[i].id] -=
                 sequence.operations[i].amount;
 
-            // emit Distributed(
-            //     from,
-            //     AddressToAddressMappingStorage.layout().destinationWallets[sequence
-            //         .to],
-            //     sequence.operations
-            // );
+            emit Distributed(
+                from,
+                s_destinationWallets[sequence.to],
+                sequence.operations[i].id,
+                sequence.operations[i].amount
+            );
 
             super.safeTransferFrom(
                 from,
@@ -239,6 +234,19 @@ contract ReputationTokensInternal is
     }
 
     /**
+     * Sets the target's destination wallet to an address
+     * @param target The address who will get its destination wallet set
+     * @param destination The address that will receive tokens on behalf of `target`
+     */
+    function _setDestinationWallet(
+        address target,
+        address destination
+    ) internal {
+        s_destinationWallets[target] = destination;
+        emit DestinationWalletSet(target, destination);
+    }
+
+    /**
      * Migrates all tokens to a new address only.
      * @param from The address who is migrating their tokens.
      * @param to The address who is receiving the migrated tokens.
@@ -248,7 +256,7 @@ contract ReputationTokensInternal is
     function _migrateOwnershipOfTokens(address from, address to) internal {
         for (uint256 i = 0; i < s_numOfTokens; i++) {
             uint256 balanceOfFrom = balanceOf(from, i);
-            // emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
 
             super.safeTransferFrom(from, to, i, balanceOfFrom, "");
         }
