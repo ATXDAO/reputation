@@ -22,15 +22,14 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
             )
         );
 
-        ReputationTokensInternal.TokensOperations memory tokenOperations;
-        tokenOperations
-            .operations = new ReputationTokensInternal.TokenOperation[](1);
-        tokenOperations.to = DISTRIBUTOR;
+        ReputationTokensInternal.TokensOperations memory operation;
+        operation.operations = new ReputationTokensInternal.TokenOperation[](1);
+        operation.to = DISTRIBUTOR;
 
-        tokenOperations.operations[0].id = tokenId;
-        tokenOperations.operations[0].amount = 100;
+        operation.operations[0].id = tokenId;
+        operation.operations[0].amount = 100;
 
-        mint(tokenOperations);
+        mint(operation);
 
         assertEq(s_repTokens.balanceOf(DISTRIBUTOR, tokenId), 100);
         assertEq(
@@ -38,6 +37,76 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
             100
         );
         assertEq(s_repTokens.getTransferrableBalance(DISTRIBUTOR, tokenId), 0);
+    }
+
+    function testBatchMint(uint256 numToMint) public {
+        vm.assume(numToMint < 1000);
+
+        uint256 tokenId = createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
+        );
+
+        ReputationTokensInternal.TokensOperations[]
+            memory mintOperations = new ReputationTokensInternal.TokensOperations[](
+                numToMint
+            );
+        for (uint256 i = 0; i < mintOperations.length; i++) {
+            mintOperations[i].to = DISTRIBUTOR;
+
+            mintOperations[i]
+                .operations = new ReputationTokensInternal.TokenOperation[](1);
+            mintOperations[i].operations[0].amount = 100;
+            mintOperations[i].operations[0].id = tokenId;
+        }
+
+        batchMint(mintOperations);
+
+        // ReputationTokensInternal.TokensOperations memory tokenOperations;
+        // tokenOperations
+        //     .operations = new ReputationTokensInternal.TokenOperation[](1);
+        // tokenOperations.to = DISTRIBUTOR;
+
+        // tokenOperations.operations[0].id = tokenId;
+        // tokenOperations.operations[0].amount = 100;
+
+        // TokensPropertiesStorage.TokenProperties[]
+        //     memory tokensProperties = new TokensPropertiesStorage.TokenProperties[](
+        //         numToMint
+        //     );
+
+        // for (uint256 i = 0; i < numToMint; i++) {
+        //     tokensProperties[i] = TokensPropertiesStorage.TokenProperties(
+        //         TokensPropertiesStorage.TokenType(0),
+        //         false,
+        //         false,
+        //         0
+        //     );
+        // }
+        // batchCreateTokens(tokensProperties);
+
+        // uint256 tokenId = createToken(
+        //     TokensPropertiesStorage.TokenProperties(
+        //         TokensPropertiesStorage.TokenType(0),
+        //         false,
+        //         false,
+        //         100
+        //     )
+        // );
+
+        // ReputationTokensInternal.TokensOperations memory tokenOperations;
+        // tokenOperations
+        //     .operations = new ReputationTokensInternal.TokenOperation[](1);
+        // tokenOperations.to = DISTRIBUTOR;
+
+        // tokenOperations.operations[0].id = tokenId;
+        // tokenOperations.operations[0].amount = 100;
+
+        // mint(tokenOperations);
     }
 
     function testRevertIfMintingTooManyTokens() external {
