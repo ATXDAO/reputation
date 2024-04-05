@@ -13,13 +13,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
 
-    function testDistribute(uint256 fromId) public {
-        vm.assume(fromId > 0);
-        vm.assume(
-            fromId <
-                115792089237316195423570985008687907852837564279074904382605163141518161494337
-        );
-
+    function testDistribute(uint256 fromId) public onlyValidAddress(fromId) {
         address user = vm.addr(fromId);
 
         createToken(

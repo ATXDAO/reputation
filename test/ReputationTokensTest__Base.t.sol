@@ -81,6 +81,15 @@ contract ReputationTokensTest__Base is Test {
             );
     }
 
+    modifier onlyValidAddress(uint256 id) {
+        vm.assume(id > 0);
+        vm.assume(
+            id <
+                115792089237316195423570985008687907852837564279074904382605163141518161494337
+        );
+        _;
+    }
+
     // function createDefaultToken() public returns (uint256) {
     //     TokensPropertiesStorage.TokenProperties
     //         memory tokenProperties = TokensPropertiesStorage.TokenProperties(
