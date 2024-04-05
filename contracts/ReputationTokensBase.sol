@@ -78,7 +78,7 @@ contract ReputationTokensBase is
         uint256 tokenId,
         string memory tokenURI
     ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
-        _setTokenURI(tokenId, tokenURI);
+        _setURI(tokenId, tokenURI);
     }
 
     /**
@@ -124,7 +124,7 @@ contract ReputationTokensBase is
         uint256 id,
         uint256 amount,
         bytes memory data
-    ) public override(ERC1155Base, IERC1155) {
+    ) public override {
         if (tokensProperties[id].tokenType == TokenType.Soulbound) {
             revert ReputationTokens__CannotTransferSoulboundToken();
         }

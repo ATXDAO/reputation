@@ -29,9 +29,6 @@ contract ReputationTokensStandalone is ReputationTokensBase {
         for (uint256 i = 0; i < admins.length; i++) {
             _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
         }
-
-        _setSupportsInterface(type(IERC165).interfaceId, true);
-        _setSupportsInterface(type(IERC1155).interfaceId, true);
     }
 
     ////////////////////////////////////////////////////////////////////////////

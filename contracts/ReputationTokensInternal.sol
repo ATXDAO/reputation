@@ -3,12 +3,11 @@ pragma solidity ^0.8.18;
 
 import {SolidStateERC1155} from
     "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
-import {ERC1155MetadataStorage} from
-    "@solidstate/contracts/token/ERC1155/metadata/ERC1155MetadataStorage.sol";
-import {ERC1155Metadata} from
-    "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
-import {IERC1155Metadata} from
-    "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
+
+import {
+    ERC1155,
+    ERC1155URIStorage
+} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
@@ -31,10 +30,12 @@ import {Test, console} from "forge-std/Test.sol";
  *      Source code and info found here: https://github.com/solidstate-network/solidstate-solidity
  * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
-abstract contract ReputationTokensInternal is
-    SolidStateERC1155,
+contract ReputationTokensInternal is
+    ERC1155URIStorage,
     IReputationTokensErrors
 {
+    constructor() ERC1155("") {}
+
     mapping(address => address) destinationWallets;
     uint256 numOfTokens;
     mapping(address distributor => mapping(uint256 tokenId => uint256))
