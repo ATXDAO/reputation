@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
-import {ERC1155Base} from
-    "@solidstate/contracts/token/ERC1155/base/ERC1155Base.sol";
-import {SafeOwnable} from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
-import {AccessControl} from
-    "@solidstate/contracts/access/access_control/AccessControl.sol";
-import {AccessControlStorage} from
-    "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
-
 import {AddressToAddressMappingStorage} from
     "./storage/AddressToAddressMappingStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 // TODO: Update Documentation (i.e. function parameters)
 
@@ -25,10 +19,10 @@ import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
  * Additionally defines specific roles and gates function interaction with those roles.
  *
  */
-contract ReputationTokensBase is
+abstract contract ReputationTokensBase is
     ReputationTokensInternal,
     AccessControl,
-    SafeOwnable
+    Ownable
 {
     ///////////////////
     // State Variables
@@ -58,7 +52,7 @@ contract ReputationTokensBase is
         // TokensOperations memory tokensOperations
         onlyRole(MINTER_ROLE)
     {
-        if (!_hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
+        if (!hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
             revert ReputationTokens__CanOnlyMintToDistributor();
         }
 
@@ -130,7 +124,7 @@ contract ReputationTokensBase is
         }
 
         if (tokensProperties[id].tokenType == TokenType.Redeemable) {
-            if (_hasRole(BURNER_ROLE, to)) {
+            if (hasRole(BURNER_ROLE, to)) {
                 s_burnedBalance[to][id] += amount;
             } else {
                 revert ReputationTokens__CannotTransferRedeemableToNonBurner();
@@ -217,5 +211,14 @@ contract ReputationTokensBase is
         uint256 tokenId
     ) public view returns (uint256 distributableBalance) {
         distributableBalance = s_distributableBalance[addr][tokenId];
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

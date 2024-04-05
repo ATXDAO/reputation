@@ -2,13 +2,10 @@
 pragma solidity ^0.8.18;
 
 import {ReputationTokensBase} from "./ReputationTokensBase.sol";
-import {AccessControlStorage} from
-    "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {AddressToAddressMappingStorage} from
     "./storage/AddressToAddressMappingStorage.sol";
-import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
-import {IERC165} from "@solidstate/contracts/interfaces/IERC165.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Reputation Tokens Standalone
@@ -23,11 +20,14 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     // Functions
     ///////////////////
 
-    constructor(address ownerNominee, address[] memory admins) {
+    constructor(
+        address ownerNominee,
+        address[] memory admins
+    ) Ownable(ownerNominee) {
         _transferOwnership(ownerNominee);
 
         for (uint256 i = 0; i < admins.length; i++) {
-            _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, admins[i]);
+            _grantRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
     }
 

@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {SolidStateERC1155} from
-    "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
-
 import {
     ERC1155,
     ERC1155URIStorage
