@@ -21,24 +21,32 @@ abstract contract ReputationTokensBase is
     AccessControl,
     Ownable
 {
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // Functions
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // External Functions
-    ///////////////////
-
-    function mint(Sequence memory sequence)
-        public
-        // TokensOperations memory tokensOperations
-        onlyRole(MINTER_ROLE)
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    function batchCreateTokens(TokenProperties[] memory tokensProperties)
+        external
     {
-        if (!hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
-            revert ReputationTokens__CanOnlyMintToDistributor();
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            createToken(tokensProperties[i]);
         }
+    }
 
-        _mint(sequence, "");
+    function batchUpdateTokensProperties(
+        uint256[] memory ids,
+        TokenProperties[] memory tokensProperties
+    ) external {
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            _updateTokenProperties(ids[i], tokensProperties[i]);
+        }
     }
 
     function batchMint(Sequence[] memory sequences)
@@ -48,27 +56,6 @@ abstract contract ReputationTokensBase is
         for (uint256 i = 0; i < sequences.length; i++) {
             mint(sequences[i]);
         }
-    }
-
-    function setTokenURI(
-        uint256 tokenId,
-        string memory tokenURI
-    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
-        _setURI(tokenId, tokenURI);
-    }
-
-    /**
-     * Distributes tokens to a user.
-     * @param from The distributor who will be sending distributing tokens
-     * @param sequence The recipient who will receive the distributed tokens
-     * @param data N/A
-     */
-    function distribute(
-        address from,
-        Sequence memory sequence,
-        bytes memory data
-    ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _distribute(from, sequence, data);
     }
 
     /**
@@ -87,11 +74,75 @@ abstract contract ReputationTokensBase is
     }
 
     /**
+     * Migrates all tokens to a new address only by authorized accounts.
+     * @param from The address who is migrating their tokens.
+     * @param to The address who is receiving the migrated tokens.
+     *
+     * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
+     */
+    function migrateOwnershipOfTokens(
+        address from,
+        address to
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
+        _migrateOwnershipOfTokens(from, to);
+    }
+
+    /**
      * Sets the destination wallet for msg.sender
      * @param destination The address where tokens will go when msg.sender is sent tokens by a distributor
      */
     function setDestinationWallet(address destination) external {
         _setDestinationWallet(msg.sender, destination);
+    }
+
+    function setTokenURI(
+        uint256 tokenId,
+        string memory tokenURI
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+        _setURI(tokenId, tokenURI);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Public Functions
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    function createToken(TokenProperties memory tokenProperties)
+        public
+        onlyRole(TOKEN_CREATOR_ROLE)
+        returns (uint256 tokenId)
+    {
+        tokenId = _createToken(tokenProperties);
+    }
+
+    function updateTokenProperties(
+        uint256 id,
+        TokenProperties memory tokenProperties
+    ) public onlyRole(TOKEN_UPDATER_ROLE) {
+        _updateTokenProperties(id, tokenProperties);
+    }
+
+    function mint(Sequence memory sequence) public onlyRole(MINTER_ROLE) {
+        if (!hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
+            revert ReputationTokens__CanOnlyMintToDistributor();
+        }
+
+        _mint(sequence, "");
+    }
+
+    /**
+     * Distributes tokens to a user.
+     * @param from The distributor who will be sending distributing tokens
+     * @param sequence The recipient who will receive the distributed tokens
+     * @param data N/A
+     */
+    function distribute(
+        address from,
+        Sequence memory sequence,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) {
+        _distribute(from, sequence, data);
     }
 
     function safeTransferFrom(
@@ -118,52 +169,6 @@ abstract contract ReputationTokensBase is
         }
 
         super.safeTransferFrom(from, to, id, amount, data);
-    }
-
-    function createToken(TokenProperties memory tokenProperties)
-        public
-        onlyRole(TOKEN_CREATOR_ROLE)
-        returns (uint256 tokenId)
-    {
-        tokenId = _createToken(tokenProperties);
-    }
-
-    function batchCreateTokens(TokenProperties[] memory tokensProperties)
-        external
-    {
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            createToken(tokensProperties[i]);
-        }
-    }
-
-    function updateTokenProperties(
-        uint256 id,
-        TokenProperties memory tokenProperties
-    ) public onlyRole(TOKEN_UPDATER_ROLE) {
-        _updateTokenProperties(id, tokenProperties);
-    }
-
-    function batchUpdateTokensProperties(
-        uint256[] memory ids,
-        TokenProperties[] memory tokensProperties
-    ) external {
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            _updateTokenProperties(ids[i], tokensProperties[i]);
-        }
-    }
-
-    /**
-     * Migrates all tokens to a new address only by authorized accounts.
-     * @param from The address who is migrating their tokens.
-     * @param to The address who is receiving the migrated tokens.
-     *
-     * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
-     */
-    function migrateOwnershipOfTokens(
-        address from,
-        address to
-    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
-        _migrateOwnershipOfTokens(from, to);
     }
 
     ////////////////////////////////////////////////////////////////////////////

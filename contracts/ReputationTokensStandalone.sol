@@ -39,7 +39,7 @@ contract ReputationTokensStandalone is ReputationTokensBase {
         view
         returns (address)
     {
-        return destinationWallets[addr];
+        return s_destinationWallets[addr];
     }
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {

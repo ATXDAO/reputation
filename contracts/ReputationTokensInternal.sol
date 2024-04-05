@@ -28,29 +28,11 @@ contract ReputationTokensInternal is
     ERC1155URIStorage,
     IReputationTokensErrors
 {
-    ///////////////////
-    // State Variables
-    ///////////////////
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
-    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
-    bytes32 public constant TOKEN_URI_SETTER_ROLE =
-        keccak256("TOKEN_URI_SETTER_ROLE");
-
-    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant TOKEN_MIGRATOR_ROLE =
-        keccak256("TOKEN_MIGRATOR_ROLE");
-
-    mapping(address => address) destinationWallets;
-    uint256 s_numOfTokens;
-    mapping(address distributor => mapping(uint256 tokenId => uint256))
-        s_distributableBalance;
-    mapping(address burner => mapping(uint256 tokenId => uint256))
-        s_burnedBalance;
-    mapping(uint256 => TokenProperties) tokensProperties;
-
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Types
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     enum TokenType {
         Default,
         Redeemable,
@@ -72,15 +54,71 @@ contract ReputationTokensInternal is
         Operation[] operations;
     }
 
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // State Variables
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
+    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
+    bytes32 public constant TOKEN_URI_SETTER_ROLE =
+        keccak256("TOKEN_URI_SETTER_ROLE");
+
+    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE =
+        keccak256("TOKEN_MIGRATOR_ROLE");
+
+    mapping(address => address) s_destinationWallets;
+    uint256 s_numOfTokens;
+    mapping(address distributor => mapping(uint256 tokenId => uint256))
+        s_distributableBalance;
+    mapping(address burner => mapping(uint256 tokenId => uint256))
+        s_burnedBalance;
+    mapping(uint256 => TokenProperties) tokensProperties;
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Events
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // event Create(TokenProperties);
+    // event Update(
+    //     uint256 indexed id,
+    //     TokensPropertiesStorage.TokenProperties indexed properties
+    // );
+
+    // event Mint(
+    //     address indexed from, address indexed to, Operation[] indexed operations
+    // );
+
+    // event Distributed(
+    //     address indexed from, address indexed to, Operation[] indexed operations
+    // );
+
+    // event DestinationWalletSet(
+    //     address indexed coreAddress, address indexed destination
+    // );
+
+    // event OwnershipOfTokensMigrated(
+    //     address indexed from, address indexed to, uint256 balance
+    // );
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // Functions
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     constructor() ERC1155("") {}
 
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
     // Internal Functions
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     function _createToken(TokenProperties memory tokenProperties)
         internal
@@ -117,7 +155,7 @@ contract ReputationTokensInternal is
      * @param addr address who may get their destination wallet set
      */
     function initializeDestinationWallet(address addr) internal {
-        if (destinationWallets[addr] == address(0)) {
+        if (s_destinationWallets[addr] == address(0)) {
             _setDestinationWallet(addr, addr);
         }
     }
@@ -161,7 +199,7 @@ contract ReputationTokensInternal is
         address target,
         address destination
     ) internal {
-        destinationWallets[target] = destination;
+        s_destinationWallets[target] = destination;
         // emit DestinationWalletSet(target, destination);
     }
 
@@ -191,7 +229,7 @@ contract ReputationTokensInternal is
 
             super.safeTransferFrom(
                 from,
-                destinationWallets[sequence.to],
+                s_destinationWallets[sequence.to],
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
                 data
