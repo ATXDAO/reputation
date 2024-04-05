@@ -100,41 +100,32 @@ abstract contract ReputationTokensInternal is
      * amount MUST BE lower than maxMintPerTx.
      * MAY set the receiver's destination wallet to itself if it is set to the zero address.
      * Mints Tokens 0 and 1 of amount to `to`.
-     * @param tokensOperations receiving address of tokens.
+     * @param sequence receiving address of tokens.
      * @param data N/A
      */
-    function _mint(
-        TokensOperations memory tokensOperations,
-        bytes memory data
-    ) internal {
-        initializeDestinationWallet(tokensOperations.to);
+    function _mint(Sequence memory sequence, bytes memory data) internal {
+        initializeDestinationWallet(sequence.to);
 
-        for (uint256 i = 0; i < tokensOperations.operations.length; i++) {
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
             if (
-                tokensOperations.operations[i].amount >
+                sequence.operations[i].amount >
                 TokensPropertiesStorage
                     .layout()
-                    .tokensProperties[tokensOperations.operations[i].id]
+                    .tokensProperties[sequence.operations[i].id]
                     .maxMintAmountPerTx
             ) revert ReputationTokens__MintAmountExceedsLimit();
 
             TokensPropertiesStorage.layout().s_distributableBalance[
-                tokensOperations.to
-            ][tokensOperations.operations[i].id] += tokensOperations
-                .operations[i]
-                .amount;
+                sequence.to
+            ][sequence.operations[i].id] += sequence.operations[i].amount;
 
             super._mint(
-                tokensOperations.to,
-                tokensOperations.operations[i].id,
-                tokensOperations.operations[i].amount,
+                sequence.to,
+                sequence.operations[i].id,
+                sequence.operations[i].amount,
                 data
             );
-            emit Mint(
-                msg.sender,
-                tokensOperations.to,
-                tokensOperations.operations
-            );
+            emit Mint(msg.sender, sequence.to, sequence.operations);
         }
     }
 
@@ -156,36 +147,36 @@ abstract contract ReputationTokensInternal is
     /**
      * Distributes an amount of tokens to an address
      * @param from A distributor who distributes tokens
-     * @param tokensOperations The recipient who will receive the tokens
+     * @param sequence The recipient who will receive the tokens
      * @param data N/A
      */
     function _distribute(
         address from,
-        TokensOperations memory tokensOperations,
+        Sequence memory sequence,
         bytes memory data
     ) internal {
-        initializeDestinationWallet(tokensOperations.to);
+        initializeDestinationWallet(sequence.to);
 
-        for (uint256 i = 0; i < tokensOperations.operations.length; i++) {
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
             TokensPropertiesStorage.layout().s_distributableBalance[from][
-                    tokensOperations.operations[i].id
-                ] -= tokensOperations.operations[i].amount;
+                    sequence.operations[i].id
+                ] -= sequence.operations[i].amount;
 
             emit Distributed(
                 from,
                 AddressToAddressMappingStorage.layout().destinationWallets[
-                    tokensOperations.to
+                    sequence.to
                 ],
-                tokensOperations.operations
+                sequence.operations
             );
 
             super.safeTransferFrom(
                 from,
                 AddressToAddressMappingStorage.layout().destinationWallets[
-                    tokensOperations.to
+                    sequence.to
                 ],
-                tokensOperations.operations[i].id,
-                tokensOperations.operations[i].amount,
+                sequence.operations[i].id,
+                sequence.operations[i].amount,
                 data
             );
         }

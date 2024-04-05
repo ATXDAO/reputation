@@ -14,14 +14,14 @@ interface IReputationTokensInternal {
     ///////////////////
     // Types
     ///////////////////
-    struct TokenOperation {
+    struct Operation {
         uint256 id;
         uint256 amount;
     }
 
-    struct TokensOperations {
+    struct Sequence {
         address to;
-        TokenOperation[] operations;
+        Operation[] operations;
     }
 
     event Create(TokensPropertiesStorage.TokenProperties);
@@ -33,13 +33,13 @@ interface IReputationTokensInternal {
     event Mint(
         address indexed from,
         address indexed to,
-        TokenOperation[] indexed tokens
+        Operation[] indexed operations
     );
 
     event Distributed(
         address indexed from,
         address indexed to,
-        TokenOperation[] indexed tokens
+        Operation[] indexed operations
     );
 
     event DestinationWalletSet(

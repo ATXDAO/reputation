@@ -52,20 +52,24 @@ contract ReputationTokensBase is
     ///////////////////
 
     function mint(
-        TokensOperations memory tokensOperations
-    ) public onlyRole(MINTER_ROLE) {
-        if (!_hasRole(DISTRIBUTOR_ROLE, tokensOperations.to)) {
+        Sequence memory sequence
+    )
+        public
+        // TokensOperations memory tokensOperations
+        onlyRole(MINTER_ROLE)
+    {
+        if (!_hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
             revert ReputationTokens__CanOnlyMintToDistributor();
         }
 
-        _mint(tokensOperations, "");
+        _mint(sequence, "");
     }
 
     function batchMint(
-        TokensOperations[] memory tokensOperations
+        Sequence[] memory sequences
     ) external onlyRole(MINTER_ROLE) {
-        for (uint256 i = 0; i < tokensOperations.length; i++) {
-            mint(tokensOperations[i]);
+        for (uint256 i = 0; i < sequences.length; i++) {
+            mint(sequences[i]);
         }
     }
 
@@ -79,15 +83,15 @@ contract ReputationTokensBase is
     /**
      * Distributes tokens to a user.
      * @param from The distributor who will be sending distributing tokens
-     * @param tokensOperations The recipient who will receive the distributed tokens
+     * @param sequence The recipient who will receive the distributed tokens
      * @param data N/A
      */
     function distribute(
         address from,
-        TokensOperations memory tokensOperations,
+        Sequence memory sequence,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _distribute(from, tokensOperations, data);
+        _distribute(from, sequence, data);
     }
 
     /**
@@ -97,11 +101,11 @@ contract ReputationTokensBase is
      */
     function distributeBatch(
         address from,
-        TokensOperations[] memory tokensOperations,
+        Sequence[] memory sequences,
         bytes memory data
     ) external onlyRole(DISTRIBUTOR_ROLE) {
-        for (uint256 i = 0; i < tokensOperations.length; i++) {
-            distribute(from, tokensOperations[i], data);
+        for (uint256 i = 0; i < sequences.length; i++) {
+            distribute(from, sequences[i], data);
         }
     }
 
