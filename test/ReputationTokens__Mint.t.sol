@@ -8,83 +8,97 @@ import {TokensPropertiesStorage} from "../contracts/storage/TokensPropertiesStor
 import {ReputationTokensInternal} from "../contracts/ReputationTokensInternal.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
-contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
+contract ReputationTokens__Mint is ReputationTokensTest__Base {
     ////////////////////////
     // Tests
     ////////////////////////
+    function testMint() public {
+        uint256 tokenId = createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
+        );
 
-    function testMint(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
-    ) public {
-        batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokensOperations
-            memory operations = createTokenOperationsSequential(
-                DISTRIBUTOR,
-                tokensProperties
-            );
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](1);
+        tokenOperations.to = DISTRIBUTOR;
 
-        mint(operations);
+        tokenOperations.operations[0].id = tokenId;
+        tokenOperations.operations[0].amount = 100;
 
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            assertEq(
-                s_repTokens.balanceOf(DISTRIBUTOR, i),
-                tokensProperties[i].maxMintAmountPerTx
-            );
-            assertEq(
-                s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
-                tokensProperties[i].maxMintAmountPerTx
-            );
-            assertEq(s_repTokens.getTransferrableBalance(DISTRIBUTOR, i), 0);
-        }
+        mint(tokenOperations);
+
+        assertEq(s_repTokens.balanceOf(DISTRIBUTOR, tokenId), 100);
+        assertEq(
+            s_repTokens.getDistributableBalance(DISTRIBUTOR, tokenId),
+            100
+        );
+        assertEq(s_repTokens.getTransferrableBalance(DISTRIBUTOR, tokenId), 0);
     }
 
-    function testRevertIfMintingTooManyTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
-    ) external {
-        vm.assume(tokensProperties.length > 0);
+    function testRevertIfMintingTooManyTokens() external {
+        uint256 tokenId = createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
+        );
 
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            vm.assume(
-                tokensProperties[i].maxMintAmountPerTx != type(uint256).max
-            );
-        }
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](1);
+        tokenOperations.to = DISTRIBUTOR;
 
-        batchCreateTokens(tokensProperties);
-
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            tokensProperties[i].maxMintAmountPerTx += 1;
-        }
-
-        ReputationTokensInternal.TokensOperations
-            memory operations = createTokenOperationsSequential(
-                DISTRIBUTOR,
-                tokensProperties
-            );
+        tokenOperations.operations[0].id = tokenId;
+        tokenOperations.operations[0].amount = 150;
 
         vm.expectRevert(
             IReputationTokensBaseInternal
                 .ReputationTokens__MintAmountExceedsLimit
                 .selector
         );
-        mint(operations);
+
+        mint(tokenOperations);
     }
 
-    function testRevertIfMintingToNonDistributor(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-        address user
-    ) external {
-        batchCreateTokens(tokensProperties);
+    function testRevertIfMintingToNonDistributor(uint256 userId) external {
+        vm.assume(userId > 0);
+        vm.assume(
+            userId <
+                115792089237316195423570985008687907852837564279074904382605163141518161494337
+        );
 
-        ReputationTokensInternal.TokensOperations
-            memory operations = createTokenOperationsSequential(
-                user,
-                tokensProperties
-            );
+        address user = vm.addr(userId);
+
+        uint256 tokenId = createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
+        );
+
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](1);
+        tokenOperations.to = user;
+
+        tokenOperations.operations[0].id = tokenId;
+        tokenOperations.operations[0].amount = 100;
+
         vm.expectRevert(
             IReputationTokensBaseInternal
                 .ReputationTokens__CanOnlyMintToDistributor
                 .selector
         );
-        mint(operations);
+
+        mint(tokenOperations);
     }
 }

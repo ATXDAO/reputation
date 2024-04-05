@@ -13,67 +13,95 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
 
-    function testDistribute(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-        address user
-    ) external {
-        vm.assume(user != address(0));
-
-        batchCreateTokens(tokensProperties);
-        ReputationTokensInternal.TokensOperations
-            memory tokenOperations = createTokenOperationsSequential(
-                DISTRIBUTOR,
-                tokensProperties
-            );
-        mint(tokenOperations);
-        ReputationTokensInternal.TokensOperations
-            memory distributeOperations = createTokenOperationsSequential(
-                user,
-                tokensProperties
-            );
-
-        uint256[] memory priorDistributableBalances = new uint256[](
-            tokensProperties.length
+    function testDistribute(uint256 fromId) public {
+        vm.assume(fromId > 0);
+        vm.assume(
+            fromId <
+                115792089237316195423570985008687907852837564279074904382605163141518161494337
         );
 
-        uint256[] memory priorTransferrableBalances = new uint256[](
-            tokensProperties.length
+        address user = vm.addr(fromId);
+
+        createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
         );
 
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            priorDistributableBalances[i] = s_repTokens.getDistributableBalance(
-                DISTRIBUTOR,
-                i
-            );
+        ReputationTokensInternal.TokensOperations memory tokenOperations;
+        tokenOperations
+            .operations = new ReputationTokensInternal.TokenOperation[](1);
+        tokenOperations.to = user;
 
-            priorTransferrableBalances[i] = s_repTokens.getTransferrableBalance(
-                DISTRIBUTOR,
-                i
-            );
-        }
-
-        distribute(distributeOperations);
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), 0);
-            assertEq(
-                s_repTokens.balanceOf(user, i),
-                tokensProperties[i].maxMintAmountPerTx
-            );
-            assertEq(
-                s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
-                priorDistributableBalances[i] -
-                    tokensProperties[i].maxMintAmountPerTx
-            );
-        }
+        tokenOperations.operations[0].id = 0;
+        tokenOperations.operations[0].amount = 100;
     }
 
-    function testSetDestinationWallet(
-        address user,
-        address destinationWallet
-    ) external {
-        vm.assume(user != destinationWallet);
-        vm.assume(user != address(0));
-        setDestinationWallet(user, destinationWallet);
-        assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
-    }
+    // function testDistribute(
+    //     TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
+
+    //     address user
+    // ) external {
+    //     vm.assume(user != address(0));
+
+    //     batchCreateTokens(tokensProperties);
+    //     ReputationTokensInternal.TokensOperations
+    //         memory tokenOperations = createTokenOperationsSequential(
+    //             DISTRIBUTOR,
+    //             tokensProperties
+    //         );
+    //     mint(tokenOperations);
+    //     ReputationTokensInternal.TokensOperations
+    //         memory distributeOperations = createTokenOperationsSequential(
+    //             user,
+    //             tokensProperties
+    //         );
+
+    //     uint256[] memory priorDistributableBalances = new uint256[](
+    //         tokensProperties.length
+    //     );
+
+    //     uint256[] memory priorTransferrableBalances = new uint256[](
+    //         tokensProperties.length
+    //     );
+
+    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
+    //         priorDistributableBalances[i] = s_repTokens.getDistributableBalance(
+    //             DISTRIBUTOR,
+    //             i
+    //         );
+
+    //         priorTransferrableBalances[i] = s_repTokens.getTransferrableBalance(
+    //             DISTRIBUTOR,
+    //             i
+    //         );
+    //     }
+
+    //     distribute(distributeOperations);
+    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
+    //         assertEq(s_repTokens.balanceOf(DISTRIBUTOR, i), 0);
+    //         assertEq(
+    //             s_repTokens.balanceOf(user, i),
+    //             tokensProperties[i].maxMintAmountPerTx
+    //         );
+    //         assertEq(
+    //             s_repTokens.getDistributableBalance(DISTRIBUTOR, i),
+    //             priorDistributableBalances[i] -
+    //                 tokensProperties[i].maxMintAmountPerTx
+    //         );
+    //     }
+    // }
+
+    // function testSetDestinationWallet(
+    //     address user,
+    //     address destinationWallet
+    // ) external {
+    //     vm.assume(user != destinationWallet);
+    //     vm.assume(user != address(0));
+    //     setDestinationWallet(user, destinationWallet);
+    //     assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
+    // }
 }

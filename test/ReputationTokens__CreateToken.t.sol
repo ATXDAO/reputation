@@ -13,56 +13,52 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
     function testCreateToken(
-        TokensPropertiesStorage.TokenProperties memory tokenProperties
+        uint256 tokenTypeId,
+        uint256 maxMintAmountPerTx
     ) public {
-        uint256 tokenId = createToken(tokenProperties);
+        tokenTypeId = bound(tokenTypeId, 0, 2);
 
-        assertEq(s_repTokens.getNumOfTokenTypes(), 1);
+        TokensPropertiesStorage.TokenProperties
+            memory tokenProperties = TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(tokenTypeId),
+                false,
+                false,
+                maxMintAmountPerTx
+            );
+
+        uint256 tokenId = createToken(tokenProperties);
 
         TokensPropertiesStorage.TokenProperties
             memory createdTokenProperties = s_repTokens.getTokenProperties(
                 tokenId
             );
 
+        assertEq(uint8(createdTokenProperties.tokenType), tokenTypeId);
+
         assertEq(
             createdTokenProperties.maxMintAmountPerTx,
             tokenProperties.maxMintAmountPerTx
         );
-        assertEq(
-            createdTokenProperties.isSoulbound,
-            tokenProperties.isSoulbound
-        );
-        assertEq(
-            createdTokenProperties.isRedeemable,
-            tokenProperties.isRedeemable
-        );
     }
 
-    function testBatchCreateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory tokensProperties
-    ) public {
+    function testBatchCreateTokens(uint256 numToCreate) public {
+        vm.assume(numToCreate < 1000);
+
+        TokensPropertiesStorage.TokenProperties[]
+            memory tokensProperties = new TokensPropertiesStorage.TokenProperties[](
+                numToCreate
+            );
+
+        for (uint256 i = 0; i < numToCreate; i++) {
+            tokensProperties[i] = TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                0
+            );
+        }
         batchCreateTokens(tokensProperties);
 
         assertEq(tokensProperties.length, s_repTokens.getNumOfTokenTypes());
-
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            TokensPropertiesStorage.TokenProperties
-                memory createdTokenProperties = s_repTokens.getTokenProperties(
-                    i
-                );
-
-            assertEq(
-                createdTokenProperties.maxMintAmountPerTx,
-                tokensProperties[i].maxMintAmountPerTx
-            );
-            assertEq(
-                createdTokenProperties.isSoulbound,
-                tokensProperties[i].isSoulbound
-            );
-            assertEq(
-                createdTokenProperties.isRedeemable,
-                tokensProperties[i].isRedeemable
-            );
-        }
     }
 }

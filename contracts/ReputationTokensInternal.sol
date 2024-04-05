@@ -62,6 +62,11 @@ abstract contract ReputationTokensInternal is
         TokensPropertiesStorage
             .layout()
             .tokensProperties[id]
+            .tokenType = tokenProperties.tokenType;
+
+        TokensPropertiesStorage
+            .layout()
+            .tokensProperties[id]
             .isRedeemable = tokenProperties.isRedeemable;
 
         TokensPropertiesStorage

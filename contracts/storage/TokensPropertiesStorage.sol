@@ -27,19 +27,16 @@ library TokensPropertiesStorage {
         mapping(uint256 => TokenProperties) tokensProperties;
     }
 
-    // enum TokenType {
-    //     Default,
-    //     Redeemable,
-    //     Soulbound
-    // }
+    enum TokenType {
+        Default,
+        Redeemable,
+        Soulbound
+    }
 
     struct TokenProperties {
+        TokenType tokenType;
         bool isSoulbound;
         bool isRedeemable;
-        // bool isFreelyTransferable;
-
-        // bool isTradeable;
-        // TokenType tokenType;
         uint256 maxMintAmountPerTx;
     }
 

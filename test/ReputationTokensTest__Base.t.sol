@@ -69,6 +69,32 @@ contract ReputationTokensTest__Base is Test {
         return tokenId;
     }
 
+    function createDefaultToken() public returns (uint256) {
+        return
+            createToken(
+                TokensPropertiesStorage.TokenProperties(
+                    TokensPropertiesStorage.TokenType.Soulbound,
+                    false,
+                    false,
+                    0
+                )
+            );
+    }
+
+    // function createDefaultToken() public returns (uint256) {
+    //     TokensPropertiesStorage.TokenProperties
+    //         memory tokenProperties = TokensPropertiesStorage.TokenProperties(
+    //             TokensPropertiesStorage.TokenType(0),
+    //             false,
+    //             false,
+    //             0
+    //         );
+    //     vm.startPrank(TOKEN_CREATOR);
+    //     uint256 tokenId = s_repTokens.createToken(tokenProperties);
+    //     vm.stopPrank();
+    //     return tokenId;
+    // }
+
     function batchUpdateTokensProperties(
         uint256[] memory ids,
         TokensPropertiesStorage.TokenProperties[] memory _tokensProperties

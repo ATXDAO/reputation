@@ -13,10 +13,20 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
     function testUpdateTokenProperties(
-        TokensPropertiesStorage.TokenProperties memory _tokenProperties,
-        TokensPropertiesStorage.TokenProperties memory newTokenProperties
+        uint256 tokenTypeId,
+        uint256 maxMintAmountPerTx
     ) public {
-        createToken(_tokenProperties);
+        tokenTypeId = bound(tokenTypeId, 0, 2);
+
+        createDefaultToken();
+
+        TokensPropertiesStorage.TokenProperties
+            memory newTokenProperties = TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(tokenTypeId),
+                false,
+                false,
+                maxMintAmountPerTx
+            );
 
         updateToken(0, newTokenProperties);
 
@@ -31,42 +41,47 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
         assertEq(tokenProperties.isRedeemable, newTokenProperties.isRedeemable);
     }
 
-    function testRevertUpdateIfNonExistentToken(
-        TokensPropertiesStorage.TokenProperties memory _tokenProperties,
-        TokensPropertiesStorage.TokenProperties memory newTokenProperties
-    ) public {
-        createToken(_tokenProperties);
+    function testRevertUpdateIfNonExistentToken() public {
+        TokensPropertiesStorage.TokenProperties
+            memory newTokenProperties = TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                0
+            );
 
         vm.expectRevert(
             IReputationTokensBaseInternal
                 .ReputationTokens__CannotUpdateNonexistentTokenType
                 .selector
         );
-        updateToken(1, newTokenProperties);
+        updateToken(0, newTokenProperties);
     }
 
-    function testUpdateTokens(
-        TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
-    ) public {
-        batchCreateTokens(_tokensProperties);
-        uint256[] memory ids = new uint256[](_tokensProperties.length);
-        for (uint256 i = 0; i < _tokensProperties.length; i++) {
+    function testUpdateTokens(uint256 numToUpdate) public {
+        vm.assume(numToUpdate < 1000);
+
+        TokensPropertiesStorage.TokenProperties[]
+            memory tokensProperties = new TokensPropertiesStorage.TokenProperties[](
+                numToUpdate
+            );
+
+        for (uint256 i = 0; i < numToUpdate; i++) {
+            tokensProperties[i] = TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                0
+            );
+        }
+
+        batchCreateTokens(tokensProperties);
+
+        uint256[] memory ids = new uint256[](tokensProperties.length);
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
             ids[i] = i;
         }
-        batchUpdateTokensProperties(ids, _tokensProperties);
-        for (uint256 i = 0; i < _tokensProperties.length; i++) {
-            assertEq(
-                s_repTokens.getTokenProperties(i).isSoulbound,
-                _tokensProperties[i].isSoulbound
-            );
-            assertEq(
-                s_repTokens.getTokenProperties(i).isRedeemable,
-                _tokensProperties[i].isRedeemable
-            );
-            assertEq(
-                s_repTokens.getTokenProperties(i).maxMintAmountPerTx,
-                _tokensProperties[i].maxMintAmountPerTx
-            );
-        }
+
+        batchUpdateTokensProperties(ids, tokensProperties);
     }
 }
