@@ -13,8 +13,8 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
     // Tests
     ////////////////////////
 
-    function testDistribute(uint256 fromId) public onlyValidAddress(fromId) {
-        address user = vm.addr(fromId);
+    function testDistribute(uint256 userId) public onlyValidAddress(userId) {
+        address user = vm.addr(userId);
 
         uint256 tokenId = createToken(
             TokensPropertiesStorage.TokenProperties(
@@ -58,13 +58,52 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         assertEq(s_repTokens.getTransferrableBalance(user, 0), 100);
     }
 
-    // function testSetDestinationWallet(
-    //     uint256 userId,
-    //     uint256 destinationWalletId
-    // ) external onlyValidAddress(userId) onlyValidAddress(destinationWalletId) {
-    //     address user = vm.addr(userId);
-    //     address destinationWallet = vm.addr(destinationWalletId);
-    //     setDestinationWallet(user, destinationWallet);
-    //     assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
-    // }
+    function testDistributeBatch(uint256 numOfSequences) public {
+        vm.assume(numOfSequences < 1000);
+
+        address user = vm.addr(15);
+
+        uint256 tokenId = createToken(
+            TokensPropertiesStorage.TokenProperties(
+                TokensPropertiesStorage.TokenType(0),
+                false,
+                false,
+                100
+            )
+        );
+
+        ReputationTokensInternal.Sequence memory mintSequence;
+        mintSequence.operations = new ReputationTokensInternal.Operation[](1);
+        mintSequence.to = DISTRIBUTOR;
+
+        mintSequence.operations[0].id = tokenId;
+        mintSequence.operations[0].amount = 100;
+
+        mint(mintSequence);
+
+        ReputationTokensInternal.Sequence[]
+            memory distributeSequences = new ReputationTokensInternal.Sequence[](
+                numOfSequences
+            );
+
+        for (uint256 i = 0; i < distributeSequences.length; i++) {
+            distributeSequences[i].to = user;
+            distributeSequences[i]
+                .operations = new ReputationTokensInternal.Operation[](1);
+            distributeSequences[i].operations[0].id = tokenId;
+            distributeSequences[i].operations[0].amount = 100 / numOfSequences;
+        }
+
+        batchDistribute(distributeSequences);
+    }
+
+    function testSetDestinationWallet(
+        uint256 userId,
+        uint256 destinationWalletId
+    ) external onlyValidAddress(userId) onlyValidAddress(destinationWalletId) {
+        address user = vm.addr(userId);
+        address destinationWallet = vm.addr(destinationWalletId);
+        setDestinationWallet(user, destinationWallet);
+        assertEq(s_repTokens.getDestinationWallet(user), destinationWallet);
+    }
 }

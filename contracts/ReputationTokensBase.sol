@@ -99,7 +99,7 @@ contract ReputationTokensBase is
      * @param from The distributor who will be sending distributing tokens
      * @param data N/A
      */
-    function distributeBatch(
+    function batchDistribute(
         address from,
         Sequence[] memory sequences,
         bytes memory data

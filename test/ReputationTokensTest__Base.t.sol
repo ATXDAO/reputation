@@ -231,6 +231,14 @@ contract ReputationTokensTest__Base is Test {
         vm.stopPrank();
     }
 
+    function batchDistribute(
+        ReputationTokensInternal.Sequence[] memory sequences
+    ) public {
+        vm.startPrank(DISTRIBUTOR);
+        s_repTokens.batchDistribute(DISTRIBUTOR, sequences, "");
+        vm.stopPrank();
+    }
+
     function setUpRole(bytes32 role, address addr) public {
         vm.startPrank(ADMIN);
         s_repTokens.grantRole(role, addr);
