@@ -84,27 +84,28 @@ contract ReputationTokensInternal is
     // Events
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    // event Create(TokenProperties);
-    // event Update(
-    //     uint256 indexed id,
-    //     TokensPropertiesStorage.TokenProperties indexed properties
-    // );
+    event Create(
+        uint256 indexed tokenId,
+        TokenType indexed tokenType,
+        uint256 indexed maxMintAmountPerTx
+    );
+    event Update(uint256 indexed id, TokenProperties indexed properties);
 
-    // event Mint(
-    //     address indexed from, address indexed to, Operation[] indexed operations
-    // );
+    event Mint(
+        address indexed from, address indexed to, Operation[] indexed operations
+    );
 
-    // event Distributed(
-    //     address indexed from, address indexed to, Operation[] indexed operations
-    // );
+    event Distributed(
+        address indexed from, address indexed to, Operation[] indexed operations
+    );
 
-    // event DestinationWalletSet(
-    //     address indexed coreAddress, address indexed destination
-    // );
+    event DestinationWalletSet(
+        address indexed coreAddress, address indexed destination
+    );
 
-    // event OwnershipOfTokensMigrated(
-    //     address indexed from, address indexed to, uint256 balance
-    // );
+    event OwnershipOfTokensMigrated(
+        address indexed from, address indexed to, uint256 balance
+    );
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
