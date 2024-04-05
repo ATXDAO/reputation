@@ -2,9 +2,6 @@
 pragma solidity ^0.8.18;
 
 import {ReputationTokensBase} from "./ReputationTokensBase.sol";
-import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
-import {AddressToAddressMappingStorage} from
-    "./storage/AddressToAddressMappingStorage.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -50,7 +47,7 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
-        return numOfTokens;
+        return s_numOfTokens;
     }
 
     function getTokenProperties(uint256 id)

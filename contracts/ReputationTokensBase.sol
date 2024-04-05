@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {AddressToAddressMappingStorage} from
-    "./storage/AddressToAddressMappingStorage.sol";
-import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -24,21 +21,6 @@ abstract contract ReputationTokensBase is
     AccessControl,
     Ownable
 {
-    ///////////////////
-    // State Variables
-    ///////////////////
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
-    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
-    bytes32 public constant TOKEN_URI_SETTER_ROLE =
-        keccak256("TOKEN_URI_SETTER_ROLE");
-
-    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant TOKEN_MIGRATOR_ROLE =
-        keccak256("TOKEN_MIGRATOR_ROLE");
-
     ///////////////////
     // Functions
     ///////////////////

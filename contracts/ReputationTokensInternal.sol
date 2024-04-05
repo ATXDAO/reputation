@@ -8,9 +8,6 @@ import {
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
-import {AddressToAddressMappingStorage} from
-    "./storage/AddressToAddressMappingStorage.sol";
-import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {Test, console} from "forge-std/Test.sol";
 
 /**
@@ -31,10 +28,23 @@ contract ReputationTokensInternal is
     ERC1155URIStorage,
     IReputationTokensErrors
 {
-    constructor() ERC1155("") {}
+    ///////////////////
+    // State Variables
+    ///////////////////
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
+    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
+    bytes32 public constant TOKEN_URI_SETTER_ROLE =
+        keccak256("TOKEN_URI_SETTER_ROLE");
+
+    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE =
+        keccak256("TOKEN_MIGRATOR_ROLE");
 
     mapping(address => address) destinationWallets;
-    uint256 numOfTokens;
+    uint256 s_numOfTokens;
     mapping(address distributor => mapping(uint256 tokenId => uint256))
         s_distributableBalance;
     mapping(address burner => mapping(uint256 tokenId => uint256))
@@ -66,6 +76,8 @@ contract ReputationTokensInternal is
     // Functions
     ///////////////////
 
+    constructor() ERC1155("") {}
+
     ///////////////////
     // Internal Functions
     ///////////////////
@@ -74,8 +86,8 @@ contract ReputationTokensInternal is
         internal
         returns (uint256 tokenId)
     {
-        uint256 newTokenId = numOfTokens;
-        numOfTokens++;
+        uint256 newTokenId = s_numOfTokens;
+        s_numOfTokens++;
 
         _updateTokenProperties(newTokenId, tokenProperties);
 
@@ -88,7 +100,7 @@ contract ReputationTokensInternal is
         uint256 id,
         TokenProperties memory tokenProperties
     ) internal {
-        if (id >= numOfTokens) {
+        if (id >= s_numOfTokens) {
             revert ReputationTokens__CannotUpdateNonexistentTokenType();
         }
 
@@ -195,7 +207,7 @@ contract ReputationTokensInternal is
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
     function _migrateOwnershipOfTokens(address from, address to) internal {
-        for (uint256 i = 0; i < numOfTokens; i++) {
+        for (uint256 i = 0; i < s_numOfTokens; i++) {
             uint256 balanceOfFrom = balanceOf(from, i);
             // emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
 
