@@ -27,8 +27,14 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
             tokenProperties.maxMintAmountPerTx,
             newTokenProperties.maxMintAmountPerTx
         );
-        assertEq(tokenProperties.isSoulbound, newTokenProperties.isSoulbound);
-        assertEq(tokenProperties.isRedeemable, newTokenProperties.isRedeemable);
+
+        assertEq(
+            uint8(tokenProperties.transferType),
+            uint8(newTokenProperties.transferType)
+        );
+
+        // assertEq(tokenProperties.isSoulbound, newTokenProperties.isSoulbound);
+        // assertEq(tokenProperties.isRedeemable, newTokenProperties.isRedeemable);
     }
 
     function testRevertUpdateIfNonExistentToken(
@@ -55,14 +61,21 @@ contract ReputationTokens__UpdateTokenProperties is ReputationTokensTest__Base {
         }
         batchUpdateTokensProperties(ids, _tokensProperties);
         for (uint256 i = 0; i < _tokensProperties.length; i++) {
+            // assertEq(
+            //     s_repTokens.getTokenProperties(i).isSoulbound,
+            //     _tokensProperties[i].isSoulbound
+            // );
+
+            // assertEq(
+            //     s_repTokens.getTokenProperties(i).isRedeemable,
+            //     _tokensProperties[i].isRedeemable
+            // );
+
             assertEq(
-                s_repTokens.getTokenProperties(i).isSoulbound,
-                _tokensProperties[i].isSoulbound
+                uint8(s_repTokens.getTokenProperties(i).transferType),
+                uint8(_tokensProperties[i].transferType)
             );
-            assertEq(
-                s_repTokens.getTokenProperties(i).isRedeemable,
-                _tokensProperties[i].isRedeemable
-            );
+
             assertEq(
                 s_repTokens.getTokenProperties(i).maxMintAmountPerTx,
                 _tokensProperties[i].maxMintAmountPerTx

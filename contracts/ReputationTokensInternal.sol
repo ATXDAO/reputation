@@ -62,12 +62,17 @@ abstract contract ReputationTokensInternal is
         TokensPropertiesStorage
             .layout()
             .tokensProperties[id]
-            .isRedeemable = tokenProperties.isRedeemable;
+            .transferType = tokenProperties.transferType;
 
-        TokensPropertiesStorage
-            .layout()
-            .tokensProperties[id]
-            .isSoulbound = tokenProperties.isSoulbound;
+        // TokensPropertiesStorage
+        //     .layout()
+        //     .tokensProperties[id]
+        //     .isRedeemable = tokenProperties.isRedeemable;
+
+        // TokensPropertiesStorage
+        //     .layout()
+        //     .tokensProperties[id]
+        //     .isSoulbound = tokenProperties.isSoulbound;
 
         TokensPropertiesStorage
             .layout()

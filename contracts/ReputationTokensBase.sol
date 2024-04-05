@@ -120,24 +120,55 @@ contract ReputationTokensBase is
         uint256 amount,
         bytes memory data
     ) public override(ERC1155Base, IERC1155) {
-        if (TokensPropertiesStorage.layout().tokensProperties[id].isSoulbound) {
-            if (
-                TokensPropertiesStorage
-                    .layout()
-                    .tokensProperties[id]
-                    .isRedeemable
-            ) {
-                if (_hasRole(BURNER_ROLE, to)) {
-                    TokensPropertiesStorage.layout().s_burnedBalance[to][
-                            id
-                        ] += amount;
-                } else {
-                    revert ReputationTokens__CannotTransferRedeemableToNonBurner();
-                }
+        if (
+            TokensPropertiesStorage
+                .layout()
+                .tokensProperties[id]
+                .transferType == TokensPropertiesStorage.TransferType.Soulbound
+        ) {
+            revert ReputationTokens__CannotTransferSoulboundToken();
+        }
+
+        if (
+            TokensPropertiesStorage
+                .layout()
+                .tokensProperties[id]
+                .transferType == TokensPropertiesStorage.TransferType.Redeemable
+        ) {
+            if (_hasRole(BURNER_ROLE, to)) {
+                TokensPropertiesStorage.layout().s_burnedBalance[to][
+                    id
+                ] += amount;
             } else {
-                revert ReputationTokens__CannotTransferSoulboundToken();
+                revert ReputationTokens__CannotTransferRedeemableToNonBurner();
             }
         }
+
+        // if (
+        //     TokensPropertiesStorage
+        //         .layout()
+        //         .tokensProperties[id]
+        //         .transferType == TokensPropertiesStorage.TransferType.Transferable
+        // ) {}
+
+        // if (TokensPropertiesStorage.layout().tokensProperties[id].isSoulbound) {
+        //     if (
+        //         TokensPropertiesStorage
+        //             .layout()
+        //             .tokensProperties[id]
+        //             .isRedeemable
+        //     ) {
+        //         if (_hasRole(BURNER_ROLE, to)) {
+        //             TokensPropertiesStorage.layout().s_burnedBalance[to][
+        //                     id
+        //                 ] += amount;
+        //         } else {
+        //             revert ReputationTokens__CannotTransferRedeemableToNonBurner();
+        //         }
+        //     } else {
+        //         revert ReputationTokens__CannotTransferSoulboundToken();
+        //     }
+        // }
 
         if (amount > getTransferrableBalance(from, id)) {
             revert ReputationTokens__CantSendThatManyTransferrableTokens();

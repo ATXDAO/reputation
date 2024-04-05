@@ -37,7 +37,10 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         distribute(distributeOperations);
 
         for (uint256 i = 0; i < tokensProperties.length; i++) {
-            if (!tokensProperties[i].isSoulbound) {
+            if (
+                tokensProperties[i].transferType !=
+                TokensPropertiesStorage.TransferType.Soulbound
+            ) {
                 vm.prank(user);
                 s_repTokens.safeTransferFrom(
                     user,
@@ -74,22 +77,27 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         for (uint256 i = 0; i < distributeOperations.operations.length; i++) {
             TokensPropertiesStorage.TokenProperties
                 memory tokenProperties = s_repTokens.getTokenProperties(i);
-            if (tokenProperties.isSoulbound) {
-                if (tokenProperties.isRedeemable) {
-                    vm.prank(user);
-                    s_repTokens.safeTransferFrom(
-                        user,
-                        BURNER,
-                        i,
-                        distributeOperations.operations[i].amount,
-                        ""
-                    );
 
-                    assertEq(
-                        s_repTokens.getBurnedBalance(BURNER, i),
-                        distributeOperations.operations[i].amount
-                    );
-                }
+            if (
+                tokenProperties.transferType ==
+                TokensPropertiesStorage.TransferType.Soulbound
+            ) {
+                // if (tokenProperties.isSoulbound) {
+                // if (tokenProperties.isRedeemable) {
+                vm.prank(user);
+                s_repTokens.safeTransferFrom(
+                    user,
+                    BURNER,
+                    i,
+                    distributeOperations.operations[i].amount,
+                    ""
+                );
+
+                assertEq(
+                    s_repTokens.getBurnedBalance(BURNER, i),
+                    distributeOperations.operations[i].amount
+                );
+                // }
             }
         }
     }
@@ -121,7 +129,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
             TokensPropertiesStorage.TokenProperties
                 memory tokenProperties = s_repTokens.getTokenProperties(i);
 
-            if (tokenProperties.isSoulbound && !tokenProperties.isRedeemable) {
+            if (
+                tokenProperties.transferType ==
+                TokensPropertiesStorage.TransferType.Soulbound
+            ) {
+                // if (tokenProperties.isSoulbound && !tokenProperties.isRedeemable) {
                 vm.prank(user);
 
                 vm.expectRevert(
@@ -168,7 +180,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
             TokensPropertiesStorage.TokenProperties
                 memory tokenProperties = s_repTokens.getTokenProperties(i);
 
-            if (tokenProperties.isSoulbound && tokenProperties.isRedeemable) {
+            if (
+                tokenProperties.transferType !=
+                TokensPropertiesStorage.TransferType.Redeemable
+            ) {
+                // if (tokenProperties.isSoulbound && tokenProperties.isRedeemable) {
                 vm.prank(user);
 
                 vm.expectRevert(
@@ -222,7 +238,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         distribute(distributeOperations);
 
         for (uint256 i = 0; i < tokensProperties.length; i++) {
-            if (!tokensProperties[i].isSoulbound) {
+            if (
+                tokensProperties[i].transferType ==
+                TokensPropertiesStorage.TransferType.Transferable
+            ) {
+                // if (!tokensProperties[i].isSoulbound) {
                 vm.prank(DISTRIBUTOR);
 
                 vm.expectRevert(
@@ -289,7 +309,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         }
 
         for (uint256 i = 0; i < tokensProperties.length; i++) {
-            if (!tokensProperties[i].isSoulbound) {
+            if (
+                tokensProperties[i].transferType ==
+                TokensPropertiesStorage.TransferType.Transferable
+            ) {
+                // if (!tokensProperties[i].isSoulbound) {
                 uint256 originalTransferrableAmount = s_repTokens
                     .getTransferrableBalance(DISTRIBUTOR, i);
 

@@ -33,15 +33,23 @@ library TokensPropertiesStorage {
     //     Soulbound
     // }
 
-    struct TokenProperties {
-        bool isSoulbound;
-        bool isRedeemable;
-        // bool isFreelyTransferable;
+    enum TransferType {
+        Transferable,
+        Soulbound,
+        Redeemable
+    }
 
-        // bool isTradeable;
-        // TokenType tokenType;
+    struct TokenProperties {
+        TransferType transferType;
         uint256 maxMintAmountPerTx;
     }
+
+    // bool isSoulbound;
+    // bool isRedeemable;
+    // bool isFreelyTransferable;
+
+    // bool isTradeable;
+    // TokenType tokenType;
 
     ///////////////////
     // Internal Functions

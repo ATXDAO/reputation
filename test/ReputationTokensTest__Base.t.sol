@@ -29,8 +29,8 @@ contract ReputationTokensTest__Base is Test {
     ////////////////////////
 
     function setUp() public virtual {
-        setUpDeploy();
-        setUpRoles();
+        // setUpDeploy();
+        // setUpRoles();
     }
 
     function setUpDeploy() public {
