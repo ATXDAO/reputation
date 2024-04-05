@@ -18,10 +18,8 @@ contract DeployReputationTokensStandalone is ScaffoldETHDeploy {
             );
         }
         vm.startBroadcast(deployerPrivateKey);
-        ReputationTokensStandalone repTokens = new ReputationTokensStandalone(
-            ownerNominee,
-            admins
-        );
+        ReputationTokensStandalone repTokens =
+            new ReputationTokensStandalone(ownerNominee, admins);
         console.logString(
             string.concat(
                 "ReputationTokensStandalone deployed at: ",

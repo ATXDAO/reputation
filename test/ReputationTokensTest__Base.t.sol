@@ -100,20 +100,6 @@ contract ReputationTokensTest__Base is Test {
         _;
     }
 
-    // function createDefaultToken() public returns (uint256) {
-    //     TokensPropertiesStorage.TokenProperties
-    //         memory tokenProperties = TokensPropertiesStorage.TokenProperties(
-    //             TokensPropertiesStorage.TokenType(0),
-    //             false,
-    //             false,
-    //             0
-    //         );
-    //     vm.startPrank(TOKEN_CREATOR);
-    //     uint256 tokenId = s_repTokens.createToken(tokenProperties);
-    //     vm.stopPrank();
-    //     return tokenId;
-    // }
-
     function batchUpdateTokensProperties(
         uint256[] memory ids,
         TokensPropertiesStorage.TokenProperties[] memory _tokensProperties
@@ -131,93 +117,6 @@ contract ReputationTokensTest__Base is Test {
         s_repTokens.updateTokenProperties(id, tokenProperties);
         vm.stopPrank();
     }
-
-    // function createTokenOperationsSequentialHalf(
-    //     address to,
-    //     TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-    //     uint256 divisibleAmount
-    // ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
-    //     ReputationTokensInternal.TokensOperations memory tokenOperations;
-    //     tokenOperations
-    //         .operations = new ReputationTokensInternal.TokenOperation[](
-    //         tokensProperties.length
-    //     );
-    //     tokenOperations.to = to;
-
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         tokenOperations.operations[i].id = i;
-    //         if (tokensProperties[i].maxMintAmountPerTx > 0) {
-    //             tokenOperations.operations[i].amount =
-    //                 tokensProperties[i].maxMintAmountPerTx /
-    //                 divisibleAmount;
-    //         } else {
-    //             tokenOperations.operations[i].amount = 0;
-    //         }
-    //     }
-
-    //     return tokenOperations;
-    // }
-
-    // function createTokenOperationsSequential(
-    //     address to,
-    //     TokensPropertiesStorage.TokenProperties[] memory tokensProperties,
-    //     uint256 amount
-    // ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
-    //     ReputationTokensInternal.TokensOperations memory tokenOperations;
-    //     tokenOperations
-    //         .operations = new ReputationTokensInternal.TokenOperation[](
-    //         tokensProperties.length * amount
-    //     );
-    //     tokenOperations.to = to;
-
-    //     for (uint256 j = 0; j < amount; j++) {
-    //         for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //             tokenOperations.operations[i].id = i;
-    //             tokenOperations.operations[i].amount = tokensProperties[i]
-    //                 .maxMintAmountPerTx;
-    //         }
-    //     }
-
-    //     return tokenOperations;
-    // }
-
-    // function createTokenOperationsSequential(
-    //     address to,
-    //     TokensPropertiesStorage.TokenProperties[] memory tokensProperties
-    // ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
-    //     ReputationTokensInternal.TokensOperations memory tokenOperations;
-    //     tokenOperations
-    //         .operations = new ReputationTokensInternal.TokenOperation[](
-    //         tokensProperties.length
-    //     );
-    //     tokenOperations.to = to;
-
-    //     for (uint256 i = 0; i < tokensProperties.length; i++) {
-    //         tokenOperations.operations[i].id = i;
-    //         tokenOperations.operations[i].amount = tokensProperties[i]
-    //             .maxMintAmountPerTx;
-    //     }
-
-    //     return tokenOperations;
-    // }
-
-    // function createTokenOperationsSequential(
-    //     address to,
-    //     uint256 length,
-    //     uint256 amount
-    // ) public pure returns (ReputationTokensInternal.TokensOperations memory) {
-    //     ReputationTokensInternal.TokensOperations memory tokenOperations;
-    //     tokenOperations
-    //         .operations = new ReputationTokensInternal.TokenOperation[](length);
-    //     tokenOperations.to = to;
-
-    //     for (uint256 i = 0; i < length; i++) {
-    //         tokenOperations.operations[i].id = i;
-    //         tokenOperations.operations[i].amount = amount;
-    //     }
-
-    //     return tokenOperations;
-    // }
 
     function mint(ReputationTokensInternal.Sequence memory sequence) public {
         vm.startPrank(MINTER);

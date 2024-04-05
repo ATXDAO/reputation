@@ -7,7 +7,6 @@ pragma solidity ^0.8.18;
  *
  * This smart contract library follows the Diamond Storage Pattern by hosting the state variables for Reputation Tokens.
  */
-
 library AddressToAddressMappingStorage {
     ///////////////////
     // State Variables

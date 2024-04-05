@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {IReputationTokensInternal} from "./interfaces/IReputationTokensInternal.sol";
+import {IReputationTokensInternal} from
+    "./interfaces/IReputationTokensInternal.sol";
 
 /**
  * @title Interface for Reputation Tokens Internal
@@ -10,7 +11,6 @@ import {IReputationTokensInternal} from "./interfaces/IReputationTokensInternal.
  * Hosts the error messages for Reputation Tokens Internal.
  * Additionally, inherits the proper events as well from Reputation Tokens Internal Interface.
  */
-
 interface IReputationTokensBaseInternal is IReputationTokensInternal {
     ///////////////////
     // Errors

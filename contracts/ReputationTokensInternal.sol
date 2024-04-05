@@ -1,14 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {SolidStateERC1155} from "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
-import {ERC1155MetadataStorage} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155MetadataStorage.sol";
-import {ERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
-import {IERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
+import {SolidStateERC1155} from
+    "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
+import {ERC1155MetadataStorage} from
+    "@solidstate/contracts/token/ERC1155/metadata/ERC1155MetadataStorage.sol";
+import {ERC1155Metadata} from
+    "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
+import {IERC1155Metadata} from
+    "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
-import {IReputationTokensBaseInternal} from "./IReputationTokensBaseInternal.sol";
-import {AddressToAddressMappingStorage} from "./storage/AddressToAddressMappingStorage.sol";
+import {IReputationTokensBaseInternal} from
+    "./IReputationTokensBaseInternal.sol";
+import {AddressToAddressMappingStorage} from
+    "./storage/AddressToAddressMappingStorage.sol";
 import {TokensPropertiesStorage} from "./storage/TokensPropertiesStorage.sol";
 import {Test, console} from "forge-std/Test.sol";
 
@@ -59,25 +65,11 @@ abstract contract ReputationTokensInternal is
             revert ReputationTokens__CannotUpdateNonexistentTokenType();
         }
 
-        TokensPropertiesStorage
-            .layout()
-            .tokensProperties[id]
-            .tokenType = tokenProperties.tokenType;
+        TokensPropertiesStorage.layout().tokensProperties[id].tokenType =
+            tokenProperties.tokenType;
 
-        // TokensPropertiesStorage
-        //     .layout()
-        //     .tokensProperties[id]
-        //     .isRedeemable = tokenProperties.isRedeemable;
-
-        // TokensPropertiesStorage
-        //     .layout()
-        //     .tokensProperties[id]
-        //     .isSoulbound = tokenProperties.isSoulbound;
-
-        TokensPropertiesStorage
-            .layout()
-            .tokensProperties[id]
-            .maxMintAmountPerTx = tokenProperties.maxMintAmountPerTx;
+        TokensPropertiesStorage.layout().tokensProperties[id].maxMintAmountPerTx
+        = tokenProperties.maxMintAmountPerTx;
 
         emit Update(id, tokenProperties);
     }
@@ -88,8 +80,8 @@ abstract contract ReputationTokensInternal is
      */
     function initializeDestinationWallet(address addr) internal {
         if (
-            AddressToAddressMappingStorage.layout().destinationWallets[addr] ==
-            address(0)
+            AddressToAddressMappingStorage.layout().destinationWallets[addr]
+                == address(0)
         ) {
             _setDestinationWallet(addr, addr);
         }
@@ -108,16 +100,13 @@ abstract contract ReputationTokensInternal is
 
         for (uint256 i = 0; i < sequence.operations.length; i++) {
             if (
-                sequence.operations[i].amount >
-                TokensPropertiesStorage
-                    .layout()
-                    .tokensProperties[sequence.operations[i].id]
-                    .maxMintAmountPerTx
+                sequence.operations[i].amount
+                    > TokensPropertiesStorage.layout().tokensProperties[sequence
+                        .operations[i].id].maxMintAmountPerTx
             ) revert ReputationTokens__MintAmountExceedsLimit();
 
-            TokensPropertiesStorage.layout().s_distributableBalance[
-                sequence.to
-            ][sequence.operations[i].id] += sequence.operations[i].amount;
+            TokensPropertiesStorage.layout().s_distributableBalance[sequence.to][sequence
+                .operations[i].id] += sequence.operations[i].amount;
 
             super._mint(
                 sequence.to,
@@ -138,9 +127,8 @@ abstract contract ReputationTokensInternal is
         address target,
         address destination
     ) internal {
-        AddressToAddressMappingStorage.layout().destinationWallets[
-                target
-            ] = destination;
+        AddressToAddressMappingStorage.layout().destinationWallets[target] =
+            destination;
         emit DestinationWalletSet(target, destination);
     }
 
@@ -158,23 +146,20 @@ abstract contract ReputationTokensInternal is
         initializeDestinationWallet(sequence.to);
 
         for (uint256 i = 0; i < sequence.operations.length; i++) {
-            TokensPropertiesStorage.layout().s_distributableBalance[from][
-                    sequence.operations[i].id
-                ] -= sequence.operations[i].amount;
+            TokensPropertiesStorage.layout().s_distributableBalance[from][sequence
+                .operations[i].id] -= sequence.operations[i].amount;
 
             emit Distributed(
                 from,
-                AddressToAddressMappingStorage.layout().destinationWallets[
-                    sequence.to
-                ],
+                AddressToAddressMappingStorage.layout().destinationWallets[sequence
+                    .to],
                 sequence.operations
             );
 
             super.safeTransferFrom(
                 from,
-                AddressToAddressMappingStorage.layout().destinationWallets[
-                    sequence.to
-                ],
+                AddressToAddressMappingStorage.layout().destinationWallets[sequence
+                    .to],
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
                 data
@@ -191,9 +176,7 @@ abstract contract ReputationTokensInternal is
      */
     function _migrateOwnershipOfTokens(address from, address to) internal {
         for (
-            uint256 i = 0;
-            i < TokensPropertiesStorage.layout().numOfTokens;
-            i++
+            uint256 i = 0; i < TokensPropertiesStorage.layout().numOfTokens; i++
         ) {
             uint256 balanceOfFrom = balanceOf(from, i);
             emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);

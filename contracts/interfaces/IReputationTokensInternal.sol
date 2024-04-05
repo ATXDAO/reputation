@@ -31,25 +31,18 @@ interface IReputationTokensInternal {
     );
 
     event Mint(
-        address indexed from,
-        address indexed to,
-        Operation[] indexed operations
+        address indexed from, address indexed to, Operation[] indexed operations
     );
 
     event Distributed(
-        address indexed from,
-        address indexed to,
-        Operation[] indexed operations
+        address indexed from, address indexed to, Operation[] indexed operations
     );
 
     event DestinationWalletSet(
-        address indexed coreAddress,
-        address indexed destination
+        address indexed coreAddress, address indexed destination
     );
 
     event OwnershipOfTokensMigrated(
-        address indexed from,
-        address indexed to,
-        uint256 balance
+        address indexed from, address indexed to, uint256 balance
     );
 }

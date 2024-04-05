@@ -13,7 +13,8 @@ contract DeployScript is ScaffoldETHDeploy {
     address[] admins;
 
     function run() external {
-        DeployReputationTokensStandalone deployer = new DeployReputationTokensStandalone();
+        DeployReputationTokensStandalone deployer =
+            new DeployReputationTokensStandalone();
         deployer.run(ownerNominee, admins);
 
         /**
