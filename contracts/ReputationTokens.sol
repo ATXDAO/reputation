@@ -7,6 +7,7 @@ import {
 } from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
+import {IReputationTokensEvents} from "./IReputationTokensEvents.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -29,6 +30,7 @@ import {Test, console} from "forge-std/Test.sol";
 contract ReputationTokens is
     ERC1155URIStorage,
     IReputationTokensErrors,
+    IReputationTokensEvents,
     AccessControl,
     Ownable
 {
@@ -82,36 +84,6 @@ contract ReputationTokens is
     mapping(address burner => mapping(uint256 tokenId => uint256))
         s_burnedBalance;
     mapping(uint256 => TokenProperties) s_tokensProperties;
-
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    // Events
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    event Create(uint256 indexed tokenId);
-    event Update(uint256 indexed tokenId);
-
-    event Mint(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId,
-        uint256 amount
-    );
-
-    event Distributed(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId,
-        uint256 amount
-    );
-
-    event DestinationWalletSet(
-        address indexed coreAddress, address indexed destination
-    );
-
-    event OwnershipOfTokensMigrated(
-        address indexed from, address indexed to, uint256 balance
-    );
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -375,22 +347,6 @@ contract ReputationTokens is
     ) internal {
         s_destinationWallets[target] = destination;
         emit DestinationWalletSet(target, destination);
-    }
-
-    /**
-     * Migrates all tokens to a new address only.
-     * @param from The address who is migrating their tokens.
-     * @param to The address who is receiving the migrated tokens.
-     *
-     * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
-     */
-    function _migrateOwnershipOfTokens(address from, address to) internal {
-        for (uint256 i = 0; i < s_numOfTokens; i++) {
-            uint256 balanceOfFrom = balanceOf(from, i);
-            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
-
-            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
