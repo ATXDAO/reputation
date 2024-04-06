@@ -105,6 +105,11 @@ contract ReputationTokens is
     // External Functions
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Creates many new token types.
+     * @param tokensProperties The array of properties to set to each new token type created.
+     */
     function batchCreateTokens(TokenProperties[] memory tokensProperties)
         external
         onlyRole(TOKEN_CREATOR_ROLE)
@@ -114,6 +119,11 @@ contract ReputationTokens is
         }
     }
 
+    /**
+     * Updates many token types' properties.
+     * @param ids the IDs of the tokens to update properties for.
+     * @param tokensProperties The properties to set for the supplied tokens.
+     */
     function batchUpdateTokensProperties(
         uint256[] memory ids,
         TokenProperties[] memory tokensProperties
@@ -123,6 +133,10 @@ contract ReputationTokens is
         }
     }
 
+    /**
+     * Given many sequences, mints many operations of tokens to the recipients.
+     * @param sequences Contains the recipients and tokens operations to mint tokens to.
+     */
     function batchMint(Sequence[] memory sequences)
         external
         onlyRole(MINTER_ROLE)
@@ -133,17 +147,16 @@ contract ReputationTokens is
     }
 
     /**
-     * Distributes many tokens to many users.
-     * @param from The distributor who will be sending distributing tokens
-     * @param data N/A
+     * Distributes many tokens to a user.
+     * @param from The distributor who will be sending distributing tokens.
+     * @param sequences Contains the recipients and tokens operations to distribute tokens.
      */
     function batchDistribute(
         address from,
-        Sequence[] memory sequences,
-        bytes memory data
+        Sequence[] memory sequences
     ) external onlyRole(DISTRIBUTOR_ROLE) {
         for (uint256 i = 0; i < sequences.length; i++) {
-            distribute(from, sequences[i], data);
+            distribute(from, sequences[i]);
         }
     }
 
@@ -174,6 +187,11 @@ contract ReputationTokens is
         _setDestinationWallet(msg.sender, destination);
     }
 
+    /**
+     * Sets the tokenURI for a given token type.
+     * @param tokenId token to update URI for.
+     * @param tokenURI updated tokenURI.
+     */
     function setTokenURI(
         uint256 tokenId,
         string memory tokenURI
@@ -187,6 +205,10 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Creates a new token type with custom properties.
+     * @param tokenProperties properties to assign to the new token type.
+     */
     function createToken(TokenProperties memory tokenProperties)
         public
         onlyRole(TOKEN_CREATOR_ROLE)
@@ -202,6 +224,11 @@ contract ReputationTokens is
         tokenId = newTokenId;
     }
 
+    /**
+     * Updates an existing token's properties.
+     * @param id The id of the token.
+     * @param tokenProperties The new properties of the token.
+     */
     function updateTokenProperties(
         uint256 id,
         TokenProperties memory tokenProperties
@@ -210,9 +237,9 @@ contract ReputationTokens is
     }
 
     /**
-     * Given a sequence,
-     *
-     * @param sequence receiving address of tokens.
+     * Given a sequence, mints an operation of tokens to the recipient.
+     * @dev recipient must have DISTRIBUTOR_ROLE.
+     * @param sequence Contains the recipient and token operations to mint tokens.
      */
     function mint(Sequence memory sequence) public onlyRole(MINTER_ROLE) {
         if (!hasRole(DISTRIBUTOR_ROLE, sequence.recipient)) {
@@ -251,14 +278,12 @@ contract ReputationTokens is
 
     /**
      * Distributes tokens to a user.
-     * @param from The distributor who will be sending distributing tokens
-     * @param sequence The recipient who will receive the distributed tokens
-     * @param data N/A
+     * @param from The distributor who will be sending distributing tokens.
+     * @param sequence Contains the recipient and token operations to distribute tokens.
      */
     function distribute(
         address from,
-        Sequence memory sequence,
-        bytes memory data
+        Sequence memory sequence
     ) public onlyRole(DISTRIBUTOR_ROLE) {
         _initializeDestinationWallet(sequence.recipient);
 
@@ -278,11 +303,38 @@ contract ReputationTokens is
                 s_destinationWallets[sequence.recipient],
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
-                data
+                ""
             );
         }
     }
 
+    /**
+     * @dev Transfers a `value` amount of tokens of type `id` from `from` to `to`.
+     *
+     * WARNING: This function can potentially allow a reentrancy attack when transferring tokens
+     * to an untrusted contract, when invoking {onERC1155Received} on the receiver.
+     * Ensure to follow the checks-effects-interactions pattern and consider employing
+     * reentrancy guards when interacting with untrusted contracts.
+     *
+     * Emits a {TransferSingle} event.
+     *
+     * Requirements:
+     *
+     * - `to` cannot be the zero address.
+     * - If the caller is not `from`, it must have been approved to spend ``from``'s tokens via {setApprovalForAll}.
+     * - `from` must have a balance of tokens of type `id` of at least `value` amount.
+     * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155Received} and return the
+     * acceptance magic value.
+     *
+     *
+     * ReputationTokens:
+     *
+     *
+     * CANNOT transfer Soulbound tokens
+     * CAN transfer Redeemable tokens ONLY TO accounts with the BURNER_ROLE.
+     * amount MUST be greater than transferable balance
+     * CAN transfer Transferable tokens.
+     */
     function safeTransferFrom(
         address from,
         address to,
@@ -315,6 +367,11 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Updates an existing token's properties.
+     * @param id The id of the token.
+     * @param tokenProperties The new properties of the token.
+     */
     function _updateTokenProperties(
         uint256 id,
         TokenProperties memory tokenProperties
@@ -332,7 +389,7 @@ contract ReputationTokens is
     }
 
     /**
-     * Checks and sets the destination wallet for an address if it is currently set to the zero address.
+     * Sets the destination wallet for the provided address if the destination is currently unset.
      * @param addr address who may get their destination wallet set
      */
     function _initializeDestinationWallet(address addr) internal {

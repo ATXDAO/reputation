@@ -125,7 +125,7 @@ contract ReputationTokensTest__Base is Test {
 
     function distribute(ReputationTokens.Sequence memory sequence) public {
         vm.startPrank(DISTRIBUTOR);
-        s_repTokens.distribute(DISTRIBUTOR, sequence, "");
+        s_repTokens.distribute(DISTRIBUTOR, sequence);
         vm.stopPrank();
     }
 
@@ -133,7 +133,7 @@ contract ReputationTokensTest__Base is Test {
         public
     {
         vm.startPrank(DISTRIBUTOR);
-        s_repTokens.batchDistribute(DISTRIBUTOR, sequences, "");
+        s_repTokens.batchDistribute(DISTRIBUTOR, sequences);
         vm.stopPrank();
     }
 
