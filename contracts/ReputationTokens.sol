@@ -186,7 +186,12 @@ contract ReputationTokens is
         address from,
         address to
     ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
-        _migrateOwnershipOfTokens(from, to);
+        for (uint256 i = 0; i < s_numOfTokens; i++) {
+            uint256 balanceOfFrom = balanceOf(from, i);
+            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+
+            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
+        }
     }
 
     /**
@@ -215,7 +220,14 @@ contract ReputationTokens is
         onlyRole(TOKEN_CREATOR_ROLE)
         returns (uint256 tokenId)
     {
-        tokenId = _createToken(tokenProperties);
+        uint256 newTokenId = s_numOfTokens;
+        s_numOfTokens++;
+
+        _updateTokenProperties(newTokenId, tokenProperties);
+
+        emit Create(tokenId);
+
+        tokenId = newTokenId;
     }
 
     function updateTokenProperties(
@@ -230,7 +242,34 @@ contract ReputationTokens is
             revert ReputationTokens__CanOnlyMintToDistributor();
         }
 
-        _mint(sequence, "");
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
+            if (
+                sequence.operations[i].amount
+                    > s_tokensProperties[sequence.operations[i].id]
+                        .maxMintAmountPerTx
+            ) revert ReputationTokens__MintAmountExceedsLimit();
+        }
+
+        _initializeDestinationWallet(sequence.to);
+
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
+            s_distributableBalance[sequence.to][sequence.operations[i].id] +=
+                sequence.operations[i].amount;
+
+            super._mint(
+                sequence.to,
+                sequence.operations[i].id,
+                sequence.operations[i].amount,
+                ""
+            );
+
+            emit Mint(
+                msg.sender,
+                sequence.to,
+                sequence.operations[i].id,
+                sequence.operations[i].amount
+            );
+        }
     }
 
     /**
@@ -244,7 +283,27 @@ contract ReputationTokens is
         Sequence memory sequence,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _distribute(from, sequence, data);
+        _initializeDestinationWallet(sequence.to);
+
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
+            s_distributableBalance[from][sequence.operations[i].id] -=
+                sequence.operations[i].amount;
+
+            emit Distributed(
+                from,
+                s_destinationWallets[sequence.to],
+                sequence.operations[i].id,
+                sequence.operations[i].amount
+            );
+
+            super.safeTransferFrom(
+                from,
+                s_destinationWallets[sequence.to],
+                sequence.operations[i].id,
+                sequence.operations[i].amount,
+                data
+            );
+        }
     }
 
     function safeTransferFrom(
@@ -279,20 +338,6 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function _createToken(TokenProperties memory tokenProperties)
-        internal
-        returns (uint256 tokenId)
-    {
-        uint256 newTokenId = s_numOfTokens;
-        s_numOfTokens++;
-
-        _updateTokenProperties(newTokenId, tokenProperties);
-
-        emit Create(tokenId);
-
-        tokenId = newTokenId;
-    }
-
     function _updateTokenProperties(
         uint256 id,
         TokenProperties memory tokenProperties
@@ -313,80 +358,9 @@ contract ReputationTokens is
      * Checks and sets the destination wallet for an address if it is currently set to the zero address.
      * @param addr address who may get their destination wallet set
      */
-    function initializeDestinationWallet(address addr) internal {
+    function _initializeDestinationWallet(address addr) internal {
         if (s_destinationWallets[addr] == address(0)) {
             _setDestinationWallet(addr, addr);
-        }
-    }
-
-    /**
-     * Mints an amount of tokens to an address.
-     * amount MUST BE lower than maxMintPerTx.
-     * MAY set the receiver's destination wallet to itself if it is set to the zero address.
-     * Mints Tokens 0 and 1 of amount to `to`.
-     * @param sequence receiving address of tokens.
-     * @param data N/A
-     */
-    function _mint(Sequence memory sequence, bytes memory data) internal {
-        initializeDestinationWallet(sequence.to);
-
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            if (
-                sequence.operations[i].amount
-                    > s_tokensProperties[sequence.operations[i].id]
-                        .maxMintAmountPerTx
-            ) revert ReputationTokens__MintAmountExceedsLimit();
-
-            s_distributableBalance[sequence.to][sequence.operations[i].id] +=
-                sequence.operations[i].amount;
-
-            super._mint(
-                sequence.to,
-                sequence.operations[i].id,
-                sequence.operations[i].amount,
-                data
-            );
-
-            emit Mint(
-                msg.sender,
-                sequence.to,
-                sequence.operations[i].id,
-                sequence.operations[i].amount
-            );
-        }
-    }
-
-    /**
-     * Distributes an amount of tokens to an address
-     * @param from A distributor who distributes tokens
-     * @param sequence The recipient who will receive the tokens
-     * @param data N/A
-     */
-    function _distribute(
-        address from,
-        Sequence memory sequence,
-        bytes memory data
-    ) internal {
-        initializeDestinationWallet(sequence.to);
-
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            s_distributableBalance[from][sequence.operations[i].id] -=
-                sequence.operations[i].amount;
-
-            emit Distributed(
-                from,
-                s_destinationWallets[sequence.to],
-                sequence.operations[i].id,
-                sequence.operations[i].amount
-            );
-
-            super.safeTransferFrom(
-                from,
-                s_destinationWallets[sequence.to],
-                sequence.operations[i].id,
-                sequence.operations[i].amount,
-                data
-            );
         }
     }
 
