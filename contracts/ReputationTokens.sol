@@ -14,17 +14,11 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Test, console} from "forge-std/Test.sol";
 
 /**
- * @title Reputation Tokens Internal
+ * @title Reputation Token
  * @author Jacob Homanics
  *
- * Contains all of the internal functions for Repuation Tokens.
+ * Contains all of the functions for Repuation Tokens.
  *
- * @dev This contract follows the Diamond Storage Pattern where state variables are stored in libraries.
- *          This contract implements a library for Custom ERC1155 Storage management.
- *          This contract implements a library for Solid State's ERC 1155 Metadata Storage management.
- * @dev This contract inherits from SolidStateERC1155. Which is a smart contract that follows the Diamond Storage Pattern and
- *      allows for easy creation of ERC1155 compliant smart contracts.
- *      Source code and info found here: https://github.com/solidstate-network/solidstate-solidity
  * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
 contract ReputationTokens is
@@ -92,9 +86,9 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
 
     constructor(
-        address owner,
+        address newOwner,
         address[] memory admins
-    ) Ownable(owner) ERC1155("") {
+    ) Ownable(newOwner) ERC1155("") {
         for (uint256 i = 0; i < admins.length; i++) {
             _grantRole(DEFAULT_ADMIN_ROLE, admins[i]);
         }
@@ -114,8 +108,11 @@ contract ReputationTokens is
         external
         onlyRole(TOKEN_CREATOR_ROLE)
     {
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            createToken(tokensProperties[i]);
+        uint256 startId = s_numOfTokens;
+        s_numOfTokens += tokensProperties.length;
+
+        for (uint256 i = startId; i < s_numOfTokens; i++) {
+            _createToken(tokensProperties[i], startId);
         }
     }
 
@@ -174,7 +171,10 @@ contract ReputationTokens is
         for (uint256 i = 0; i < s_numOfTokens; i++) {
             uint256 balanceOfFrom = balanceOf(from, i);
             emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
+        }
 
+        for (uint256 i = 0; i < s_numOfTokens; i++) {
+            uint256 balanceOfFrom = balanceOf(from, i);
             super.safeTransferFrom(from, to, i, balanceOfFrom, "");
         }
     }
@@ -217,11 +217,18 @@ contract ReputationTokens is
         uint256 newTokenId = s_numOfTokens;
         s_numOfTokens++;
 
-        _updateTokenProperties(newTokenId, tokenProperties);
+        return _createToken(tokenProperties, newTokenId);
+    }
+
+    function _createToken(
+        TokenProperties memory tokenProperties,
+        uint256 id
+    ) public returns (uint256 tokenId) {
+        _updateTokenProperties(id, tokenProperties);
 
         emit Create(tokenId);
 
-        tokenId = newTokenId;
+        tokenId = id;
     }
 
     /**
@@ -260,18 +267,20 @@ contract ReputationTokens is
             s_distributableBalance[sequence.recipient][sequence.operations[i].id]
             += sequence.operations[i].amount;
 
-            super._mint(
-                sequence.recipient,
-                sequence.operations[i].id,
-                sequence.operations[i].amount,
-                ""
-            );
-
             emit Mint(
                 msg.sender,
                 sequence.recipient,
                 sequence.operations[i].id,
                 sequence.operations[i].amount
+            );
+        }
+
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
+            super._mint(
+                sequence.recipient,
+                sequence.operations[i].id,
+                sequence.operations[i].amount,
+                ""
             );
         }
     }
@@ -297,7 +306,9 @@ contract ReputationTokens is
                 sequence.operations[i].id,
                 sequence.operations[i].amount
             );
+        }
 
+        for (uint256 i = 0; i < sequence.operations.length; i++) {
             super.safeTransferFrom(
                 from,
                 s_destinationWallets[sequence.recipient],
