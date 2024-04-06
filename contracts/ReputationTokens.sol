@@ -41,8 +41,8 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     enum TokenType {
         Transferable,
-        Redeemable,
-        Soulbound
+        Soulbound,
+        Redeemable
     }
 
     struct TokenProperties {
