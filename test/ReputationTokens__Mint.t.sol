@@ -16,7 +16,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory sequence;
         sequence.operations = new ReputationTokens.Operation[](1);
-        sequence.to = DISTRIBUTOR;
+        sequence.recipient = DISTRIBUTOR;
 
         sequence.operations[0].id = tokenId;
         sequence.operations[0].amount = 100;
@@ -37,7 +37,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
             new ReputationTokens.Sequence[](numToMint);
 
         for (uint256 i = 0; i < sequences.length; i++) {
-            sequences[i].to = DISTRIBUTOR;
+            sequences[i].recipient = DISTRIBUTOR;
 
             sequences[i].operations = new ReputationTokens.Operation[](1);
             sequences[i].operations[0].amount = 100;
@@ -52,7 +52,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory sequence;
         sequence.operations = new ReputationTokens.Operation[](1);
-        sequence.to = DISTRIBUTOR;
+        sequence.recipient = DISTRIBUTOR;
 
         sequence.operations[0].id = tokenId;
         sequence.operations[0].amount = 150;
@@ -80,7 +80,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory sequence;
         sequence.operations = new ReputationTokens.Operation[](1);
-        sequence.to = user;
+        sequence.recipient = user;
 
         sequence.operations[0].id = tokenId;
         sequence.operations[0].amount = 100;

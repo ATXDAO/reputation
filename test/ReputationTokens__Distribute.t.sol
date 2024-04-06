@@ -19,7 +19,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory mintSequence;
         mintSequence.operations = new ReputationTokens.Operation[](1);
-        mintSequence.to = DISTRIBUTOR;
+        mintSequence.recipient = DISTRIBUTOR;
 
         mintSequence.operations[0].id = tokenId;
         mintSequence.operations[0].amount = 100;
@@ -27,9 +27,8 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         mint(mintSequence);
 
         ReputationTokens.Sequence memory distributeSequence;
-        distributeSequence.operations =
-            new ReputationTokens.Operation[](1);
-        distributeSequence.to = user;
+        distributeSequence.operations = new ReputationTokens.Operation[](1);
+        distributeSequence.recipient = user;
 
         distributeSequence.operations[0].id = tokenId;
         distributeSequence.operations[0].amount = 100;
@@ -57,7 +56,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory mintSequence;
         mintSequence.operations = new ReputationTokens.Operation[](1);
-        mintSequence.to = DISTRIBUTOR;
+        mintSequence.recipient = DISTRIBUTOR;
 
         mintSequence.operations[0].id = tokenId;
         mintSequence.operations[0].amount = 100;
@@ -68,7 +67,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
             new ReputationTokens.Sequence[](numOfSequences);
 
         for (uint256 i = 0; i < distributeSequences.length; i++) {
-            distributeSequences[i].to = user;
+            distributeSequences[i].recipient = user;
             distributeSequences[i].operations =
                 new ReputationTokens.Operation[](1);
             distributeSequences[i].operations[0].id = tokenId;

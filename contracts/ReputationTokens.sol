@@ -56,7 +56,7 @@ contract ReputationTokens is
     }
 
     struct Sequence {
-        address to;
+        address recipient;
         Operation[] operations;
     }
 
@@ -209,8 +209,13 @@ contract ReputationTokens is
         _updateTokenProperties(id, tokenProperties);
     }
 
+    /**
+     * Given a sequence,
+     *
+     * @param sequence receiving address of tokens.
+     */
     function mint(Sequence memory sequence) public onlyRole(MINTER_ROLE) {
-        if (!hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
+        if (!hasRole(DISTRIBUTOR_ROLE, sequence.recipient)) {
             revert ReputationTokens__CanOnlyMintToDistributor();
         }
 
@@ -222,14 +227,14 @@ contract ReputationTokens is
             ) revert ReputationTokens__MintAmountExceedsLimit();
         }
 
-        _initializeDestinationWallet(sequence.to);
+        _initializeDestinationWallet(sequence.recipient);
 
         for (uint256 i = 0; i < sequence.operations.length; i++) {
-            s_distributableBalance[sequence.to][sequence.operations[i].id] +=
-                sequence.operations[i].amount;
+            s_distributableBalance[sequence.recipient][sequence.operations[i].id]
+            += sequence.operations[i].amount;
 
             super._mint(
-                sequence.to,
+                sequence.recipient,
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
                 ""
@@ -237,7 +242,7 @@ contract ReputationTokens is
 
             emit Mint(
                 msg.sender,
-                sequence.to,
+                sequence.recipient,
                 sequence.operations[i].id,
                 sequence.operations[i].amount
             );
@@ -255,7 +260,7 @@ contract ReputationTokens is
         Sequence memory sequence,
         bytes memory data
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _initializeDestinationWallet(sequence.to);
+        _initializeDestinationWallet(sequence.recipient);
 
         for (uint256 i = 0; i < sequence.operations.length; i++) {
             s_distributableBalance[from][sequence.operations[i].id] -=
@@ -263,14 +268,14 @@ contract ReputationTokens is
 
             emit Distributed(
                 from,
-                s_destinationWallets[sequence.to],
+                s_destinationWallets[sequence.recipient],
                 sequence.operations[i].id,
                 sequence.operations[i].amount
             );
 
             super.safeTransferFrom(
                 from,
-                s_destinationWallets[sequence.to],
+                s_destinationWallets[sequence.recipient],
                 sequence.operations[i].id,
                 sequence.operations[i].amount,
                 data

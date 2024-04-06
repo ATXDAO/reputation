@@ -20,7 +20,7 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory mintSequence;
         mintSequence.operations = new ReputationTokens.Operation[](1);
-        mintSequence.to = DISTRIBUTOR;
+        mintSequence.recipient = DISTRIBUTOR;
 
         mintSequence.operations[0].id = tokenId;
         mintSequence.operations[0].amount = 100;
@@ -29,7 +29,7 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
 
         ReputationTokens.Sequence memory distributeSequence;
         distributeSequence.operations = new ReputationTokens.Operation[](1);
-        distributeSequence.to = user1;
+        distributeSequence.recipient = user1;
 
         distributeSequence.operations[0].id = tokenId;
         distributeSequence.operations[0].amount = 100;
