@@ -8,6 +8,9 @@ import {
 
 import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {Test, console} from "forge-std/Test.sol";
 
 /**
@@ -26,7 +29,9 @@ import {Test, console} from "forge-std/Test.sol";
  */
 contract ReputationTokensInternal is
     ERC1155URIStorage,
-    IReputationTokensErrors
+    IReputationTokensErrors,
+    AccessControl,
+    Ownable
 {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -77,7 +82,7 @@ contract ReputationTokensInternal is
         s_distributableBalance;
     mapping(address burner => mapping(uint256 tokenId => uint256))
         s_burnedBalance;
-    mapping(uint256 => TokenProperties) tokensProperties;
+    mapping(uint256 => TokenProperties) s_tokensProperties;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -115,7 +120,151 @@ contract ReputationTokensInternal is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    constructor() ERC1155("") {}
+    constructor(address owner) Ownable(owner) ERC1155("") {}
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // External Functions
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    function batchCreateTokens(TokenProperties[] memory tokensProperties)
+        external
+    {
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            createToken(tokensProperties[i]);
+        }
+    }
+
+    function batchUpdateTokensProperties(
+        uint256[] memory ids,
+        TokenProperties[] memory tokensProperties
+    ) external {
+        for (uint256 i = 0; i < tokensProperties.length; i++) {
+            _updateTokenProperties(ids[i], tokensProperties[i]);
+        }
+    }
+
+    function batchMint(Sequence[] memory sequences)
+        external
+        onlyRole(MINTER_ROLE)
+    {
+        for (uint256 i = 0; i < sequences.length; i++) {
+            mint(sequences[i]);
+        }
+    }
+
+    /**
+     * Distributes many tokens to many users.
+     * @param from The distributor who will be sending distributing tokens
+     * @param data N/A
+     */
+    function batchDistribute(
+        address from,
+        Sequence[] memory sequences,
+        bytes memory data
+    ) external onlyRole(DISTRIBUTOR_ROLE) {
+        for (uint256 i = 0; i < sequences.length; i++) {
+            distribute(from, sequences[i], data);
+        }
+    }
+
+    /**
+     * Migrates all tokens to a new address only by authorized accounts.
+     * @param from The address who is migrating their tokens.
+     * @param to The address who is receiving the migrated tokens.
+     *
+     * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
+     */
+    function migrateOwnershipOfTokens(
+        address from,
+        address to
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
+        _migrateOwnershipOfTokens(from, to);
+    }
+
+    /**
+     * Sets the destination wallet for msg.sender
+     * @param destination The address where tokens will go when msg.sender is sent tokens by a distributor
+     */
+    function setDestinationWallet(address destination) external {
+        _setDestinationWallet(msg.sender, destination);
+    }
+
+    function setTokenURI(
+        uint256 tokenId,
+        string memory tokenURI
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+        _setURI(tokenId, tokenURI);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // Public Functions
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    function createToken(TokenProperties memory tokenProperties)
+        public
+        onlyRole(TOKEN_CREATOR_ROLE)
+        returns (uint256 tokenId)
+    {
+        tokenId = _createToken(tokenProperties);
+    }
+
+    function updateTokenProperties(
+        uint256 id,
+        TokenProperties memory tokenProperties
+    ) public onlyRole(TOKEN_UPDATER_ROLE) {
+        _updateTokenProperties(id, tokenProperties);
+    }
+
+    function mint(Sequence memory sequence) public onlyRole(MINTER_ROLE) {
+        if (!hasRole(DISTRIBUTOR_ROLE, sequence.to)) {
+            revert ReputationTokens__CanOnlyMintToDistributor();
+        }
+
+        _mint(sequence, "");
+    }
+
+    /**
+     * Distributes tokens to a user.
+     * @param from The distributor who will be sending distributing tokens
+     * @param sequence The recipient who will receive the distributed tokens
+     * @param data N/A
+     */
+    function distribute(
+        address from,
+        Sequence memory sequence,
+        bytes memory data
+    ) public onlyRole(DISTRIBUTOR_ROLE) {
+        _distribute(from, sequence, data);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public override {
+        if (s_tokensProperties[id].tokenType == TokenType.Soulbound) {
+            revert ReputationTokens__CannotTransferSoulboundToken();
+        }
+
+        if (s_tokensProperties[id].tokenType == TokenType.Redeemable) {
+            if (hasRole(BURNER_ROLE, to)) {
+                s_burnedBalance[to][id] += amount;
+            } else {
+                revert ReputationTokens__CannotTransferRedeemableToNonBurner();
+            }
+        }
+
+        if (amount > getTransferrableBalance(from, id)) {
+            revert ReputationTokens__CantSendThatManyTransferrableTokens();
+        }
+
+        super.safeTransferFrom(from, to, id, amount, data);
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -145,9 +294,9 @@ contract ReputationTokensInternal is
             revert ReputationTokens__CannotUpdateNonexistentTokenType();
         }
 
-        tokensProperties[id].tokenType = tokenProperties.tokenType;
+        s_tokensProperties[id].tokenType = tokenProperties.tokenType;
 
-        tokensProperties[id].maxMintAmountPerTx =
+        s_tokensProperties[id].maxMintAmountPerTx =
             tokenProperties.maxMintAmountPerTx;
 
         emit Update(id);
@@ -177,7 +326,8 @@ contract ReputationTokensInternal is
         for (uint256 i = 0; i < sequence.operations.length; i++) {
             if (
                 sequence.operations[i].amount
-                    > tokensProperties[sequence.operations[i].id].maxMintAmountPerTx
+                    > s_tokensProperties[sequence.operations[i].id]
+                        .maxMintAmountPerTx
             ) revert ReputationTokens__MintAmountExceedsLimit();
 
             s_distributableBalance[sequence.to][sequence.operations[i].id] +=
@@ -260,5 +410,43 @@ contract ReputationTokensInternal is
 
             super.safeTransferFrom(from, to, i, balanceOfFrom, "");
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // External & Public View & Pure Functions
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    function getTransferrableBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 transferrableBalance) {
+        uint256 balance = balanceOf(addr, tokenId);
+        transferrableBalance = balance - getDistributableBalance(addr, tokenId)
+            - getBurnedBalance(addr, tokenId);
+    }
+
+    function getBurnedBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 burnedBalance) {
+        burnedBalance = s_burnedBalance[addr][tokenId];
+    }
+
+    function getDistributableBalance(
+        address addr,
+        uint256 tokenId
+    ) public view returns (uint256 distributableBalance) {
+        distributableBalance = s_distributableBalance[addr][tokenId];
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {ReputationTokensBase} from "./ReputationTokensBase.sol";
+import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -12,7 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * It is reccomended to deploy this smart contract through regular means where you are sure that the constructor is getting called.
  *
  */
-contract ReputationTokensStandalone is ReputationTokensBase {
+contract ReputationTokensStandalone is ReputationTokensInternal {
     ///////////////////
     // Functions
     ///////////////////
@@ -20,7 +20,7 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     constructor(
         address ownerNominee,
         address[] memory admins
-    ) Ownable(ownerNominee) {
+    ) ReputationTokensInternal(ownerNominee) {
         _transferOwnership(ownerNominee);
 
         for (uint256 i = 0; i < admins.length; i++) {
@@ -43,7 +43,7 @@ contract ReputationTokensStandalone is ReputationTokensBase {
     }
 
     function getMaxMintPerTx(uint256 index) external view returns (uint256) {
-        return tokensProperties[index].maxMintAmountPerTx;
+        return s_tokensProperties[index].maxMintAmountPerTx;
     }
 
     function getNumOfTokenTypes() external view returns (uint256) {
@@ -55,6 +55,6 @@ contract ReputationTokensStandalone is ReputationTokensBase {
         view
         returns (TokenProperties memory)
     {
-        return tokensProperties[id];
+        return s_tokensProperties[id];
     }
 }
