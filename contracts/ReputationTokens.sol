@@ -135,6 +135,7 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     function batchCreateTokens(TokenProperties[] memory tokensProperties)
         external
+        onlyRole(TOKEN_CREATOR_ROLE)
     {
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             createToken(tokensProperties[i]);
@@ -144,7 +145,7 @@ contract ReputationTokens is
     function batchUpdateTokensProperties(
         uint256[] memory ids,
         TokenProperties[] memory tokensProperties
-    ) external {
+    ) external onlyRole(TOKEN_UPDATER_ROLE) {
         for (uint256 i = 0; i < tokensProperties.length; i++) {
             _updateTokenProperties(ids[i], tokensProperties[i]);
         }
