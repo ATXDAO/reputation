@@ -112,7 +112,7 @@ contract ReputationTokens is
         s_numOfTokens += tokensProperties.length;
 
         for (uint256 i = startId; i < s_numOfTokens; i++) {
-            _createToken(tokensProperties[i], startId);
+            _createToken(tokensProperties[i], i);
         }
     }
 
