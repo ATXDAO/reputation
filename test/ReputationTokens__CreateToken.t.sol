@@ -2,11 +2,10 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
+
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
@@ -19,14 +18,14 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     ) public {
         tokenTypeId = bound(tokenTypeId, 0, 2);
 
-        ReputationTokensInternal.TokenProperties memory tokenProperties =
-        ReputationTokensInternal.TokenProperties(
-            ReputationTokensInternal.TokenType(tokenTypeId), maxMintAmountPerTx
+        ReputationTokens.TokenProperties memory tokenProperties =
+        ReputationTokens.TokenProperties(
+            ReputationTokens.TokenType(tokenTypeId), maxMintAmountPerTx
         );
 
         uint256 tokenId = createToken(tokenProperties);
 
-        ReputationTokensInternal.TokenProperties memory createdTokenProperties =
+        ReputationTokens.TokenProperties memory createdTokenProperties =
             s_repTokens.getTokenProperties(tokenId);
 
         assertEq(uint8(createdTokenProperties.tokenType), tokenTypeId);
@@ -40,12 +39,12 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
     function testBatchCreateTokens(uint256 numToCreate) public {
         vm.assume(numToCreate < 1000);
 
-        ReputationTokensInternal.TokenProperties[] memory tokensProperties =
-            new ReputationTokensInternal.TokenProperties[](numToCreate);
+        ReputationTokens.TokenProperties[] memory tokensProperties =
+            new ReputationTokens.TokenProperties[](numToCreate);
 
         for (uint256 i = 0; i < numToCreate; i++) {
-            tokensProperties[i] = ReputationTokensInternal.TokenProperties(
-                ReputationTokensInternal.TokenType.Default, 0
+            tokensProperties[i] = ReputationTokens.TokenProperties(
+                ReputationTokens.TokenType.Default, 0
             );
         }
         batchCreateTokens(tokensProperties);

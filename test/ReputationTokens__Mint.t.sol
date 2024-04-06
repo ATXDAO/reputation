@@ -2,11 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__Mint is ReputationTokensTest__Base {
@@ -16,8 +14,8 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
     function testMint() public {
         uint256 tokenId = createDefaultTokenWithAMintAmount();
 
-        ReputationTokensInternal.Sequence memory sequence;
-        sequence.operations = new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory sequence;
+        sequence.operations = new ReputationTokens.Operation[](1);
         sequence.to = DISTRIBUTOR;
 
         sequence.operations[0].id = tokenId;
@@ -35,14 +33,13 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         uint256 tokenId = createDefaultTokenWithAMintAmount();
 
-        ReputationTokensInternal.Sequence[] memory sequences =
-            new ReputationTokensInternal.Sequence[](numToMint);
+        ReputationTokens.Sequence[] memory sequences =
+            new ReputationTokens.Sequence[](numToMint);
 
         for (uint256 i = 0; i < sequences.length; i++) {
             sequences[i].to = DISTRIBUTOR;
 
-            sequences[i].operations =
-                new ReputationTokensInternal.Operation[](1);
+            sequences[i].operations = new ReputationTokens.Operation[](1);
             sequences[i].operations[0].amount = 100;
             sequences[i].operations[0].id = tokenId;
         }
@@ -53,8 +50,8 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
     function testRevertIfMintingTooManyTokens() external {
         uint256 tokenId = createDefaultTokenWithAMintAmount();
 
-        ReputationTokensInternal.Sequence memory sequence;
-        sequence.operations = new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory sequence;
+        sequence.operations = new ReputationTokens.Operation[](1);
         sequence.to = DISTRIBUTOR;
 
         sequence.operations[0].id = tokenId;
@@ -81,8 +78,8 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         uint256 tokenId = createDefaultTokenWithAMintAmount();
 
-        ReputationTokensInternal.Sequence memory sequence;
-        sequence.operations = new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory sequence;
+        sequence.operations = new ReputationTokens.Operation[](1);
         sequence.to = user;
 
         sequence.operations[0].id = tokenId;

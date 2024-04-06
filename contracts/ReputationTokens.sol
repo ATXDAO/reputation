@@ -6,7 +6,6 @@ import {
     ERC1155URIStorage
 } from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 
-import {ReputationTokensInternal} from "./ReputationTokensInternal.sol";
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -27,7 +26,7 @@ import {Test, console} from "forge-std/Test.sol";
  *      Source code and info found here: https://github.com/solidstate-network/solidstate-solidity
  * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
-contract ReputationTokensInternal is
+contract ReputationTokens is
     ERC1155URIStorage,
     IReputationTokensErrors,
     AccessControl,
@@ -120,7 +119,14 @@ contract ReputationTokensInternal is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    constructor(address owner) Ownable(owner) ERC1155("") {}
+    constructor(
+        address owner,
+        address[] memory admins
+    ) Ownable(owner) ERC1155("") {
+        for (uint256 i = 0; i < admins.length; i++) {
+            _grantRole(DEFAULT_ADMIN_ROLE, admins[i]);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -448,5 +454,29 @@ contract ReputationTokensInternal is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function getDestinationWallet(address addr)
+        external
+        view
+        returns (address)
+    {
+        return s_destinationWallets[addr];
+    }
+
+    function getMaxMintPerTx(uint256 index) external view returns (uint256) {
+        return s_tokensProperties[index].maxMintAmountPerTx;
+    }
+
+    function getNumOfTokenTypes() external view returns (uint256) {
+        return s_numOfTokens;
+    }
+
+    function getTokenProperties(uint256 id)
+        external
+        view
+        returns (TokenProperties memory)
+    {
+        return s_tokensProperties[id];
     }
 }

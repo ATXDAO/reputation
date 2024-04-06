@@ -1,10 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../contracts/ReputationTokensStandalone.sol";
+import "../contracts/ReputationTokens.sol";
 import "./DeployHelpers.s.sol";
 
-import "./DeployReputationTokensStandalone.s.sol";
+import "./DeployReputationTokens.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
     error InvalidPrivateKey(string);
@@ -13,8 +13,7 @@ contract DeployScript is ScaffoldETHDeploy {
     address[] admins;
 
     function run() external {
-        DeployReputationTokensStandalone deployer =
-            new DeployReputationTokensStandalone();
+        DeployReputationTokens deployer = new DeployReputationTokens();
         deployer.run(ownerNominee, admins);
 
         /**

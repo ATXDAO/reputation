@@ -2,11 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
@@ -23,16 +21,14 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     }
 
     function createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-        ReputationTokensInternal.TokenType tokenType
+        ReputationTokens.TokenType tokenType
     ) public returns (uint256 tokenId) {
         tokenId = createToken(
-            ReputationTokensInternal.TokenProperties(
-                tokenType, DEFAULT_MAX_MINT_AMOUNT
-            )
+            ReputationTokens.TokenProperties(tokenType, DEFAULT_MAX_MINT_AMOUNT)
         );
 
-        ReputationTokensInternal.Sequence memory mintSequence;
-        mintSequence.operations = new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory mintSequence;
+        mintSequence.operations = new ReputationTokens.Operation[](1);
         mintSequence.to = DISTRIBUTOR;
 
         mintSequence.operations[0].id = tokenId;
@@ -40,9 +36,8 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
 
         mint(mintSequence);
 
-        ReputationTokensInternal.Sequence memory distributeSequence;
-        distributeSequence.operations =
-            new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory distributeSequence;
+        distributeSequence.operations = new ReputationTokens.Operation[](1);
         distributeSequence.to = user1;
 
         distributeSequence.operations[0].id = tokenId;
@@ -54,21 +49,21 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            ReputationTokensInternal.TokenType.Soulbound
+            ReputationTokens.TokenType.Soulbound
         );
     }
 
     function createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            ReputationTokensInternal.TokenType.Redeemable
+            ReputationTokens.TokenType.Redeemable
         );
     }
 
     function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            ReputationTokensInternal.TokenType.Default
+            ReputationTokens.TokenType.Default
         );
     }
 

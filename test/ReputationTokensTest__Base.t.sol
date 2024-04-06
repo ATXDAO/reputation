@@ -2,14 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
-import {DeployReputationTokensStandalone} from
-    "../script/DeployReputationTokensStandalone.s.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
 
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 
 contract ReputationTokensTest__Base is Test {
     ////////////////////////
@@ -25,7 +20,7 @@ contract ReputationTokensTest__Base is Test {
     address TOKEN_MIGRATOR = makeAddr("TOKEN_MIGRATOR");
     address DESTINATION_WALLET = makeAddr("DESTINATION_WALLET");
 
-    ReputationTokensStandalone s_repTokens;
+    ReputationTokens s_repTokens;
 
     ////////////////////////
     // Functions
@@ -39,7 +34,7 @@ contract ReputationTokensTest__Base is Test {
     function setUpDeploy() public {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
-        s_repTokens = new ReputationTokensStandalone(ADMIN, admins);
+        s_repTokens = new ReputationTokens(ADMIN, admins);
     }
 
     function setUpRoles() public {
@@ -56,7 +51,7 @@ contract ReputationTokensTest__Base is Test {
     // Helper Functions
     ////////////////////////
     function batchCreateTokens(
-        ReputationTokensInternal.TokenProperties[] memory tokenProperties
+        ReputationTokens.TokenProperties[] memory tokenProperties
     ) public {
         vm.startPrank(TOKEN_CREATOR);
         s_repTokens.batchCreateTokens(tokenProperties);
@@ -64,7 +59,7 @@ contract ReputationTokensTest__Base is Test {
     }
 
     function createToken(
-        ReputationTokensInternal.TokenProperties memory tokenProperties
+        ReputationTokens.TokenProperties memory tokenProperties
     ) public returns (uint256) {
         vm.startPrank(TOKEN_CREATOR);
         uint256 tokenId = s_repTokens.createToken(tokenProperties);
@@ -74,16 +69,16 @@ contract ReputationTokensTest__Base is Test {
 
     function createDefaultTokenWithAMintAmount() public returns (uint256) {
         return createToken(
-            ReputationTokensInternal.TokenProperties(
-                ReputationTokensInternal.TokenType.Default, 100
+            ReputationTokens.TokenProperties(
+                ReputationTokens.TokenType.Default, 100
             )
         );
     }
 
     function createDefaultToken() public returns (uint256) {
         return createToken(
-            ReputationTokensInternal.TokenProperties(
-                ReputationTokensInternal.TokenType.Default, 0
+            ReputationTokens.TokenProperties(
+                ReputationTokens.TokenType.Default, 0
             )
         );
     }
@@ -100,7 +95,7 @@ contract ReputationTokensTest__Base is Test {
 
     function batchUpdateTokensProperties(
         uint256[] memory ids,
-        ReputationTokensInternal.TokenProperties[] memory _tokensProperties
+        ReputationTokens.TokenProperties[] memory _tokensProperties
     ) public {
         vm.startPrank(TOKEN_UPDATER);
         s_repTokens.batchUpdateTokensProperties(ids, _tokensProperties);
@@ -109,38 +104,34 @@ contract ReputationTokensTest__Base is Test {
 
     function updateToken(
         uint256 id,
-        ReputationTokensInternal.TokenProperties memory tokenProperties
+        ReputationTokens.TokenProperties memory tokenProperties
     ) public {
         vm.startPrank(TOKEN_UPDATER);
         s_repTokens.updateTokenProperties(id, tokenProperties);
         vm.stopPrank();
     }
 
-    function mint(ReputationTokensInternal.Sequence memory sequence) public {
+    function mint(ReputationTokens.Sequence memory sequence) public {
         vm.startPrank(MINTER);
         s_repTokens.mint(sequence);
         vm.stopPrank();
     }
 
-    function batchMint(ReputationTokensInternal.Sequence[] memory sequences)
-        public
-    {
+    function batchMint(ReputationTokens.Sequence[] memory sequences) public {
         vm.startPrank(MINTER);
         s_repTokens.batchMint(sequences);
         vm.stopPrank();
     }
 
-    function distribute(ReputationTokensInternal.Sequence memory sequence)
-        public
-    {
+    function distribute(ReputationTokens.Sequence memory sequence) public {
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.distribute(DISTRIBUTOR, sequence, "");
         vm.stopPrank();
     }
 
-    function batchDistribute(
-        ReputationTokensInternal.Sequence[] memory sequences
-    ) public {
+    function batchDistribute(ReputationTokens.Sequence[] memory sequences)
+        public
+    {
         vm.startPrank(DISTRIBUTOR);
         s_repTokens.batchDistribute(DISTRIBUTOR, sequences, "");
         vm.stopPrank();

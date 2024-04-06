@@ -1,16 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../contracts/ReputationTokensStandalone.sol";
+import "../contracts/ReputationTokens.sol";
 import "./DeployHelpers.s.sol";
 
-contract DeployReputationTokensStandalone is ScaffoldETHDeploy {
+contract DeployReputationTokens is ScaffoldETHDeploy {
     error InvalidPrivateKey(string);
 
     function run(
         address ownerNominee,
         address[] memory admins
-    ) external returns (ReputationTokensStandalone) {
+    ) external returns (ReputationTokens) {
         uint256 deployerPrivateKey = setupLocalhostEnv();
         if (deployerPrivateKey == 0) {
             revert InvalidPrivateKey(
@@ -18,11 +18,10 @@ contract DeployReputationTokensStandalone is ScaffoldETHDeploy {
             );
         }
         vm.startBroadcast(deployerPrivateKey);
-        ReputationTokensStandalone repTokens =
-            new ReputationTokensStandalone(ownerNominee, admins);
+        ReputationTokens repTokens = new ReputationTokens(ownerNominee, admins);
         console.logString(
             string.concat(
-                "ReputationTokensStandalone deployed at: ",
+                "ReputationTokens deployed at: ",
                 vm.toString(address(repTokens))
             )
         );

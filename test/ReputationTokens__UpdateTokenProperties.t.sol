@@ -2,11 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__UpdateTokenProperties is
@@ -23,14 +21,14 @@ contract ReputationTokens__UpdateTokenProperties is
 
         createDefaultToken();
 
-        ReputationTokensInternal.TokenProperties memory newTokenProperties =
-        ReputationTokensInternal.TokenProperties(
-            ReputationTokensInternal.TokenType(tokenTypeId), maxMintAmountPerTx
+        ReputationTokens.TokenProperties memory newTokenProperties =
+        ReputationTokens.TokenProperties(
+            ReputationTokens.TokenType(tokenTypeId), maxMintAmountPerTx
         );
 
         updateToken(0, newTokenProperties);
 
-        ReputationTokensInternal.TokenProperties memory tokenProperties =
+        ReputationTokens.TokenProperties memory tokenProperties =
             s_repTokens.getTokenProperties(0);
 
         assertEq(
@@ -40,10 +38,8 @@ contract ReputationTokens__UpdateTokenProperties is
     }
 
     function testRevertUpdateIfNonExistentToken() public {
-        ReputationTokensInternal.TokenProperties memory newTokenProperties =
-        ReputationTokensInternal.TokenProperties(
-            ReputationTokensInternal.TokenType(0), 0
-        );
+        ReputationTokens.TokenProperties memory newTokenProperties =
+            ReputationTokens.TokenProperties(ReputationTokens.TokenType(0), 0);
 
         vm.expectRevert(
             IReputationTokensErrors
@@ -56,12 +52,12 @@ contract ReputationTokens__UpdateTokenProperties is
     function testUpdateTokens(uint256 numToUpdate) public {
         vm.assume(numToUpdate < 1000);
 
-        ReputationTokensInternal.TokenProperties[] memory tokensProperties =
-            new ReputationTokensInternal.TokenProperties[](numToUpdate);
+        ReputationTokens.TokenProperties[] memory tokensProperties =
+            new ReputationTokens.TokenProperties[](numToUpdate);
 
         for (uint256 i = 0; i < numToUpdate; i++) {
-            tokensProperties[i] = ReputationTokensInternal.TokenProperties(
-                ReputationTokensInternal.TokenType(0), 0
+            tokensProperties[i] = ReputationTokens.TokenProperties(
+                ReputationTokens.TokenType(0), 0
             );
         }
 

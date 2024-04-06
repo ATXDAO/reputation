@@ -2,11 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {ReputationTokensStandalone} from
-    "../contracts/ReputationTokensStandalone.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-import {ReputationTokensInternal} from
-    "../contracts/ReputationTokensInternal.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
@@ -20,8 +18,8 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
         address user1 = vm.addr(15);
         address user2 = vm.addr(16);
 
-        ReputationTokensInternal.Sequence memory mintSequence;
-        mintSequence.operations = new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory mintSequence;
+        mintSequence.operations = new ReputationTokens.Operation[](1);
         mintSequence.to = DISTRIBUTOR;
 
         mintSequence.operations[0].id = tokenId;
@@ -29,9 +27,8 @@ contract ReputationTokens__MigrateTokens is ReputationTokensTest__Base {
 
         mint(mintSequence);
 
-        ReputationTokensInternal.Sequence memory distributeSequence;
-        distributeSequence.operations =
-            new ReputationTokensInternal.Operation[](1);
+        ReputationTokens.Sequence memory distributeSequence;
+        distributeSequence.operations = new ReputationTokens.Operation[](1);
         distributeSequence.to = user1;
 
         distributeSequence.operations[0].id = tokenId;
