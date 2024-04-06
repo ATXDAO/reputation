@@ -44,7 +44,7 @@ contract ReputationTokens__CreateToken is ReputationTokensTest__Base {
 
         for (uint256 i = 0; i < numToCreate; i++) {
             tokensProperties[i] = ReputationTokens.TokenProperties(
-                ReputationTokens.TokenType.Default, 0
+                ReputationTokens.TokenType.Transferable, 0
             );
         }
         batchCreateTokens(tokensProperties);

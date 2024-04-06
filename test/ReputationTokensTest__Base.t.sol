@@ -70,7 +70,7 @@ contract ReputationTokensTest__Base is Test {
     function createDefaultTokenWithAMintAmount() public returns (uint256) {
         return createToken(
             ReputationTokens.TokenProperties(
-                ReputationTokens.TokenType.Default, 100
+                ReputationTokens.TokenType.Transferable, 100
             )
         );
     }
@@ -78,7 +78,7 @@ contract ReputationTokensTest__Base is Test {
     function createDefaultToken() public returns (uint256) {
         return createToken(
             ReputationTokens.TokenProperties(
-                ReputationTokens.TokenType.Default, 0
+                ReputationTokens.TokenType.Transferable, 0
             )
         );
     }

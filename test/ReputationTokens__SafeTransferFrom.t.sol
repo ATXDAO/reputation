@@ -63,7 +63,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero(
     ) internal returns (uint256 tokenId) {
         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-            ReputationTokens.TokenType.Default
+            ReputationTokens.TokenType.Transferable
         );
     }
 
