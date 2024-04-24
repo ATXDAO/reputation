@@ -19,4 +19,5 @@ interface IReputationTokensErrors {
     error ReputationTokens__CannotTransferRedeemableToNonBurner();
     error ReputationTokens__AttemptingToUpdateNonexistentToken();
     error ReputationTokens__CannotTransferSoulboundToken();
+    error ReputationTokens__CannotSetAllowanceForNonMinter();
 }

@@ -21,6 +21,10 @@ import {Test, console} from "forge-std/Test.sol";
  *
  * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
+
+// Max Mint Amount moved to per minter basis?
+// Rejoin minter and distributor.
+// Admin would re-up max mint supply for minters.
 contract ReputationTokens is
     ERC1155URIStorage,
     IReputationTokensErrors,
@@ -33,16 +37,6 @@ contract ReputationTokens is
     // Types
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    enum TokenType {
-        Transferable,
-        Soulbound,
-        Redeemable
-    }
-
-    struct TokenProperties {
-        TokenType tokenType;
-        uint256 maxMintAmountPerTx;
-    }
 
     struct Operation {
         uint256 id;
@@ -60,24 +54,35 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    // bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
     bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
     bytes32 public constant TOKEN_URI_SETTER_ROLE =
         keccak256("TOKEN_URI_SETTER_ROLE");
-
-    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant TOKEN_MIGRATOR_ROLE =
         keccak256("TOKEN_MIGRATOR_ROLE");
 
-    mapping(address => address) s_destinationWallets;
+    // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
+    // bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
+
     uint256 s_numOfTokens;
-    mapping(address distributor => mapping(uint256 tokenId => uint256))
-        s_distributableBalance;
+    mapping(uint256 id => TokenType) s_tokenType;
+
+    // mapping(address distributor => mapping(uint256 tokenId => uint256))
+    //     s_distributableBalance;
+
+    mapping(address minter => mapping(uint256 tokenId => uint256 allowance))
+        mintAllowance;
+
+    mapping(
+        address distributor => mapping(uint256 tokenId => uint256 allowance)
+    ) s_distributableBalanceOf;
+
     mapping(address burner => mapping(uint256 tokenId => uint256))
-        s_burnedBalance;
-    mapping(uint256 => TokenProperties) s_tokensProperties;
+        s_burnedBalanceOf;
+
+    // mapping(address => address) s_destinationWallets;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -101,61 +106,123 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Creates many new token types.
-     * @param tokensProperties The array of properties to set to each new token type created.
+     * Updates an existing token's type.
+     * @param id The id of the token.
+     * @param tokenType The new type of the token.
      */
-    function batchCreateTokens(TokenProperties[] memory tokensProperties)
-        external
-        onlyRole(TOKEN_CREATOR_ROLE)
-    {
-        uint256 startId = s_numOfTokens;
-        s_numOfTokens += tokensProperties.length;
+    function updateToken(
+        uint256 id,
+        TokenType tokenType
+    ) external onlyRole(TOKEN_UPDATER_ROLE) {
+        _updateToken(id, tokenType);
+        emit Update(id, tokenType);
+    }
 
-        for (uint256 i = startId; i < s_numOfTokens; i++) {
-            _createToken(tokensProperties[i], i);
+    function updateTokenBatch(
+        uint256[] memory ids,
+        TokenType[] memory tokenTypes
+    ) external onlyRole(TOKEN_UPDATER_ROLE) {
+        _updateTokenBatch(ids, tokenTypes);
+        emit UpdateBatch(ids, tokenTypes);
+    }
+
+    function mint(
+        address to,
+        uint256 id,
+        uint256 value,
+        bytes memory data
+    ) external onlyRole(MINTER_ROLE) {
+        s_distributableBalanceOf[to][id] += value;
+
+        emit Mint(msg.sender, to, id, value);
+
+        _mint(to, id, value, data);
+    }
+
+    function mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) external onlyRole(MINTER_ROLE) {
+        for (uint256 i = 0; i < ids.length; i++) {
+            s_distributableBalanceOf[to][ids[i]] += values[i];
         }
+
+        emit MintBatch(msg.sender, to, ids, values);
+
+        _mintBatch(to, ids, values, data);
     }
 
     /**
-     * Updates many token types' properties.
-     * @param ids the IDs of the tokens to update properties for.
-     * @param tokensProperties The properties to set for the supplied tokens.
+     * Creates many new token types.
+     * @param tokenTypes The array of types to set to each new token type created.
      */
-    function batchUpdateTokensProperties(
-        uint256[] memory ids,
-        TokenProperties[] memory tokensProperties
-    ) external onlyRole(TOKEN_UPDATER_ROLE) {
-        for (uint256 i = 0; i < tokensProperties.length; i++) {
-            _updateTokenProperties(ids[i], tokensProperties[i]);
-        }
-    }
+    // function batchCreateTokens(TokenType[] memory tokenTypes)
+    //     external
+    //     onlyRole(TOKEN_CREATOR_ROLE)
+    // {
+    //     uint256 startId = s_numOfTokens;
+    //     s_numOfTokens += tokenTypes.length;
+
+    //     for (uint256 i = startId; i < s_numOfTokens; i++) {
+    //         _createToken(tokenTypes[i], i);
+    //     }
+    // }
+
+    /**
+     * Updates many token types.
+     * @param ids the IDs of the tokens to update type for.
+     * @param tokenTypes The types to set for the supplied tokens.
+     */
+    // function batchUpdateTokens(
+    //     uint256[] memory ids,
+    //     TokenType[] memory tokenTypes
+    // ) external onlyRole(TOKEN_UPDATER_ROLE) {
+    //     for (uint256 i = 0; i < tokenTypes.length; i++) {
+    //         _updateToken(ids[i], tokenTypes[i]);
+    //     }
+    // }
+
+    /**
+     * Given many sequences, adds to the minting allowance of many minters.
+     * @param sequences Contains the recipients and operations to add allowances to for token Ids.
+     */
+    // function batchAddMintAllowances(Sequence[] memory sequences)
+    //     external
+    //     onlyRole(DEFAULT_ADMIN_ROLE)
+    // {
+    //     for (uint256 i = 0; i < sequences.length; i++) {
+    //         addMintAllowance(sequences[i]);
+    //     }
+    // }
 
     /**
      * Given many sequences, mints many operations of tokens to the recipients.
      * @param sequences Contains the recipients and tokens operations to mint tokens to.
      */
-    function batchMint(Sequence[] memory sequences)
-        external
-        onlyRole(MINTER_ROLE)
-    {
-        for (uint256 i = 0; i < sequences.length; i++) {
-            mint(sequences[i]);
-        }
-    }
+    // function batchMint(Sequence[] memory sequences)
+    //     external
+    //     onlyRole(DEFAULT_ADMIN_ROLE)
+    // {
+    //     for (uint256 i = 0; i < sequences.length; i++) {
+    //         mint(sequences[i]);
+    //     }
+    // }
 
-    /**
-     * Distributes many tokens to a user.
-     * @param from The distributor who will be sending distributing tokens.
-     * @param sequences Contains the recipients and tokens operations to distribute tokens.
-     */
-    function batchDistribute(
-        address from,
-        Sequence[] memory sequences
-    ) external onlyRole(DISTRIBUTOR_ROLE) {
-        for (uint256 i = 0; i < sequences.length; i++) {
-            distribute(from, sequences[i]);
-        }
-    }
+    // function safeBatchTransferFrom(
+    //     address from,
+    //     address to,
+    //     uint256[] memory ids,
+    //     uint256[] memory values,
+    //     bytes memory data
+    // ) public virtual {
+    //     address sender = _msgSender();
+    //     if (from != sender && !isApprovedForAll(from, sender)) {
+    //         revert ERC1155MissingApprovalForAll(sender, from);
+    //     }
+    //     _safeBatchTransferFrom(from, to, ids, values, data);
+    // }
 
     /**
      * Migrates all tokens to a new address only by authorized accounts.
@@ -180,14 +247,6 @@ contract ReputationTokens is
     }
 
     /**
-     * Sets the destination wallet for msg.sender
-     * @param destination The address where tokens will go when msg.sender is sent tokens by a distributor
-     */
-    function setDestinationWallet(address destination) external {
-        _setDestinationWallet(msg.sender, destination);
-    }
-
-    /**
      * Sets the tokenURI for a given token type.
      * @param tokenId token to update URI for.
      * @param tokenURI updated tokenURI.
@@ -205,119 +264,42 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Creates a new token type with custom properties.
-     * @param tokenProperties properties to assign to the new token type.
-     */
-    function createToken(TokenProperties memory tokenProperties)
-        public
-        onlyRole(TOKEN_CREATOR_ROLE)
-        returns (uint256 tokenId)
-    {
-        uint256 newTokenId = s_numOfTokens;
-        s_numOfTokens++;
+    // function createTokenBatch(TokenType[] memory tokenType)
+    //     public
+    //     onlyRole(TOKEN_CREATOR_ROLE)
+    //     returns (uint256 tokenId)
+    // {
+    //     uint256 newTokenId = s_numOfTokens;
+    //     s_numOfTokens++;
 
-        return _createToken(tokenProperties, newTokenId);
-    }
-
-    function _createToken(
-        TokenProperties memory tokenProperties,
-        uint256 id
-    ) public returns (uint256 tokenId) {
-        _updateTokenProperties(id, tokenProperties);
-
-        emit Create(tokenId);
-
-        tokenId = id;
-    }
+    //     return _createToken(tokenType, newTokenId);
+    // }
 
     /**
-     * Updates an existing token's properties.
-     * @param id The id of the token.
-     * @param tokenProperties The new properties of the token.
+     * Creates a new token type with a specified token type.
+     * @param tokenType token type to assign to the new token type.
      */
-    function updateTokenProperties(
-        uint256 id,
-        TokenProperties memory tokenProperties
-    ) public onlyRole(TOKEN_UPDATER_ROLE) {
-        _updateTokenProperties(id, tokenProperties);
-    }
+    // function createToken(TokenType tokenType)
+    //     public
+    //     onlyRole(TOKEN_CREATOR_ROLE)
+    //     returns (uint256 tokenId)
+    // {
+    //     uint256 newTokenId = s_numOfTokens;
+    //     s_numOfTokens++;
 
-    /**
-     * Given a sequence, mints an operation of tokens to the recipient.
-     * @dev recipient must have DISTRIBUTOR_ROLE.
-     * @param sequence Contains the recipient and token operations to mint tokens.
-     */
-    function mint(Sequence memory sequence) public onlyRole(MINTER_ROLE) {
-        if (!hasRole(DISTRIBUTOR_ROLE, sequence.recipient)) {
-            revert ReputationTokens__CanOnlyMintToDistributor();
-        }
+    //     return _createToken(tokenType, newTokenId);
+    // }
 
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            if (
-                sequence.operations[i].amount
-                    > s_tokensProperties[sequence.operations[i].id]
-                        .maxMintAmountPerTx
-            ) revert ReputationTokens__MintAmountExceedsLimit();
-        }
+    // function _createToken(
+    //     TokenType tokenType,
+    //     uint256 id
+    // ) public returns (uint256 tokenId) {
+    //     _updateToken(id, tokenType);
 
-        _initializeDestinationWallet(sequence.recipient);
+    //     emit Create(tokenId);
 
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            s_distributableBalance[sequence.recipient][sequence.operations[i].id]
-            += sequence.operations[i].amount;
-
-            emit Mint(
-                msg.sender,
-                sequence.recipient,
-                sequence.operations[i].id,
-                sequence.operations[i].amount
-            );
-        }
-
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            super._mint(
-                sequence.recipient,
-                sequence.operations[i].id,
-                sequence.operations[i].amount,
-                ""
-            );
-        }
-    }
-
-    /**
-     * Distributes tokens to a user.
-     * @param from The distributor who will be sending distributing tokens.
-     * @param sequence Contains the recipient and token operations to distribute tokens.
-     */
-    function distribute(
-        address from,
-        Sequence memory sequence
-    ) public onlyRole(DISTRIBUTOR_ROLE) {
-        _initializeDestinationWallet(sequence.recipient);
-
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            s_distributableBalance[from][sequence.operations[i].id] -=
-                sequence.operations[i].amount;
-
-            emit Distributed(
-                from,
-                s_destinationWallets[sequence.recipient],
-                sequence.operations[i].id,
-                sequence.operations[i].amount
-            );
-        }
-
-        for (uint256 i = 0; i < sequence.operations.length; i++) {
-            super.safeTransferFrom(
-                from,
-                s_destinationWallets[sequence.recipient],
-                sequence.operations[i].id,
-                sequence.operations[i].amount,
-                ""
-            );
-        }
-    }
+    //     tokenId = id;
+    // }
 
     /**
      * @dev Transfers a `value` amount of tokens of type `id` from `from` to `to`.
@@ -350,26 +332,32 @@ contract ReputationTokens is
         address from,
         address to,
         uint256 id,
-        uint256 amount,
+        uint256 value,
         bytes memory data
     ) public override {
-        if (s_tokensProperties[id].tokenType == TokenType.Soulbound) {
+        if (s_tokenType[id] == TokenType.Soulbound) {
             revert ReputationTokens__CannotTransferSoulboundToken();
         }
 
-        if (s_tokensProperties[id].tokenType == TokenType.Redeemable) {
-            if (hasRole(BURNER_ROLE, to)) {
-                s_burnedBalance[to][id] += amount;
-            } else {
-                revert ReputationTokens__CannotTransferRedeemableToNonBurner();
-            }
+        if (s_tokenType[id] == TokenType.Redeemable) {
+            s_burnedBalanceOf[to][id] += value;
         }
 
-        if (amount > getTransferrableBalance(from, id)) {
+        if (value > honestBalanceOf(from, id)) {
             revert ReputationTokens__CantSendThatManyTransferrableTokens();
         }
 
-        super.safeTransferFrom(from, to, id, amount, data);
+        super.safeTransferFrom(from, to, id, value, data);
+    }
+
+    function distribute(
+        address from,
+        address to,
+        uint256 id,
+        uint256 value
+    ) public {
+        s_distributableBalanceOf[from][id] -= value;
+        super.safeTransferFrom(from, to, id, value, "");
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -379,47 +367,29 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Updates an existing token's properties.
+     * Updates an existing token's type.
      * @param id The id of the token.
-     * @param tokenProperties The new properties of the token.
+     * @param tokenType The new type of the token.
      */
-    function _updateTokenProperties(
-        uint256 id,
-        TokenProperties memory tokenProperties
-    ) internal {
-        if (id >= s_numOfTokens) {
-            revert ReputationTokens__CannotUpdateNonexistentTokenType();
-        }
-
-        s_tokensProperties[id].tokenType = tokenProperties.tokenType;
-
-        s_tokensProperties[id].maxMintAmountPerTx =
-            tokenProperties.maxMintAmountPerTx;
-
-        emit Update(id);
+    function _updateToken(uint256 id, TokenType tokenType) internal {
+        s_tokenType[id] = tokenType;
     }
 
-    /**
-     * Sets the destination wallet for the provided address if the destination is currently unset.
-     * @param addr address who may get their destination wallet set
-     */
-    function _initializeDestinationWallet(address addr) internal {
-        if (s_destinationWallets[addr] == address(0)) {
-            _setDestinationWallet(addr, addr);
-        }
-    }
-
-    /**
-     * Sets the target's destination wallet to an address
-     * @param target The address who will get its destination wallet set
-     * @param destination The address that will receive tokens on behalf of `target`
-     */
-    function _setDestinationWallet(
-        address target,
-        address destination
+    function _updateTokenBatch(
+        uint256[] memory ids,
+        TokenType[] memory tokenTypes
     ) internal {
-        s_destinationWallets[target] = destination;
-        emit DestinationWalletSet(target, destination);
+        for (uint256 i = 0; i < ids.length; i++) {
+            _updateToken(ids[i], tokenTypes[i]);
+        }
+
+        // if (id >= s_numOfTokens) {
+        //     revert ReputationTokens__CannotUpdateNonexistentTokenType();
+        // }
+
+        // s_tokenType[id] = tokenType;
+
+        // emit Update(id);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -428,27 +398,50 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    function getTransferrableBalance(
+    function honestBalanceOf(
         address addr,
         uint256 tokenId
     ) public view returns (uint256 transferrableBalance) {
         uint256 balance = balanceOf(addr, tokenId);
-        transferrableBalance = balance - getDistributableBalance(addr, tokenId)
-            - getBurnedBalance(addr, tokenId);
+        transferrableBalance = balance - burnedBalanceOf(addr, tokenId)
+            - distributableBalanceOf(addr, tokenId);
     }
 
-    function getBurnedBalance(
+    function burnedBalanceOf(
         address addr,
         uint256 tokenId
     ) public view returns (uint256 burnedBalance) {
-        burnedBalance = s_burnedBalance[addr][tokenId];
+        burnedBalance = s_burnedBalanceOf[addr][tokenId];
     }
 
-    function getDistributableBalance(
+    function distributableBalanceOf(
         address addr,
         uint256 tokenId
     ) public view returns (uint256 distributableBalance) {
-        distributableBalance = s_distributableBalance[addr][tokenId];
+        distributableBalance = s_distributableBalanceOf[addr][tokenId];
+    }
+
+    // function getMintAllowance(
+    //     address target,
+    //     uint256 tokenId
+    // ) external view returns (uint256 amount) {
+    //     amount = mintAllowance[target][tokenId];
+    // }
+
+    // function getDestinationWallet(address addr)
+    //     external
+    //     view
+    //     returns (address)
+    // {
+    //     return s_destinationWallets[addr];
+    // }
+
+    function getNumOfTokenTypes() external view returns (uint256) {
+        return s_numOfTokens;
+    }
+
+    function getTokenType(uint256 id) external view returns (TokenType) {
+        return s_tokenType[id];
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -458,29 +451,5 @@ contract ReputationTokens is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
-    }
-
-    function getDestinationWallet(address addr)
-        external
-        view
-        returns (address)
-    {
-        return s_destinationWallets[addr];
-    }
-
-    function getMaxMintPerTx(uint256 index) external view returns (uint256) {
-        return s_tokensProperties[index].maxMintAmountPerTx;
-    }
-
-    function getNumOfTokenTypes() external view returns (uint256) {
-        return s_numOfTokens;
-    }
-
-    function getTokenProperties(uint256 id)
-        external
-        view
-        returns (TokenProperties memory)
-    {
-        return s_tokensProperties[id];
     }
 }
