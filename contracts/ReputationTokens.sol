@@ -363,19 +363,23 @@ contract ReputationTokens is
         uint256 value,
         bytes memory data
     ) public override {
-        if (s_tokenType[id] == TokenType.Soulbound) {
-            revert ReputationTokens__CannotTransferSoulboundToken();
-        }
-
-        if (value > honestBalanceOf(from, id)) {
-            revert ReputationTokens__InsufficientBalance();
-        }
-
-        if (s_tokenType[id] == TokenType.Redeemable) {
-            s_burnedBalanceOf[id][to] += value;
-        }
+        _validateToken(from, to, id, value);
 
         super.safeTransferFrom(from, to, id, value, data);
+    }
+
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) public override {
+        for (uint256 i = 0; i < ids.length; i++) {
+            _validateToken(from, to, ids[i], values[i]);
+        }
+
+        super.safeBatchTransferFrom(from, to, ids, values, data);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -424,6 +428,25 @@ contract ReputationTokens is
         uint256 value
     ) internal {
         s_distributableBalanceOf[id][from] -= value;
+    }
+
+    function _validateToken(
+        address from,
+        address to,
+        uint256 id,
+        uint256 value
+    ) internal {
+        if (s_tokenType[id] == TokenType.Soulbound) {
+            revert ReputationTokens__CannotTransferSoulboundToken();
+        }
+
+        if (value > honestBalanceOf(from, id)) {
+            revert ReputationTokens__InsufficientBalance();
+        }
+
+        if (s_tokenType[id] == TokenType.Redeemable) {
+            s_burnedBalanceOf[id][to] += value;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
