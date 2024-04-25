@@ -66,7 +66,6 @@ contract ReputationTokens is
     // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
     // bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    uint256 s_numOfTokens;
     mapping(uint256 id => TokenType) s_tokenType;
 
     // mapping(address distributor => mapping(uint256 tokenId => uint256))
@@ -259,19 +258,26 @@ contract ReputationTokens is
      *
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
-    function migrateOwnershipOfTokens(
+    function migrate(
         address from,
-        address to
+        address to,
+        uint256 id,
+        uint256 value,
+        bytes memory data
     ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
-        for (uint256 i = 0; i < s_numOfTokens; i++) {
-            uint256 balanceOfFrom = balanceOf(from, i);
-            emit OwnershipOfTokensMigrated(from, to, balanceOfFrom);
-        }
+        emit Migrate(from, to, id, value);
+        super.safeTransferFrom(from, to, id, value, data);
+    }
 
-        for (uint256 i = 0; i < s_numOfTokens; i++) {
-            uint256 balanceOfFrom = balanceOf(from, i);
-            super.safeTransferFrom(from, to, i, balanceOfFrom, "");
-        }
+    function migrateBatch(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
+        emit MigrateBatch(from, to, ids, values);
+        super.safeBatchTransferFrom(from, to, ids, values, data);
     }
 
     /**
@@ -484,10 +490,6 @@ contract ReputationTokens is
     // {
     //     return s_destinationWallets[addr];
     // }
-
-    function getNumOfTokenTypes() external view returns (uint256) {
-        return s_numOfTokens;
-    }
 
     function getTokenType(uint256 id) external view returns (TokenType) {
         return s_tokenType[id];

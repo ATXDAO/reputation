@@ -44,7 +44,13 @@ interface IReputationTokensEvents {
         uint256[] value
     );
 
-    event OwnershipOfTokensMigrated(
-        address indexed from, address indexed to, uint256 balance
+    event Migrate(
+        address indexed from, address indexed to, uint256 id, uint256 value
+    );
+    event MigrateBatch(
+        address indexed from,
+        address indexed to,
+        uint256[] ids,
+        uint256[] values
     );
 }
