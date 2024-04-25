@@ -44,9 +44,8 @@ contract ReputationTokens is
 
     mapping(uint256 id => TokenType) s_tokenType;
 
-    mapping(
-        uint256 tokenId => mapping(address distributor => uint256 allowance)
-    ) s_distributableBalanceOf;
+    mapping(uint256 tokenId => mapping(address distributor => uint256 balance))
+        s_distributableBalanceOf;
 
     mapping(uint256 tokenId => mapping(address burner => uint256 balance))
         s_burnedBalanceOf;
@@ -73,7 +72,7 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Updates an existing token's type.
+     * Updates a token's type.
      * @param id The id of the token.
      * @param tokenType The new type of the token.
      */
@@ -85,6 +84,11 @@ contract ReputationTokens is
         emit Update(id, tokenType);
     }
 
+    /**
+     * Updates a batch of tokens' types.
+     * @param ids The ids of the tokens.
+     * @param tokenTypes The new type of the tokens.
+     */
     function updateTokenBatch(
         uint256[] memory ids,
         TokenType[] memory tokenTypes
@@ -93,6 +97,13 @@ contract ReputationTokens is
         emit UpdateBatch(ids, tokenTypes);
     }
 
+    /**
+     * Mints a number of a specific token to an address.
+     * @param to The address where the tokens are minted to.
+     * @param id The id of the specific token to mint.
+     * @param value The number of tokens to mint.
+     * @param data N/A
+     */
     function mint(
         address to,
         uint256 id,
@@ -106,6 +117,13 @@ contract ReputationTokens is
         _mint(to, id, value, data);
     }
 
+    /**
+     * Mints a number of many tokens to an address.
+     * @param to The address where the tokens are minted to.
+     * @param ids The ids of the tokens to mint.
+     * @param values The number of tokens to mint per token.
+     * @param data N/A
+     */
     function mintBatch(
         address to,
         uint256[] memory ids,
@@ -121,6 +139,14 @@ contract ReputationTokens is
         _mintBatch(to, ids, values, data);
     }
 
+    /**
+     * Distributes a number of a specific token to an address.
+     * @param from The address where the tokens are transferred from.
+     * @param to The address where the tokens are distributed to.
+     * @param id The id of the specific token to distribute.
+     * @param value The number of tokens to distribute.
+     * @param data N/A
+     */
     function distribute(
         address from,
         address to,
@@ -135,6 +161,14 @@ contract ReputationTokens is
         super.safeTransferFrom(from, to, id, value, data);
     }
 
+    /**
+     * Distributes a number of many tokens to an address.
+     * @param from The address where the tokens are transferred from.
+     * @param to The address where the tokens are distributed to.
+     * @param ids The ids of the tokens to distribute.
+     * @param values The number of tokens to distribute per token.
+     * @param data N/A
+     */
     function distributeBatch(
         address from,
         address to,
@@ -150,9 +184,12 @@ contract ReputationTokens is
     }
 
     /**
-     * Migrates all tokens to a new address only by authorized accounts.
-     * @param from The address who is migrating their tokens.
-     * @param to The address who is receiving the migrated tokens.
+     *  A Token Migrator migrates an address' tokens to another address.
+     * @param from The address where the tokens are transferred from.
+     * @param to The address where the tokens are migrated to.
+     * @param id The id of the tokens to migrate.
+     * @param value The number of tokens to migrate.
+     * @param data N/A
      *
      * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
      */
@@ -167,6 +204,16 @@ contract ReputationTokens is
         super.safeTransferFrom(from, to, id, value, data);
     }
 
+    /**
+     *  A Token Migrator migrates an address' many tokens to another address.
+     * @param from The address where the many tokens are transferred from.
+     * @param to The address where the many tokens are migrated to.
+     * @param ids The ids of the many tokens to migrate.
+     * @param values The number of many tokens to migrate.
+     * @param data N/A
+     *
+     * @notice setApprovalForAll(TOKEN_MIGRATOR_ROLE, true) needs to be called prior by the `from` address to succesfully migrate tokens.
+     */
     function migrateBatch(
         address from,
         address to,
@@ -179,9 +226,9 @@ contract ReputationTokens is
     }
 
     /**
-     * Sets the tokenURI for a given token type.
-     * @param tokenId token to update URI for.
-     * @param tokenURI updated tokenURI.
+     * Sets the tokenURI of a token.
+     * @param tokenId token to update.
+     * @param tokenURI the token's new URI.
      */
     function setTokenURI(
         uint256 tokenId,
@@ -190,12 +237,34 @@ contract ReputationTokens is
         _setURI(tokenId, tokenURI);
     }
 
+    /**
+     * Sets the tokenURIs of many tokens.
+     * @param tokenIds tokens to update.
+     * @param tokenURIs the tokens' new URIs.
+     */
+    function setBatchTokenURI(
+        uint256[] memory tokenIds,
+        string[] memory tokenURIs
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            _setURI(tokenIds[i], tokenURIs[i]);
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     // Public Functions
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Transfers valid tokens to an address.
+     * @param from The address to transfer tokens from.
+     * @param to The address to transfer tokens to.
+     * @param id The id of the token to transfer.
+     * @param value The amount of tokens to transfer.
+     * @param data N/A
+     */
     function safeTransferFrom(
         address from,
         address to,
@@ -203,11 +272,19 @@ contract ReputationTokens is
         uint256 value,
         bytes memory data
     ) public override {
-        _validateToken(from, to, id, value);
+        _validateTokenBeforeTransfer(from, to, id, value);
 
         super.safeTransferFrom(from, to, id, value, data);
     }
 
+    /**
+     * Transfers many valid tokens to an address.
+     * @param from The address to transfer tokens from.
+     * @param to The address to transfer tokens to.
+     * @param ids The ids of the tokens to transfer.
+     * @param values The amounts of tokens to transfer.
+     * @param data N/A
+     */
     function safeBatchTransferFrom(
         address from,
         address to,
@@ -216,7 +293,7 @@ contract ReputationTokens is
         bytes memory data
     ) public override {
         for (uint256 i = 0; i < ids.length; i++) {
-            _validateToken(from, to, ids[i], values[i]);
+            _validateTokenBeforeTransfer(from, to, ids[i], values[i]);
         }
 
         super.safeBatchTransferFrom(from, to, ids, values, data);
@@ -229,7 +306,7 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Updates an existing token's type.
+     * Updates a token's type.
      * @param id The id of the token.
      * @param tokenType The new type of the token.
      */
@@ -237,6 +314,11 @@ contract ReputationTokens is
         s_tokenType[id] = tokenType;
     }
 
+    /**
+     * Updates many tokens' types.
+     * @param ids The ids of the tokens.
+     * @param tokenTypes The new types of the tokens.
+     */
     function _updateTokenBatch(
         uint256[] memory ids,
         TokenType[] memory tokenTypes
@@ -246,6 +328,12 @@ contract ReputationTokens is
         }
     }
 
+    /**
+     * Adds an amount of a distributable token to an address.
+     * @param id the id of the token.
+     * @param to the address to add distributable tokens to.
+     * @param value the amount of distributable tokens to add to an address.
+     */
     function _addToDistributionBalance(
         uint256 id,
         address to,
@@ -254,6 +342,12 @@ contract ReputationTokens is
         s_distributableBalanceOf[id][to] += value;
     }
 
+    /**
+     * Removes an amount of a distributable token to an address.
+     * @param id the id of the token.
+     * @param from the address to remove distributable tokens from.
+     * @param value the amount of distributable tokens to remove from an address.
+     */
     function _removeFromDistributionBalance(
         uint256 id,
         address from,
@@ -262,7 +356,16 @@ contract ReputationTokens is
         s_distributableBalanceOf[id][from] -= value;
     }
 
-    function _validateToken(
+    /**
+     * Validates a token for transfer based on several conditions.
+     * @param from The address to transfer tokens from.
+     * @param to The address to transfer tokens to.
+     * @param id The id of the token to transfer.
+     * @param value The amount of tokens to transfer.
+     *
+     * @notice Also adds to the burned balance if token is Redeemable.
+     */
+    function _validateTokenBeforeTransfer(
         address from,
         address to,
         uint256 id,
