@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import {IReputationTokensTypes} from "./IReputationTokensTypes.sol";
+
 /**
  * @title Interface for Reputation Tokens Internal
  * @author Jacob Homanics
@@ -8,15 +10,9 @@ pragma solidity ^0.8.18;
  * Hosts the error messages for Reputation Tokens Internal.
  * Additionally, inherits the proper events as well from Reputation Tokens Internal Interface.
  */
-interface IReputationTokensEvents {
-    enum TokenType {
-        Transferable,
-        Soulbound,
-        Redeemable
-    }
-
+interface IReputationTokensEvents is IReputationTokensTypes {
     ///////////////////
-    // Errors
+    // Events
     ///////////////////
     event Create(uint256 indexed tokenId);
     event Update(uint256 indexed tokenId, TokenType indexed tokenType);

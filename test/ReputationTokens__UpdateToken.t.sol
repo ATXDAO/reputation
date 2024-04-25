@@ -7,6 +7,7 @@ import {IReputationTokensEvents} from "../contracts/IReputationTokensEvents.sol"
 import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
+import {IReputationTokensTypes} from "../contracts/IReputationTokensTypes.sol";
 
 contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
     ////////////////////////
@@ -15,8 +16,8 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
 
     function testUpdateTokenType(uint256 id, uint256 tokenTypeId) public {
         tokenTypeId = bound(tokenTypeId, 0, getNumTokenTypesMaxBound());
-        IReputationTokensEvents.TokenType tokenType =
-            IReputationTokensEvents.TokenType(tokenTypeId);
+        IReputationTokensTypes.TokenType tokenType =
+            IReputationTokensTypes.TokenType(tokenTypeId);
 
         vm.expectEmit();
         emit IReputationTokensEvents.Update(id, tokenType);
@@ -28,15 +29,15 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
     }
 
     function testUpdateTokenBatch(uint256[] memory tokenTypeIds) public {
-        IReputationTokensEvents.TokenType[] memory tokenTypes =
-            new IReputationTokensEvents.TokenType[](tokenTypeIds.length);
+        IReputationTokensTypes.TokenType[] memory tokenTypes =
+            new IReputationTokensTypes.TokenType[](tokenTypeIds.length);
 
         uint256[] memory uniqueIds = new uint256[](tokenTypeIds.length);
 
         for (uint256 i = 0; i < tokenTypeIds.length; i++) {
             tokenTypeIds[i] =
                 bound(tokenTypeIds[i], 0, getNumTokenTypesMaxBound());
-            tokenTypes[i] = IReputationTokensEvents.TokenType(tokenTypeIds[i]);
+            tokenTypes[i] = IReputationTokensTypes.TokenType(tokenTypeIds[i]);
             uniqueIds[i] = i;
         }
 

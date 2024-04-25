@@ -21,10 +21,6 @@ import {Test, console} from "forge-std/Test.sol";
  *
  * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
-
-// Max Mint Amount moved to per minter basis?
-// Rejoin minter and distributor.
-// Admin would re-up max mint supply for minters.
 contract ReputationTokens is
     ERC1155URIStorage,
     IReputationTokensErrors,
@@ -34,27 +30,10 @@ contract ReputationTokens is
 {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    // Types
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-
-    struct Operation {
-        uint256 id;
-        uint256 amount;
-    }
-
-    struct Sequence {
-        address recipient;
-        Operation[] operations;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
     // State Variables
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    // bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
     bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
     bytes32 public constant TOKEN_URI_SETTER_ROLE =
@@ -63,16 +42,7 @@ contract ReputationTokens is
     bytes32 public constant TOKEN_MIGRATOR_ROLE =
         keccak256("TOKEN_MIGRATOR_ROLE");
 
-    // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    // bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-
     mapping(uint256 id => TokenType) s_tokenType;
-
-    // mapping(address distributor => mapping(uint256 tokenId => uint256))
-    //     s_distributableBalance;
-
-    // mapping(uint256 tokenId => mapping(address minter => uint256 allowance))
-    //     mintAllowance;
 
     mapping(
         uint256 tokenId => mapping(address distributor => uint256 allowance)
@@ -80,8 +50,6 @@ contract ReputationTokens is
 
     mapping(uint256 tokenId => mapping(address burner => uint256 balance))
         s_burnedBalanceOf;
-
-    // mapping(address => address) s_destinationWallets;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -182,76 +150,6 @@ contract ReputationTokens is
     }
 
     /**
-     * Creates many new token types.
-     * @param tokenTypes The array of types to set to each new token type created.
-     */
-    // function batchCreateTokens(TokenType[] memory tokenTypes)
-    //     external
-    //     onlyRole(TOKEN_CREATOR_ROLE)
-    // {
-    //     uint256 startId = s_numOfTokens;
-    //     s_numOfTokens += tokenTypes.length;
-
-    //     for (uint256 i = startId; i < s_numOfTokens; i++) {
-    //         _createToken(tokenTypes[i], i);
-    //     }
-    // }
-
-    /**
-     * Updates many token types.
-     * @param ids the IDs of the tokens to update type for.
-     * @param tokenTypes The types to set for the supplied tokens.
-     */
-    // function batchUpdateTokens(
-    //     uint256[] memory ids,
-    //     TokenType[] memory tokenTypes
-    // ) external onlyRole(TOKEN_UPDATER_ROLE) {
-    //     for (uint256 i = 0; i < tokenTypes.length; i++) {
-    //         _updateToken(ids[i], tokenTypes[i]);
-    //     }
-    // }
-
-    /**
-     * Given many sequences, adds to the minting allowance of many minters.
-     * @param sequences Contains the recipients and operations to add allowances to for token Ids.
-     */
-    // function batchAddMintAllowances(Sequence[] memory sequences)
-    //     external
-    //     onlyRole(DEFAULT_ADMIN_ROLE)
-    // {
-    //     for (uint256 i = 0; i < sequences.length; i++) {
-    //         addMintAllowance(sequences[i]);
-    //     }
-    // }
-
-    /**
-     * Given many sequences, mints many operations of tokens to the recipients.
-     * @param sequences Contains the recipients and tokens operations to mint tokens to.
-     */
-    // function batchMint(Sequence[] memory sequences)
-    //     external
-    //     onlyRole(DEFAULT_ADMIN_ROLE)
-    // {
-    //     for (uint256 i = 0; i < sequences.length; i++) {
-    //         mint(sequences[i]);
-    //     }
-    // }
-
-    // function safeBatchTransferFrom(
-    //     address from,
-    //     address to,
-    //     uint256[] memory ids,
-    //     uint256[] memory values,
-    //     bytes memory data
-    // ) public virtual {
-    //     address sender = _msgSender();
-    //     if (from != sender && !isApprovedForAll(from, sender)) {
-    //         revert ERC1155MissingApprovalForAll(sender, from);
-    //     }
-    //     _safeBatchTransferFrom(from, to, ids, values, data);
-    // }
-
-    /**
      * Migrates all tokens to a new address only by authorized accounts.
      * @param from The address who is migrating their tokens.
      * @param to The address who is receiving the migrated tokens.
@@ -298,70 +196,6 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    // function createTokenBatch(TokenType[] memory tokenType)
-    //     public
-    //     onlyRole(TOKEN_CREATOR_ROLE)
-    //     returns (uint256 tokenId)
-    // {
-    //     uint256 newTokenId = s_numOfTokens;
-    //     s_numOfTokens++;
-
-    //     return _createToken(tokenType, newTokenId);
-    // }
-
-    /**
-     * Creates a new token type with a specified token type.
-     * @param tokenType token type to assign to the new token type.
-     */
-    // function createToken(TokenType tokenType)
-    //     public
-    //     onlyRole(TOKEN_CREATOR_ROLE)
-    //     returns (uint256 tokenId)
-    // {
-    //     uint256 newTokenId = s_numOfTokens;
-    //     s_numOfTokens++;
-
-    //     return _createToken(tokenType, newTokenId);
-    // }
-
-    // function _createToken(
-    //     TokenType tokenType,
-    //     uint256 id
-    // ) public returns (uint256 tokenId) {
-    //     _updateToken(id, tokenType);
-
-    //     emit Create(tokenId);
-
-    //     tokenId = id;
-    // }
-
-    /**
-     * @dev Transfers a `value` amount of tokens of type `id` from `from` to `to`.
-     *
-     * WARNING: This function can potentially allow a reentrancy attack when transferring tokens
-     * to an untrusted contract, when invoking {onERC1155Received} on the receiver.
-     * Ensure to follow the checks-effects-interactions pattern and consider employing
-     * reentrancy guards when interacting with untrusted contracts.
-     *
-     * Emits a {TransferSingle} event.
-     *
-     * Requirements:
-     *
-     * - `to` cannot be the zero address.
-     * - If the caller is not `from`, it must have been approved to spend ``from``'s tokens via {setApprovalForAll}.
-     * - `from` must have a balance of tokens of type `id` of at least `value` amount.
-     * - If `to` refers to a smart contract, it must implement {IERC1155Receiver-onERC1155Received} and return the
-     * acceptance magic value.
-     *
-     *
-     * ReputationTokens:
-     *
-     *
-     * CANNOT transfer Soulbound tokens
-     * CAN transfer Redeemable tokens ONLY TO accounts with the BURNER_ROLE.
-     * amount MUST be greater than transferable balance
-     * CAN transfer Transferable tokens.
-     */
     function safeTransferFrom(
         address from,
         address to,
@@ -475,21 +309,6 @@ contract ReputationTokens is
     ) public view returns (uint256 distributableBalance) {
         distributableBalance = s_distributableBalanceOf[tokenId][addr];
     }
-
-    // function getMintAllowance(
-    //     address target,
-    //     uint256 tokenId
-    // ) external view returns (uint256 amount) {
-    //     amount = mintAllowance[target][tokenId];
-    // }
-
-    // function getDestinationWallet(address addr)
-    //     external
-    //     view
-    //     returns (address)
-    // {
-    //     return s_destinationWallets[addr];
-    // }
 
     function getTokenType(uint256 id) external view returns (TokenType) {
         return s_tokenType[id];

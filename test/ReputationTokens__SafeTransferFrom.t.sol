@@ -7,6 +7,7 @@ import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 import {IReputationTokensEvents} from "../contracts/IReputationTokensEvents.sol";
+import {IReputationTokensTypes} from "../contracts/IReputationTokensTypes.sol";
 
 contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     address user1;
@@ -44,7 +45,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function testSafeTransferFromToBurner(uint256 value) public {
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensEvents.TokenType.Redeemable
+            tokenId, IReputationTokensTypes.TokenType.Redeemable
         );
 
         uint256 priorBalance = s_repTokens.honestBalanceOf(user1, tokenId);
@@ -61,7 +62,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function testRevertSafeTransferFromSoulboundToken(uint256 value) public {
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensEvents.TokenType.Soulbound
+            tokenId, IReputationTokensTypes.TokenType.Soulbound
         );
 
         vm.expectRevert(
@@ -84,7 +85,7 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
 
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensEvents.TokenType.Transferable
+            tokenId, IReputationTokensTypes.TokenType.Transferable
         );
 
         uint256 userBalance = s_repTokens.balanceOf(user1, tokenId);
