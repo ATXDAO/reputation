@@ -72,14 +72,14 @@ contract ReputationTokens is
     // mapping(address distributor => mapping(uint256 tokenId => uint256))
     //     s_distributableBalance;
 
-    mapping(address minter => mapping(uint256 tokenId => uint256 allowance))
-        mintAllowance;
+    // mapping(uint256 tokenId => mapping(address minter => uint256 allowance))
+    //     mintAllowance;
 
     mapping(
-        address distributor => mapping(uint256 tokenId => uint256 allowance)
+        uint256 tokenId => mapping(address distributor => uint256 allowance)
     ) s_distributableBalanceOf;
 
-    mapping(address burner => mapping(uint256 tokenId => uint256))
+    mapping(uint256 tokenId => mapping(address burner => uint256 balance))
         s_burnedBalanceOf;
 
     // mapping(address => address) s_destinationWallets;
@@ -132,7 +132,7 @@ contract ReputationTokens is
         uint256 value,
         bytes memory data
     ) external onlyRole(MINTER_ROLE) {
-        s_distributableBalanceOf[to][id] += value;
+        _addToDistributionBalance(id, to, value);
 
         emit Mint(msg.sender, to, id, value);
 
@@ -146,7 +146,7 @@ contract ReputationTokens is
         bytes memory data
     ) external onlyRole(MINTER_ROLE) {
         for (uint256 i = 0; i < ids.length; i++) {
-            s_distributableBalanceOf[to][ids[i]] += values[i];
+            _addToDistributionBalance(ids[i], to, values[i]);
         }
 
         emit MintBatch(msg.sender, to, ids, values);
@@ -161,7 +161,10 @@ contract ReputationTokens is
         uint256 value,
         bytes memory data
     ) external {
-        s_distributableBalanceOf[from][id] -= value;
+        _removeFromDistributionBalance(id, from, value);
+
+        emit Distribute(from, to, id, value);
+
         super.safeTransferFrom(from, to, id, value, data);
     }
 
@@ -173,7 +176,7 @@ contract ReputationTokens is
         bytes memory data
     ) external {
         for (uint256 i = 0; i < ids.length; i++) {
-            s_distributableBalanceOf[to][ids[i]] -= values[i];
+            _removeFromDistributionBalance(ids[i], from, values[i]);
         }
 
         super._safeBatchTransferFrom(from, to, ids, values, data);
@@ -365,7 +368,7 @@ contract ReputationTokens is
         }
 
         if (s_tokenType[id] == TokenType.Redeemable) {
-            s_burnedBalanceOf[to][id] += value;
+            s_burnedBalanceOf[id][to] += value;
         }
 
         if (value > honestBalanceOf(from, id)) {
@@ -407,6 +410,22 @@ contract ReputationTokens is
         // emit Update(id);
     }
 
+    function _addToDistributionBalance(
+        uint256 id,
+        address to,
+        uint256 value
+    ) internal {
+        s_distributableBalanceOf[id][to] += value;
+    }
+
+    function _removeFromDistributionBalance(
+        uint256 id,
+        address from,
+        uint256 value
+    ) internal {
+        s_distributableBalanceOf[id][from] -= value;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     // External & Public View & Pure Functions
@@ -426,14 +445,14 @@ contract ReputationTokens is
         address addr,
         uint256 tokenId
     ) public view returns (uint256 burnedBalance) {
-        burnedBalance = s_burnedBalanceOf[addr][tokenId];
+        burnedBalance = s_burnedBalanceOf[tokenId][addr];
     }
 
     function distributableBalanceOf(
         address addr,
         uint256 tokenId
     ) public view returns (uint256 distributableBalance) {
-        distributableBalance = s_distributableBalanceOf[addr][tokenId];
+        distributableBalance = s_distributableBalanceOf[tokenId][addr];
     }
 
     // function getMintAllowance(

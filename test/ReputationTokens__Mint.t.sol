@@ -17,23 +17,19 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
         uint256 tokenId,
         uint256 mintAmount
     ) public onlyValidAddress(toId) {
-        address distributor = vm.addr(toId);
+        address to = vm.addr(toId);
 
         vm.expectEmit();
-        emit IReputationTokensEvents.Mint(
-            MINTER, distributor, tokenId, mintAmount
-        );
+        emit IReputationTokensEvents.Mint(MINTER, to, tokenId, mintAmount);
 
         vm.prank(MINTER);
-        s_repTokens.mint(distributor, tokenId, mintAmount, "");
+        s_repTokens.mint(to, tokenId, mintAmount, "");
 
-        assertEq(s_repTokens.balanceOf(distributor, tokenId), mintAmount);
+        assertEq(s_repTokens.balanceOf(to, tokenId), mintAmount);
+        assertEq(s_repTokens.distributableBalanceOf(to, tokenId), mintAmount);
         assertEq(
-            s_repTokens.distributableBalanceOf(distributor, tokenId), mintAmount
-        );
-        assertEq(
-            s_repTokens.honestBalanceOf(distributor, tokenId),
-            s_repTokens.balanceOf(distributor, tokenId) - mintAmount
+            s_repTokens.honestBalanceOf(to, tokenId),
+            s_repTokens.balanceOf(to, tokenId) - mintAmount
         );
     }
 
@@ -52,6 +48,11 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
             cauterizeLength(ids, values);
 
         address to = vm.addr(toId);
+
+        vm.expectEmit();
+        emit IReputationTokensEvents.MintBatch(
+            MINTER, to, cauterizedIds, cauterizedValues
+        );
 
         vm.prank(MINTER);
         s_repTokens.mintBatch(to, cauterizedIds, cauterizedValues, "");

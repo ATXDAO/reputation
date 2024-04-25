@@ -23,10 +23,7 @@ interface IReputationTokensEvents {
     event UpdateBatch(uint256[] indexed tokenId, TokenType[] indexed tokenType);
 
     event Mint(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId,
-        uint256 values
+        address indexed from, address indexed to, uint256 tokenId, uint256 value
     );
 
     event MintBatch(
@@ -36,15 +33,15 @@ interface IReputationTokensEvents {
         uint256[] values
     );
 
-    event Distributed(
-        address indexed from,
-        address indexed to,
-        uint256 tokenId,
-        uint256 amount
+    event Distribute(
+        address indexed from, address indexed to, uint256 tokenId, uint256 value
     );
 
-    event DestinationWalletSet(
-        address indexed coreAddress, address indexed destination
+    event DistributeBatch(
+        address indexed from,
+        address indexed to,
+        uint256[] tokenId,
+        uint256[] value
     );
 
     event OwnershipOfTokensMigrated(
