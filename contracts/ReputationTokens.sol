@@ -28,7 +28,6 @@ contract ReputationTokens is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    bytes32 public constant TOKEN_CREATOR_ROLE = keccak256("TOKEN_CREATOR_ROLE");
     bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
     bytes32 public constant TOKEN_URI_SETTER_ROLE =
         keccak256("TOKEN_URI_SETTER_ROLE");
