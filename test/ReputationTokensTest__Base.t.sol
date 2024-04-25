@@ -42,7 +42,7 @@ contract ReputationTokensTest__Base is Test {
         setUpRole(s_repTokens.TOKEN_CREATOR_ROLE(), TOKEN_CREATOR);
         setUpRole(s_repTokens.TOKEN_UPDATER_ROLE(), TOKEN_UPDATER);
         setUpRole(s_repTokens.TOKEN_URI_SETTER_ROLE(), TOKEN_URI_SETTER);
-        // setUpRole(s_repTokens.MINTER_ROLE(), MINTER);
+        setUpRole(s_repTokens.MINTER_ROLE(), MINTER);
         setUpRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), TOKEN_MIGRATOR);
     }
 
@@ -74,6 +74,25 @@ contract ReputationTokensTest__Base is Test {
     // function createDefaultToken() public returns (uint256) {
     //     return createToken(ReputationTokens.TokenType.Transferable);
     // }
+
+    function cauterizeLength(
+        uint256[] memory arr1,
+        uint256[] memory arr2
+    ) public pure returns (uint256[] memory, uint256[] memory) {
+        if (arr1.length < arr2.length) {
+            uint256 arrayLength = arr1.length;
+            assembly {
+                mstore(arr2, arrayLength)
+            }
+        } else {
+            uint256 arrayLength = arr2.length;
+            assembly {
+                mstore(arr1, arrayLength)
+            }
+        }
+
+        return (arr1, arr2);
+    }
 
     modifier onlyValidAddress(uint256 id) {
         vm.assume(id > 0);

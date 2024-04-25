@@ -29,18 +29,13 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
         assertEq(tokenTypeId, uint8(s_repTokens.getTokenType(id)));
     }
 
-    function testUpdateTokenBatch(
-        uint256 numToChange,
-        uint256[] memory tokenTypeIds
-    ) public {
-        vm.assume(tokenTypeIds.length >= numToChange);
-
+    function testUpdateTokenBatch(uint256[] memory tokenTypeIds) public {
         IReputationTokensEvents.TokenType[] memory tokenTypes =
-            new IReputationTokensEvents.TokenType[](numToChange);
+            new IReputationTokensEvents.TokenType[](tokenTypeIds.length);
 
-        uint256[] memory uniqueIds = new uint256[](numToChange);
+        uint256[] memory uniqueIds = new uint256[](tokenTypeIds.length);
 
-        for (uint256 i = 0; i < numToChange; i++) {
+        for (uint256 i = 0; i < tokenTypeIds.length; i++) {
             tokenTypeIds[i] = bound(tokenTypeIds[i], 0, numOfTokenTypes - 1);
             tokenTypes[i] = IReputationTokensEvents.TokenType(tokenTypeIds[i]);
             uniqueIds[i] = i;
@@ -52,7 +47,7 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateTokenBatch(uniqueIds, tokenTypes);
 
-        for (uint256 i = 0; i < numToChange; i++) {
+        for (uint256 i = 0; i < tokenTypeIds.length; i++) {
             assertEq(
                 tokenTypeIds[i], uint8(s_repTokens.getTokenType(uniqueIds[i]))
             );

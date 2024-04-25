@@ -154,6 +154,31 @@ contract ReputationTokens is
         _mintBatch(to, ids, values, data);
     }
 
+    function distribute(
+        address from,
+        address to,
+        uint256 id,
+        uint256 value,
+        bytes memory data
+    ) external {
+        s_distributableBalanceOf[from][id] -= value;
+        super.safeTransferFrom(from, to, id, value, data);
+    }
+
+    function distributeBatch(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) external {
+        for (uint256 i = 0; i < ids.length; i++) {
+            s_distributableBalanceOf[to][ids[i]] -= values[i];
+        }
+
+        super._safeBatchTransferFrom(from, to, ids, values, data);
+    }
+
     /**
      * Creates many new token types.
      * @param tokenTypes The array of types to set to each new token type created.
@@ -348,16 +373,6 @@ contract ReputationTokens is
         }
 
         super.safeTransferFrom(from, to, id, value, data);
-    }
-
-    function distribute(
-        address from,
-        address to,
-        uint256 id,
-        uint256 value
-    ) public {
-        s_distributableBalanceOf[from][id] -= value;
-        super.safeTransferFrom(from, to, id, value, "");
     }
 
     ////////////////////////////////////////////////////////////////////////////
