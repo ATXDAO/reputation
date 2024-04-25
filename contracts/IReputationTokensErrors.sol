@@ -12,7 +12,6 @@ interface IReputationTokensErrors {
     ///////////////////
     // Errors
     ///////////////////
-    error ReputationTokens__CantSendThatManyTransferrableTokens();
-    error ReputationTokens__AttemptingToUpdateNonexistentToken();
+    error ReputationTokens__InsufficientBalance();
     error ReputationTokens__CannotTransferSoulboundToken();
 }

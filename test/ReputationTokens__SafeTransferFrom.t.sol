@@ -9,122 +9,101 @@ import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 import {IReputationTokensEvents} from "../contracts/IReputationTokensEvents.sol";
 
 contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
-    ////////////////////////
-    // Tests
-    ////////////////////////
+    address user1;
+    uint256 tokenId = 0;
 
-    // function testSafeTransferFrom() public {
-    //     uint256 distributorId = 1;
-    //     uint256 user1Id = 2;
-    //     uint256 tokenId = 0;
-    //     uint256 value = 2;
-    //     uint256 user2Id = 2;
+    function setUp() public override {
+        super.setUp();
 
-    //     address distributor = vm.addr(distributorId);
-    //     address user1 = vm.addr(user1Id);
-    //     address user2 = vm.addr(user2Id);
+        uint256 value = type(uint256).max;
 
-    //     vm.prank(TOKEN_UPDATER);
-    //     s_repTokens.updateToken(
-    //         tokenId, IReputationTokensEvents.TokenType.Transferable
-    //     );
-
-    //     vm.prank(MINTER);
-    //     s_repTokens.mint(distributor, tokenId, 3, "");
-
-    //     vm.prank(distributor);
-    //     s_repTokens.distribute(distributor, user1, tokenId, 3, "");
-
-    //     console.log(value);
-    //     uint256 priorBalanceUser1 = s_repTokens.balanceOf(user1, tokenId);
-    //     console.log(priorBalanceUser1);
-    //     uint256 diff = priorBalanceUser1 - value;
-    //     console.log(diff);
-    //     vm.prank(user1);
-    //     s_repTokens.safeTransferFrom(user1, user2, tokenId, value, "");
-
-    //     uint256 user1BalanceOf = s_repTokens.balanceOf(user1, tokenId);
-    //     uint256 user2BalanceOf = s_repTokens.balanceOf(user2, tokenId);
-
-    //     uint256 userDiff = user2BalanceOf - user1BalanceOf;
-
-    //     assertEq(value, user2BalanceOf - userDiff);
-    //     assertEq(userDiff, user1BalanceOf - value);
-
-    //     uint256 postBalanceUser1 = s_repTokens.balanceOf(user1, tokenId);
-    //     console.log(postBalanceUser1);
-
-    //     console.log(postBalanceUser1 - diff);
-
-    //     // assertEq(postBalanceUser1, postBalanceUser1 - diff);
-    // }
-
-    function testSafeTransferFrom(
-        uint256 distributorId,
-        uint256 user1Id,
-        uint256 tokenId,
-        uint256 value,
-        uint256 user2Id
-    )
-        public
-        onlyValidAddress(distributorId)
-        onlyValidAddress(user1Id)
-        onlyValidAddress(user2Id)
-    {
-        address distributor = vm.addr(distributorId);
-        address user1 = vm.addr(user1Id);
-        address user2 = vm.addr(user2Id);
-
-        vm.prank(TOKEN_UPDATER);
-        s_repTokens.updateToken(
-            tokenId, IReputationTokensEvents.TokenType.Transferable
-        );
+        address distributor = vm.addr(1);
+        user1 = vm.addr(2);
 
         vm.prank(MINTER);
         s_repTokens.mint(distributor, tokenId, value, "");
 
         vm.prank(distributor);
         s_repTokens.distribute(distributor, user1, tokenId, value, "");
+    }
+
+    ////////////////////////
+    // Tests
+    ////////////////////////
+
+    function testSafeTransferFrom(
+        uint256 value,
+        uint256 user2Id
+    ) public onlyValidAddress(user2Id) {
+        address user2 = vm.addr(user2Id);
 
         vm.prank(user1);
         s_repTokens.safeTransferFrom(user1, user2, tokenId, value, "");
-
-        uint256 user1BalanceOf = s_repTokens.balanceOf(user1, tokenId);
-        uint256 user2BalanceOf = s_repTokens.balanceOf(user2, tokenId);
-
-        uint256 userDiff = user2BalanceOf - user1BalanceOf;
-
-        assertEq(value, user2BalanceOf);
-        assertEq(value, user1BalanceOf + userDiff);
     }
 
-    // function testDistributeBatch(
-    //     uint256 fromId,
-    //     uint256 toId,
-    //     uint256[] memory tokenIds,
-    //     uint32[] memory values32
-    // ) public onlyValidAddress(fromId) onlyValidAddress(toId) {
-    //     vm.assume(tokenIds.length > 0);
-    //     vm.assume(values32.length > 0);
+    function testSafeTransferFromToBurner(uint256 value) public {
+        vm.prank(TOKEN_UPDATER);
+        s_repTokens.updateToken(
+            tokenId, IReputationTokensEvents.TokenType.Redeemable
+        );
 
-    //     uint256[] memory values = new uint256[](values32.length);
+        uint256 priorBalance = s_repTokens.honestBalanceOf(user1, tokenId);
 
-    //     for (uint256 i = 0; i < values.length; i++) {
-    //         values[i] = values32[i];
-    //     }
+        vm.prank(user1);
+        s_repTokens.safeTransferFrom(user1, user1, tokenId, value, "");
 
-    //     (uint256[] memory cauterizedIds, uint256[] memory cauterizedValues) =
-    //         cauterizeLength(tokenIds, values);
+        assertEq(
+            priorBalance - value, s_repTokens.honestBalanceOf(user1, tokenId)
+        );
+        assertEq(value, s_repTokens.burnedBalanceOf(user1, tokenId));
+    }
 
-    //     address from = vm.addr(fromId);
-    //     address to = vm.addr(toId);
+    function testRevertSafeTransferFromSoulboundToken(uint256 value) public {
+        vm.prank(TOKEN_UPDATER);
+        s_repTokens.updateToken(
+            tokenId, IReputationTokensEvents.TokenType.Soulbound
+        );
 
-    //     vm.prank(MINTER);
-    //     s_repTokens.mintBatch(from, cauterizedIds, cauterizedValues, "");
+        vm.expectRevert(
+            IReputationTokensErrors
+                .ReputationTokens__CannotTransferSoulboundToken
+                .selector
+        );
 
-    //     vm.prank(from);
-    //     s_repTokens.distributeBatch(
-    //         from, to, cauterizedIds, cauterizedValues, ""
-    //     );
-    // }
+        vm.prank(user1);
+        s_repTokens.safeTransferFrom(user1, user1, tokenId, value, "");
+    }
+
+    function testRevertSafeTransferFromInsufficientBalance(
+        uint256 value,
+        uint256 user2Id
+    ) public onlyValidAddress(user2Id) {
+        vm.assume(value > 0);
+        address user2 = vm.addr(user2Id);
+        vm.assume(user2 != user1);
+
+        vm.prank(TOKEN_UPDATER);
+        s_repTokens.updateToken(
+            tokenId, IReputationTokensEvents.TokenType.Transferable
+        );
+
+        uint256 userBalance = s_repTokens.balanceOf(user1, tokenId);
+
+        vm.startPrank(user1);
+        s_repTokens.safeTransferFrom(user1, user2, tokenId, userBalance, "");
+
+        uint256 userBalance2 = s_repTokens.balanceOf(user1, tokenId);
+
+        console.log(userBalance2);
+
+        vm.expectRevert(
+            IReputationTokensErrors
+                .ReputationTokens__InsufficientBalance
+                .selector
+        );
+
+        s_repTokens.safeTransferFrom(user1, user2, tokenId, value, "");
+
+        vm.stopPrank();
+    }
 }

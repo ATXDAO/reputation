@@ -367,12 +367,12 @@ contract ReputationTokens is
             revert ReputationTokens__CannotTransferSoulboundToken();
         }
 
-        if (s_tokenType[id] == TokenType.Redeemable) {
-            s_burnedBalanceOf[id][to] += value;
+        if (value > honestBalanceOf(from, id)) {
+            revert ReputationTokens__InsufficientBalance();
         }
 
-        if (value > honestBalanceOf(from, id)) {
-            revert ReputationTokens__CantSendThatManyTransferrableTokens();
+        if (s_tokenType[id] == TokenType.Redeemable) {
+            s_burnedBalanceOf[id][to] += value;
         }
 
         super.safeTransferFrom(from, to, id, value, data);
