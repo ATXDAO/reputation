@@ -75,6 +75,12 @@ contract ReputationTokensTest__Base is Test {
     //     return createToken(ReputationTokens.TokenType.Transferable);
     // }
 
+    uint256 numOfTokenTypes = 3;
+
+    function getNumTokenTypesMaxBound() public view returns (uint256) {
+        return numOfTokenTypes - 1;
+    }
+
     function cauterizeLength(
         uint256[] memory arr1,
         uint256[] memory arr2

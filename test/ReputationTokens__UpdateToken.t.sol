@@ -9,14 +9,12 @@ import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
-    uint256 numOfTokenTypes = 3;
-
     ////////////////////////
     // Tests
     ////////////////////////
 
     function testUpdateTokenType(uint256 id, uint256 tokenTypeId) public {
-        tokenTypeId = bound(tokenTypeId, 0, numOfTokenTypes - 1);
+        tokenTypeId = bound(tokenTypeId, 0, getNumTokenTypesMaxBound());
         IReputationTokensEvents.TokenType tokenType =
             IReputationTokensEvents.TokenType(tokenTypeId);
 
@@ -36,7 +34,8 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
         uint256[] memory uniqueIds = new uint256[](tokenTypeIds.length);
 
         for (uint256 i = 0; i < tokenTypeIds.length; i++) {
-            tokenTypeIds[i] = bound(tokenTypeIds[i], 0, numOfTokenTypes - 1);
+            tokenTypeIds[i] =
+                bound(tokenTypeIds[i], 0, getNumTokenTypesMaxBound());
             tokenTypes[i] = IReputationTokensEvents.TokenType(tokenTypeIds[i]);
             uniqueIds[i] = i;
         }

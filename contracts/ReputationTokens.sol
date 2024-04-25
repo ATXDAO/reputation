@@ -404,14 +404,6 @@ contract ReputationTokens is
         for (uint256 i = 0; i < ids.length; i++) {
             _updateToken(ids[i], tokenTypes[i]);
         }
-
-        // if (id >= s_numOfTokens) {
-        //     revert ReputationTokens__CannotUpdateNonexistentTokenType();
-        // }
-
-        // s_tokenType[id] = tokenType;
-
-        // emit Update(id);
     }
 
     function _addToDistributionBalance(
