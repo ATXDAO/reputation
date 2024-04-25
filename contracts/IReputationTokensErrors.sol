@@ -12,12 +12,7 @@ interface IReputationTokensErrors {
     ///////////////////
     // Errors
     ///////////////////
-    error ReputationTokens__CannotUpdateNonexistentTokenType();
-    error ReputationTokens__MintAmountExceedsLimit();
-    error ReputationTokens__CanOnlyMintToDistributor();
     error ReputationTokens__CantSendThatManyTransferrableTokens();
-    error ReputationTokens__CannotTransferRedeemableToNonBurner();
     error ReputationTokens__AttemptingToUpdateNonexistentToken();
     error ReputationTokens__CannotTransferSoulboundToken();
-    error ReputationTokens__CannotSetAllowanceForNonMinter();
 }

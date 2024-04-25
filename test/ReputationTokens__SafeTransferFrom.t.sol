@@ -1,143 +1,130 @@
-// // SPDX-License-Identifier: UNLICENSED
-// pragma solidity ^0.8.13;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
 
-// import {Test, console} from "forge-std/Test.sol";
-// import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
-// import {ReputationTokens} from "../contracts/ReputationTokens.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
+import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 
-// import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
+import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
+import {IReputationTokensEvents} from "../contracts/IReputationTokensEvents.sol";
 
-// contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
-//     uint256 constant DEFAULT_MAX_MINT_AMOUNT = 100;
+contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
+    ////////////////////////
+    // Tests
+    ////////////////////////
 
-//     address user1;
-//     address transferRecipient;
+    // function testSafeTransferFrom() public {
+    //     uint256 distributorId = 1;
+    //     uint256 user1Id = 2;
+    //     uint256 tokenId = 0;
+    //     uint256 value = 2;
+    //     uint256 user2Id = 2;
 
-//     function setUp() public override {
-//         user1 = vm.addr(15);
-//         transferRecipient = vm.addr(17);
+    //     address distributor = vm.addr(distributorId);
+    //     address user1 = vm.addr(user1Id);
+    //     address user2 = vm.addr(user2Id);
 
-//         super.setUp();
-//     }
+    //     vm.prank(TOKEN_UPDATER);
+    //     s_repTokens.updateToken(
+    //         tokenId, IReputationTokensEvents.TokenType.Transferable
+    //     );
 
-//     function createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-//         ReputationTokens.TokenType tokenType
-//     ) public returns (uint256 tokenId) {
-//         tokenId = createToken(ReputationTokens.TokenType(tokenType));
+    //     vm.prank(MINTER);
+    //     s_repTokens.mint(distributor, tokenId, 3, "");
 
-//         ReputationTokens.Sequence memory mintSequence;
-//         mintSequence.operations = new ReputationTokens.Operation[](1);
-//         mintSequence.recipient = DISTRIBUTOR;
+    //     vm.prank(distributor);
+    //     s_repTokens.distribute(distributor, user1, tokenId, 3, "");
 
-//         mintSequence.operations[0].id = tokenId;
-//         mintSequence.operations[0].amount = DEFAULT_MAX_MINT_AMOUNT;
+    //     console.log(value);
+    //     uint256 priorBalanceUser1 = s_repTokens.balanceOf(user1, tokenId);
+    //     console.log(priorBalanceUser1);
+    //     uint256 diff = priorBalanceUser1 - value;
+    //     console.log(diff);
+    //     vm.prank(user1);
+    //     s_repTokens.safeTransferFrom(user1, user2, tokenId, value, "");
 
-//         mint(mintSequence);
-//     }
+    //     uint256 user1BalanceOf = s_repTokens.balanceOf(user1, tokenId);
+    //     uint256 user2BalanceOf = s_repTokens.balanceOf(user2, tokenId);
 
-//     function createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero(
-//     ) internal returns (uint256 tokenId) {
-//         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-//             ReputationTokens.TokenType.Soulbound
-//         );
-//     }
+    //     uint256 userDiff = user2BalanceOf - user1BalanceOf;
 
-//     function createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero(
-//     ) internal returns (uint256 tokenId) {
-//         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-//             ReputationTokens.TokenType.Redeemable
-//         );
-//     }
+    //     assertEq(value, user2BalanceOf - userDiff);
+    //     assertEq(userDiff, user1BalanceOf - value);
 
-//     function createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero(
-//     ) internal returns (uint256 tokenId) {
-//         tokenId = createAndMintAndDistributTokenWithMaxMintAmountMoreThanZero(
-//             ReputationTokens.TokenType.Transferable
-//         );
-//     }
+    //     uint256 postBalanceUser1 = s_repTokens.balanceOf(user1, tokenId);
+    //     console.log(postBalanceUser1);
 
-//     ////////////////////////
-//     // Tests
-//     ////////////////////////
+    //     console.log(postBalanceUser1 - diff);
 
-//     function testSafeTransferFrom() public {
-//         uint256 tokenId =
-//         createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
+    //     // assertEq(postBalanceUser1, postBalanceUser1 - diff);
+    // }
 
-//         vm.prank(user1);
-//         s_repTokens.safeTransferFrom(
-//             user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
-//         );
-//     }
+    function testSafeTransferFrom(
+        uint256 distributorId,
+        uint256 user1Id,
+        uint256 tokenId,
+        uint256 value,
+        uint256 user2Id
+    )
+        public
+        onlyValidAddress(distributorId)
+        onlyValidAddress(user1Id)
+        onlyValidAddress(user2Id)
+    {
+        address distributor = vm.addr(distributorId);
+        address user1 = vm.addr(user1Id);
+        address user2 = vm.addr(user2Id);
 
-//     function testSafeTransferFromBurn() public {
-//         uint256 tokenId =
-//         createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
+        vm.prank(TOKEN_UPDATER);
+        s_repTokens.updateToken(
+            tokenId, IReputationTokensEvents.TokenType.Transferable
+        );
 
-//         vm.prank(user1);
-//         s_repTokens.safeTransferFrom(
-//             user1, BURNER, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
-//         );
+        vm.prank(MINTER);
+        s_repTokens.mint(distributor, tokenId, value, "");
 
-//         assertEq(
-//             s_repTokens.getBurnedBalance(BURNER, tokenId),
-//             DEFAULT_MAX_MINT_AMOUNT
-//         );
-//     }
+        vm.prank(distributor);
+        s_repTokens.distribute(distributor, user1, tokenId, value, "");
 
-//     function testRevertSafeTransferFromSoulbound() public {
-//         uint256 tokenId =
-//         createAndMintAndDistributeSoulboundTokenWithMaxMintAmountMoreThanZero();
+        vm.prank(user1);
+        s_repTokens.safeTransferFrom(user1, user2, tokenId, value, "");
 
-//         vm.prank(user1);
+        uint256 user1BalanceOf = s_repTokens.balanceOf(user1, tokenId);
+        uint256 user2BalanceOf = s_repTokens.balanceOf(user2, tokenId);
 
-//         vm.expectRevert(
-//             IReputationTokensErrors
-//                 .ReputationTokens__CannotTransferSoulboundToken
-//                 .selector
-//         );
+        uint256 userDiff = user2BalanceOf - user1BalanceOf;
 
-//         s_repTokens.safeTransferFrom(
-//             user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
-//         );
-//     }
+        assertEq(value, user2BalanceOf);
+        assertEq(value, user1BalanceOf + userDiff);
+    }
 
-//     function testRevertIfTryingToTransferRedeemableToNonBurner() external {
-//         uint256 tokenId =
-//         createAndMintAndDistributeRedeemableTokenWithMaxMintAmountMoreThanZero();
+    // function testDistributeBatch(
+    //     uint256 fromId,
+    //     uint256 toId,
+    //     uint256[] memory tokenIds,
+    //     uint32[] memory values32
+    // ) public onlyValidAddress(fromId) onlyValidAddress(toId) {
+    //     vm.assume(tokenIds.length > 0);
+    //     vm.assume(values32.length > 0);
 
-//         vm.prank(user1);
+    //     uint256[] memory values = new uint256[](values32.length);
 
-//         vm.expectRevert(
-//             IReputationTokensErrors
-//                 .ReputationTokens__CannotTransferRedeemableToNonBurner
-//                 .selector
-//         );
+    //     for (uint256 i = 0; i < values.length; i++) {
+    //         values[i] = values32[i];
+    //     }
 
-//         s_repTokens.safeTransferFrom(
-//             user1, transferRecipient, tokenId, DEFAULT_MAX_MINT_AMOUNT, ""
-//         );
-//     }
+    //     (uint256[] memory cauterizedIds, uint256[] memory cauterizedValues) =
+    //         cauterizeLength(tokenIds, values);
 
-//     function testRevertSafeTransferFromCantSendThatManyTransferrableTokens()
-//         external
-//     {
-//         uint256 tokenId =
-//         createAndMintAndDistributeDefaultTokenWithMaxMintAmountMoreThanZero();
+    //     address from = vm.addr(fromId);
+    //     address to = vm.addr(toId);
 
-//         vm.prank(user1);
+    //     vm.prank(MINTER);
+    //     s_repTokens.mintBatch(from, cauterizedIds, cauterizedValues, "");
 
-//         vm.expectRevert(
-//             IReputationTokensErrors
-//                 .ReputationTokens__CantSendThatManyTransferrableTokens
-//                 .selector
-//         );
-//         s_repTokens.safeTransferFrom(
-//             DISTRIBUTOR,
-//             transferRecipient,
-//             tokenId,
-//             DEFAULT_MAX_MINT_AMOUNT + 1,
-//             ""
-//         );
-//     }
-// }
+    //     vm.prank(from);
+    //     s_repTokens.distributeBatch(
+    //         from, to, cauterizedIds, cauterizedValues, ""
+    //     );
+    // }
+}
