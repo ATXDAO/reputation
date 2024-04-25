@@ -5,21 +5,15 @@ import {
     ERC1155,
     ERC1155URIStorage
 } from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
-
-import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
-import {IReputationTokensEvents} from "./IReputationTokensEvents.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {Test, console} from "forge-std/Test.sol";
+import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
+import {IReputationTokensEvents} from "./IReputationTokensEvents.sol";
 
 /**
- * @title Reputation Token
+ * @title Reputation Tokens
  * @author Jacob Homanics
- *
- * Contains all of the functions for Repuation Tokens.
- *
- * @dev This contract inherits from IReputationTokensErrors. Which contains the errors and events for Reputation Tokens.
  */
 contract ReputationTokens is
     ERC1155URIStorage,
