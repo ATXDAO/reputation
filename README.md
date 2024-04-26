@@ -6,6 +6,8 @@
 
 Tracks trust in a tangible way for many organizations, businesses, or individuals with regards to another organization, business, or individual.
 
+### Commands
+
 Run a local chain
 
 `yarn chain`
