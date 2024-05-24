@@ -14,7 +14,6 @@ contract ReputationTokensTest__Base is Test {
     uint256 numOfTokenTypes = 3;
 
     address ADMIN = makeAddr("ADMIN");
-    address TOKEN_CREATOR = makeAddr("TOKEN_CREATOR");
     address TOKEN_UPDATER = makeAddr("TOKEN_UPDATER");
     address MINTER = makeAddr("MINTER");
     address TOKEN_URI_SETTER = makeAddr("TOKEN_URI_SETTER");
@@ -38,7 +37,6 @@ contract ReputationTokensTest__Base is Test {
     }
 
     function setUpRoles() public {
-        setUpRole(s_repTokens.TOKEN_CREATOR_ROLE(), TOKEN_CREATOR);
         setUpRole(s_repTokens.TOKEN_UPDATER_ROLE(), TOKEN_UPDATER);
         setUpRole(s_repTokens.TOKEN_URI_SETTER_ROLE(), TOKEN_URI_SETTER);
         setUpRole(s_repTokens.MINTER_ROLE(), MINTER);
