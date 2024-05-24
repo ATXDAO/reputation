@@ -11,17 +11,27 @@ import {IReputationTokensEvents} from "./IReputationTokensEvents.sol";
 
 import {ReputationTokensBase} from "./ReputationTokensBase.sol";
 
+import {Initializable} from
+    "@solidstate/contracts/security/initializable/Initializable.sol";
+
 /**
  * @title Reputation Tokens
  * @author Jacob Homanics
  */
-contract ReputationTokensUpgradeable is Ownable, ReputationTokensBase {
+contract ReputationTokensUpgradeable is
+    Ownable,
+    ReputationTokensBase,
+    Initializable
+{
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     // Functions
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    function initialize(address newOwner, address[] memory admins) external {
+    function initialize(
+        address newOwner,
+        address[] memory admins
+    ) external initializer {
         _transferOwnership(newOwner);
 
         for (uint256 i = 0; i < admins.length; i++) {
