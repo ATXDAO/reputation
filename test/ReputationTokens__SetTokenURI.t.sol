@@ -8,8 +8,6 @@ import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 
 contract ReputationTokens__SetTokenURI is ReputationTokensTest__Base {
-   
-
     ////////////////////////
     // Tests
     ////////////////////////

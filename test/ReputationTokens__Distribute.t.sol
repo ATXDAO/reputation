@@ -9,7 +9,6 @@ import {ReputationTokensTest__Base} from "./ReputationTokensTest__Base.t.sol";
 import {IReputationTokensEvents} from "../contracts/IReputationTokensEvents.sol";
 
 contract ReputationTokens__Distribute is ReputationTokensTest__Base {
-
     ////////////////////////
     // Tests
     ////////////////////////

@@ -30,6 +30,9 @@ import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
 import {SolidStateERC1155} from
     "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
 
+import {AccessControl} from
+    "@solidstate/contracts/access/access_control/AccessControl.sol";
+
 /**
  * @title Reputation Tokens
  * @author Jacob Homanics
@@ -38,6 +41,7 @@ abstract contract ReputationTokensBase is
     // AccessControlUpgradeable,
     // OwnableUpgradeable,
     SolidStateERC1155,
+    AccessControl,
     // ERC1155Metadata,
     IReputationTokensErrors,
     IReputationTokensEvents
@@ -47,6 +51,13 @@ abstract contract ReputationTokensBase is
     // State Variables
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
+
+    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
+    bytes32 public constant TOKEN_URI_SETTER_ROLE =
+        keccak256("TOKEN_URI_SETTER_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant TOKEN_MIGRATOR_ROLE =
+        keccak256("TOKEN_MIGRATOR_ROLE");
 
     mapping(uint256 id => TokenType) s_tokenType;
 
@@ -73,7 +84,10 @@ abstract contract ReputationTokensBase is
      * @param id The id of the token.
      * @param tokenType The new type of the token.
      */
-    function updateToken(uint256 id, TokenType tokenType) public virtual {
+    function updateToken(
+        uint256 id,
+        TokenType tokenType
+    ) external onlyRole(TOKEN_UPDATER_ROLE) {
         _updateToken(id, tokenType);
         emit Update(id, tokenType);
     }
@@ -86,7 +100,7 @@ abstract contract ReputationTokensBase is
     function updateTokenBatch(
         uint256[] memory ids,
         TokenType[] memory tokenTypes
-    ) public virtual {
+    ) external onlyRole(TOKEN_UPDATER_ROLE) {
         _updateTokenBatch(ids, tokenTypes);
         emit UpdateBatch(ids, tokenTypes);
     }
@@ -103,7 +117,7 @@ abstract contract ReputationTokensBase is
         uint256 id,
         uint256 value,
         bytes memory data
-    ) public virtual {
+    ) external onlyRole(MINTER_ROLE) {
         _addToDistributionBalance(id, to, value);
 
         emit Mint(msg.sender, to, id, value);
@@ -123,7 +137,7 @@ abstract contract ReputationTokensBase is
         uint256[] memory ids,
         uint256[] memory values,
         bytes memory data
-    ) public virtual {
+    ) external onlyRole(MINTER_ROLE) {
         for (uint256 i = 0; i < ids.length; i++) {
             _addToDistributionBalance(ids[i], to, values[i]);
         }
@@ -193,7 +207,7 @@ abstract contract ReputationTokensBase is
         uint256 id,
         uint256 value,
         bytes memory data
-    ) public virtual {
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
         emit Migrate(from, to, id, value);
         super.safeTransferFrom(from, to, id, value, data);
     }
@@ -214,7 +228,7 @@ abstract contract ReputationTokensBase is
         uint256[] memory ids,
         uint256[] memory values,
         bytes memory data
-    ) public virtual {
+    ) external onlyRole(TOKEN_MIGRATOR_ROLE) {
         emit MigrateBatch(from, to, ids, values);
         super.safeBatchTransferFrom(from, to, ids, values, data);
     }
@@ -227,7 +241,7 @@ abstract contract ReputationTokensBase is
     function setTokenURI(
         uint256 tokenId,
         string memory tokenURI
-    ) public virtual {
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
         _setTokenURI(tokenId, tokenURI);
     }
 
@@ -239,7 +253,7 @@ abstract contract ReputationTokensBase is
     function setBatchTokenURI(
         uint256[] memory tokenIds,
         string[] memory tokenURIs
-    ) public virtual {
+    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _setTokenURI(tokenIds[i], tokenURIs[i]);
         }
