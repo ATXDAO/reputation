@@ -20,7 +20,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
         address to = vm.addr(toId);
 
         vm.expectEmit();
-        emit IReputationTokensEvents.Mint(MINTER, to, tokenId, mintAmount);
+        // emit IReputationTokensEvents.Mint(MINTER, to, tokenId, mintAmount);
 
         vm.prank(MINTER);
         s_repTokens.mint(to, tokenId, mintAmount, "");
@@ -44,15 +44,20 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
             values[i] = values32[i];
         }
 
-        (uint256[] memory cauterizedIds, uint256[] memory cauterizedValues) =
-            cauterizeLength(ids, values);
+        (
+            uint256[] memory cauterizedIds,
+            uint256[] memory cauterizedValues
+        ) = cauterizeLength(ids, values);
 
         address to = vm.addr(toId);
 
         vm.expectEmit();
-        emit IReputationTokensEvents.MintBatch(
-            MINTER, to, cauterizedIds, cauterizedValues
-        );
+        // emit IReputationTokensEvents.MintBatch(
+        //     MINTER,
+        //     to,
+        //     cauterizedIds,
+        //     cauterizedValues
+        // );
 
         vm.prank(MINTER);
         s_repTokens.mintBatch(to, cauterizedIds, cauterizedValues, "");

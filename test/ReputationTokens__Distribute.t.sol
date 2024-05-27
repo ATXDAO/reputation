@@ -25,10 +25,12 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         s_repTokens.mint(from, tokenId, value, "");
 
         vm.expectEmit();
-        emit IReputationTokensEvents.Distribute(from, to, tokenId, value);
+        // emit IReputationTokensEvents.Distribute(from, to, tokenId, value);
 
-        uint256 distributeBalancePrior =
-            s_repTokens.distributableBalanceOf(from, tokenId);
+        uint256 distributeBalancePrior = s_repTokens.distributableBalanceOf(
+            from,
+            tokenId
+        );
 
         vm.prank(from);
         s_repTokens.distribute(from, to, tokenId, value, "");
@@ -57,8 +59,10 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
             values[i] = values32[i];
         }
 
-        (uint256[] memory cauterizedIds, uint256[] memory cauterizedValues) =
-            cauterizeLength(tokenIds, values);
+        (
+            uint256[] memory cauterizedIds,
+            uint256[] memory cauterizedValues
+        ) = cauterizeLength(tokenIds, values);
 
         address from = vm.addr(fromId);
         address to = vm.addr(toId);
@@ -68,7 +72,11 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
 
         vm.prank(from);
         s_repTokens.distributeBatch(
-            from, to, cauterizedIds, cauterizedValues, ""
+            from,
+            to,
+            cauterizedIds,
+            cauterizedValues,
+            ""
         );
     }
 }

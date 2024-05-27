@@ -9,39 +9,32 @@ import {ReputationTokensUpgradeable} from "./ReputationTokensUpgradeable.sol";
 contract ReputationTokensFactory is AccessControl {
     bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
 
-    address public implementation;
+    address public s_implementation;
 
     uint256 public contractInstanceCount;
     mapping(uint256 => ReputationTokensUpgradeable) public instances;
 
     event CreatedNewInstance(address);
 
-    constructor(
-        address[] memory _admins,
-        address[] memory _controllers,
-        address _implementation
-    ) {
+    constructor(address[] memory _admins, address implementation) {
         for (uint256 i = 0; i < _admins.length; i++) {
             _grantRole(DEFAULT_ADMIN_ROLE, _admins[i]);
         }
 
-        for (uint256 i = 0; i < _controllers.length; i++) {
-            _grantRole(DEPLOYER_ROLE, _controllers[i]);
-        }
-
-        if (_implementation != address(0)) {
-            implementation = _implementation;
+        if (implementation != address(0)) {
+            s_implementation = implementation;
         }
     }
 
     function createNewInstance(
         address owner,
         address[] memory admins
-    ) external onlyRole(DEPLOYER_ROLE) returns (address instanceAddress) {
-        address clone = Clones.clone(address(implementation));
+    ) external returns (address instanceAddress) {
+        address clone = Clones.clone(address(s_implementation));
 
-        ReputationTokensUpgradeable instance =
-            ReputationTokensUpgradeable(clone);
+        ReputationTokensUpgradeable instance = ReputationTokensUpgradeable(
+            clone
+        );
 
         instance.initialize(owner, admins);
 
@@ -51,5 +44,11 @@ contract ReputationTokensFactory is AccessControl {
         emit CreatedNewInstance(address(instance));
 
         instanceAddress = address(instance);
+    }
+
+    function setImplementation(address implementation) external {
+        if (implementation != address(0)) {
+            s_implementation = implementation;
+        }
     }
 }

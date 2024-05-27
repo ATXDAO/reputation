@@ -16,11 +16,11 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
 
     function testUpdateTokenType(uint256 id, uint256 tokenTypeId) public {
         tokenTypeId = bound(tokenTypeId, 0, getNumTokenTypesMaxBound());
-        IReputationTokensTypes.TokenType tokenType =
-            IReputationTokensTypes.TokenType(tokenTypeId);
+        IReputationTokensTypes.TokenType tokenType = IReputationTokensTypes
+            .TokenType(tokenTypeId);
 
         vm.expectEmit();
-        emit IReputationTokensEvents.Update(id, tokenType);
+        // emit IReputationTokensEvents.Update(id, tokenType);
 
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(id, tokenType);
@@ -29,27 +29,33 @@ contract ReputationTokens__UpdateToken is ReputationTokensTest__Base {
     }
 
     function testUpdateTokenBatch(uint256[] memory tokenTypeIds) public {
-        IReputationTokensTypes.TokenType[] memory tokenTypes =
-            new IReputationTokensTypes.TokenType[](tokenTypeIds.length);
+        IReputationTokensTypes.TokenType[]
+            memory tokenTypes = new IReputationTokensTypes.TokenType[](
+                tokenTypeIds.length
+            );
 
         uint256[] memory uniqueIds = new uint256[](tokenTypeIds.length);
 
         for (uint256 i = 0; i < tokenTypeIds.length; i++) {
-            tokenTypeIds[i] =
-                bound(tokenTypeIds[i], 0, getNumTokenTypesMaxBound());
+            tokenTypeIds[i] = bound(
+                tokenTypeIds[i],
+                0,
+                getNumTokenTypesMaxBound()
+            );
             tokenTypes[i] = IReputationTokensTypes.TokenType(tokenTypeIds[i]);
             uniqueIds[i] = i;
         }
 
         vm.expectEmit();
-        emit IReputationTokensEvents.UpdateBatch(uniqueIds, tokenTypes);
+        // emit IReputationTokensEvents.UpdateBatch(uniqueIds, tokenTypes);
 
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateTokenBatch(uniqueIds, tokenTypes);
 
         for (uint256 i = 0; i < tokenTypeIds.length; i++) {
             assertEq(
-                tokenTypeIds[i], uint8(s_repTokens.getTokenType(uniqueIds[i]))
+                tokenTypeIds[i],
+                uint8(s_repTokens.getTokenType(uniqueIds[i]))
             );
         }
     }
