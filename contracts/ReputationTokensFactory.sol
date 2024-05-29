@@ -14,7 +14,7 @@ contract ReputationTokensFactory is AccessControl {
     uint256 public contractInstanceCount;
     mapping(uint256 => ReputationTokensUpgradeable) public instances;
 
-    event CreatedNewInstance(address creator, address instance);
+    event CreatedNewInstance(address indexed creator, address indexed instance);
 
     constructor(address[] memory _admins, address implementation) {
         for (uint256 i = 0; i < _admins.length; i++) {
