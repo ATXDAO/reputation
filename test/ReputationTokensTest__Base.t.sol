@@ -6,8 +6,7 @@ import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol"
 
 import {ReputationTokens} from "../contracts/ReputationTokens.sol";
 
-import {ReputationTokensBaseTest__Base} from
-    "./ReputationTokensBaseTest__Base.t.sol";
+import {ReputationTokensBaseTest__Base} from "./ReputationTokensBaseTest__Base.t.sol";
 
 contract ReputationTokensTest__Base is ReputationTokensBaseTest__Base {
     ////////////////////////
@@ -17,6 +16,6 @@ contract ReputationTokensTest__Base is ReputationTokensBaseTest__Base {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
 
-        s_repTokens = new ReputationTokens(ADMIN, admins);
+        s_repTokens = new ReputationTokens(ADMIN, admins, admins);
     }
 }

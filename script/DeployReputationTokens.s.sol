@@ -9,7 +9,8 @@ contract DeployReputationTokens is ScaffoldETHDeploy {
 
     function run(
         address ownerNominee,
-        address[] memory admins
+        address[] memory admins,
+        address[] memory tokenUpdaters
     ) external returns (ReputationTokens) {
         uint256 deployerPrivateKey = setupLocalhostEnv();
         if (deployerPrivateKey == 0) {
@@ -18,7 +19,11 @@ contract DeployReputationTokens is ScaffoldETHDeploy {
             );
         }
         vm.startBroadcast(deployerPrivateKey);
-        ReputationTokens repTokens = new ReputationTokens(ownerNominee, admins);
+        ReputationTokens repTokens = new ReputationTokens(
+            ownerNominee,
+            admins,
+            tokenUpdaters
+        );
         console.logString(
             string.concat(
                 "ReputationTokens deployed at: ",

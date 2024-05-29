@@ -4,11 +4,9 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {IReputationTokensErrors} from "../contracts/IReputationTokensErrors.sol";
 
-import {ReputationTokensUpgradeable} from
-    "../contracts/ReputationTokensUpgradeable.sol";
+import {ReputationTokensUpgradeable} from "../contracts/ReputationTokensUpgradeable.sol";
 
-import {ReputationTokensBaseTest__Base} from
-    "./ReputationTokensBaseTest__Base.t.sol";
+import {ReputationTokensBaseTest__Base} from "./ReputationTokensBaseTest__Base.t.sol";
 
 contract ReputationTokensUpgradeableTest__Base is
     ReputationTokensBaseTest__Base
@@ -22,7 +20,9 @@ contract ReputationTokensUpgradeableTest__Base is
 
         s_repTokens = new ReputationTokensUpgradeable();
         ReputationTokensUpgradeable(address(s_repTokens)).initialize(
-            ADMIN, admins
+            ADMIN,
+            admins,
+            admins
         );
     }
 }

@@ -28,7 +28,8 @@ contract ReputationTokensFactory is AccessControl {
 
     function createNewInstance(
         address owner,
-        address[] memory admins
+        address[] memory admins,
+        address[] memory tokenUpdaters
     ) external returns (address instanceAddress) {
         address clone = Clones.clone(address(s_implementation));
 
@@ -36,7 +37,7 @@ contract ReputationTokensFactory is AccessControl {
             clone
         );
 
-        instance.initialize(owner, admins);
+        instance.initialize(owner, admins, tokenUpdaters);
 
         instances[contractInstanceCount] = instance;
         contractInstanceCount++;
