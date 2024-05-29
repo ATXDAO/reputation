@@ -39,7 +39,7 @@ contract ReputationTokensBaseTest__Base is Test {
 
     function setUpRoles() public {
         setUpRole(s_repTokens.TOKEN_UPDATER_ROLE(), TOKEN_UPDATER);
-        setUpRole(s_repTokens.TOKEN_URI_SETTER_ROLE(), TOKEN_URI_SETTER);
+        // setUpRole(s_repTokens.TOKEN_URI_SETTER_ROLE(), TOKEN_URI_SETTER);
         setUpRole(s_repTokens.MINTER_ROLE(), MINTER);
         setUpRole(s_repTokens.TOKEN_MIGRATOR_ROLE(), TOKEN_MIGRATOR);
     }
@@ -74,8 +74,7 @@ contract ReputationTokensBaseTest__Base is Test {
     modifier onlyValidAddress(uint256 id) {
         vm.assume(id > 0);
         vm.assume(
-            id
-                <
+            id <
                 115792089237316195423570985008687907852837564279074904382605163141518161494337
         );
         _;

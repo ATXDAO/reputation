@@ -45,7 +45,9 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function testSafeTransferFromToBurner(uint256 value) public {
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensTypes.TokenType.Redeemable
+            tokenId,
+            IReputationTokensTypes.TokenType.Redeemable,
+            ""
         );
 
         uint256 priorBalance = s_repTokens.honestBalanceOf(user1, tokenId);
@@ -54,7 +56,8 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
         s_repTokens.safeTransferFrom(user1, user1, tokenId, value, "");
 
         assertEq(
-            priorBalance - value, s_repTokens.honestBalanceOf(user1, tokenId)
+            priorBalance - value,
+            s_repTokens.honestBalanceOf(user1, tokenId)
         );
         assertEq(value, s_repTokens.burnedBalanceOf(user1, tokenId));
     }
@@ -62,7 +65,9 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
     function testRevertSafeTransferFromSoulboundToken(uint256 value) public {
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensTypes.TokenType.Soulbound
+            tokenId,
+            IReputationTokensTypes.TokenType.Soulbound,
+            ""
         );
 
         vm.expectRevert(
@@ -85,7 +90,9 @@ contract ReputationTokens__SafeTransferFrom is ReputationTokensTest__Base {
 
         vm.prank(TOKEN_UPDATER);
         s_repTokens.updateToken(
-            tokenId, IReputationTokensTypes.TokenType.Transferable
+            tokenId,
+            IReputationTokensTypes.TokenType.Transferable,
+            ""
         );
 
         uint256 userBalance = s_repTokens.balanceOf(user1, tokenId);

@@ -19,7 +19,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
     ) public onlyValidAddress(toId) {
         address to = vm.addr(toId);
 
-        vm.expectEmit();
+        // vm.expectEmit();
         // emit IReputationTokensEvents.Mint(MINTER, to, tokenId, mintAmount);
 
         vm.prank(MINTER);
@@ -51,7 +51,7 @@ contract ReputationTokens__Mint is ReputationTokensTest__Base {
 
         address to = vm.addr(toId);
 
-        vm.expectEmit();
+        // vm.expectEmit();
         // emit IReputationTokensEvents.MintBatch(
         //     MINTER,
         //     to,

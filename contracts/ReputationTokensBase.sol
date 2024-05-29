@@ -1,45 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {
-    ERC1155Upgradeable,
-    ERC1155URIStorageUpgradeable
-} from
-    "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155URIStorageUpgradeable.sol";
+import {ERC1155Upgradeable, ERC1155URIStorageUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155URIStorageUpgradeable.sol";
 
-import {OwnableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {AccessControlUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 import {IReputationTokensErrors} from "./IReputationTokensErrors.sol";
 import {IReputationTokensEvents} from "./IReputationTokensEvents.sol";
 
-import {ERC1155Metadata} from
-    "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
-import {IERC1155Metadata} from
-    "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
+import {ERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
+import {IERC1155Metadata} from "@solidstate/contracts/token/ERC1155/metadata/IERC1155Metadata.sol";
 
-import {ERC1155Base} from
-    "@solidstate/contracts/token/ERC1155/base/ERC1155Base.sol";
+import {ERC1155Base} from "@solidstate/contracts/token/ERC1155/base/ERC1155Base.sol";
 // import {ERC1155Metadata} from
 //     "@solidstate/contracts/token/ERC1155/metadata/ERC1155Metadata.sol";
 
 import {IERC1155} from "@solidstate/contracts/interfaces/IERC1155.sol";
 
-import {SolidStateERC1155} from
-    "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
+import {SolidStateERC1155} from "@solidstate/contracts/token/ERC1155/SolidStateERC1155.sol";
 
-import {AccessControl} from
-    "@solidstate/contracts/access/access_control/AccessControl.sol";
+import {AccessControl} from "@solidstate/contracts/access/access_control/AccessControl.sol";
 
 /**
  * @title Reputation Tokens
  * @author Jacob Homanics
  */
+// AccessControlUpgradeable,
+// OwnableUpgradeable,
 abstract contract ReputationTokensBase is
-    // AccessControlUpgradeable,
-    // OwnableUpgradeable,
     SolidStateERC1155,
     AccessControl,
     // ERC1155Metadata,
@@ -52,20 +41,17 @@ abstract contract ReputationTokensBase is
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    bytes32 public constant TOKEN_UPDATER_ROLE = keccak256("TOKEN_UPDATER_ROLE");
-    bytes32 public constant TOKEN_URI_SETTER_ROLE =
-        keccak256("TOKEN_URI_SETTER_ROLE");
+    bytes32 public constant TOKEN_UPDATER_ROLE =
+        keccak256("TOKEN_UPDATER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant TOKEN_MIGRATOR_ROLE =
         keccak256("TOKEN_MIGRATOR_ROLE");
 
     mapping(uint256 id => TokenType) s_tokenType;
 
-    mapping(uint256 tokenId => mapping(address distributor => uint256 balance))
-        s_distributableBalanceOf;
+    mapping(uint256 tokenId => mapping(address distributor => uint256 balance)) s_distributableBalanceOf;
 
-    mapping(uint256 tokenId => mapping(address burner => uint256 balance))
-        s_burnedBalanceOf;
+    mapping(uint256 tokenId => mapping(address burner => uint256 balance)) s_burnedBalanceOf;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -86,9 +72,10 @@ abstract contract ReputationTokensBase is
      */
     function updateToken(
         uint256 id,
-        TokenType tokenType
+        TokenType tokenType,
+        string memory uri
     ) external onlyRole(TOKEN_UPDATER_ROLE) {
-        _updateToken(id, tokenType);
+        _updateToken(id, tokenType, uri);
         emit Update(id, tokenType);
     }
 
@@ -99,9 +86,10 @@ abstract contract ReputationTokensBase is
      */
     function updateTokenBatch(
         uint256[] memory ids,
-        TokenType[] memory tokenTypes
+        TokenType[] memory tokenTypes,
+        string[] memory uris
     ) external onlyRole(TOKEN_UPDATER_ROLE) {
-        _updateTokenBatch(ids, tokenTypes);
+        _updateTokenBatch(ids, tokenTypes, uris);
         emit UpdateBatch(ids, tokenTypes);
     }
 
@@ -238,26 +226,26 @@ abstract contract ReputationTokensBase is
      * @param tokenId token to update.
      * @param tokenURI the token's new URI.
      */
-    function setTokenURI(
-        uint256 tokenId,
-        string memory tokenURI
-    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
-        _setTokenURI(tokenId, tokenURI);
-    }
+    // function setTokenURI(
+    //     uint256 tokenId,
+    //     string memory tokenURI
+    // ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+    //     _setTokenURI(tokenId, tokenURI);
+    // }
 
     /**
      * Sets the tokenURIs of many tokens.
      * @param tokenIds tokens to update.
      * @param tokenURIs the tokens' new URIs.
      */
-    function setBatchTokenURI(
-        uint256[] memory tokenIds,
-        string[] memory tokenURIs
-    ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            _setTokenURI(tokenIds[i], tokenURIs[i]);
-        }
-    }
+    // function setBatchTokenURI(
+    //     uint256[] memory tokenIds,
+    //     string[] memory tokenURIs
+    // ) external onlyRole(TOKEN_URI_SETTER_ROLE) {
+    //     for (uint256 i = 0; i < tokenIds.length; i++) {
+    //         _setTokenURI(tokenIds[i], tokenURIs[i]);
+    //     }
+    // }
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -318,8 +306,13 @@ abstract contract ReputationTokensBase is
      * @param id The id of the token.
      * @param tokenType The new type of the token.
      */
-    function _updateToken(uint256 id, TokenType tokenType) internal {
+    function _updateToken(
+        uint256 id,
+        TokenType tokenType,
+        string memory uri
+    ) internal {
         s_tokenType[id] = tokenType;
+        _setTokenURI(id, uri);
     }
 
     /**
@@ -329,10 +322,11 @@ abstract contract ReputationTokensBase is
      */
     function _updateTokenBatch(
         uint256[] memory ids,
-        TokenType[] memory tokenTypes
+        TokenType[] memory tokenTypes,
+        string[] memory uris
     ) internal {
         for (uint256 i = 0; i < ids.length; i++) {
-            _updateToken(ids[i], tokenTypes[i]);
+            _updateToken(ids[i], tokenTypes[i], uris[i]);
         }
     }
 
@@ -403,8 +397,10 @@ abstract contract ReputationTokensBase is
         uint256 tokenId
     ) public view returns (uint256 transferrableBalance) {
         uint256 balance = balanceOf(addr, tokenId);
-        transferrableBalance = balance - burnedBalanceOf(addr, tokenId)
-            - distributableBalanceOf(addr, tokenId);
+        transferrableBalance =
+            balance -
+            burnedBalanceOf(addr, tokenId) -
+            distributableBalanceOf(addr, tokenId);
     }
 
     function burnedBalanceOf(

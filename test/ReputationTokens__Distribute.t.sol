@@ -24,7 +24,7 @@ contract ReputationTokens__Distribute is ReputationTokensTest__Base {
         vm.prank(MINTER);
         s_repTokens.mint(from, tokenId, value, "");
 
-        vm.expectEmit();
+        // vm.expectEmit();
         // emit IReputationTokensEvents.Distribute(from, to, tokenId, value);
 
         uint256 distributeBalancePrior = s_repTokens.distributableBalanceOf(
