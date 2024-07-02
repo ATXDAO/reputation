@@ -10,7 +10,9 @@ contract DeployReputationTokens is ScaffoldETHDeploy {
     function run(
         address ownerNominee,
         address[] memory admins,
-        address[] memory tokenUpdaters
+        address[] memory tokenUpdaters,
+        ReputationTokens.TokenType[] memory tokenTypes,
+        string[] memory uris
     ) external returns (ReputationTokens) {
         uint256 deployerPrivateKey = setupLocalhostEnv();
         if (deployerPrivateKey == 0) {
@@ -22,7 +24,9 @@ contract DeployReputationTokens is ScaffoldETHDeploy {
         ReputationTokens repTokens = new ReputationTokens(
             ownerNominee,
             admins,
-            tokenUpdaters
+            tokenUpdaters,
+            tokenTypes,
+            uris
         );
         console.logString(
             string.concat(

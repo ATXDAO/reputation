@@ -14,7 +14,11 @@ contract DeployScript is ScaffoldETHDeploy {
 
     function run() external {
         DeployReputationTokens deployer = new DeployReputationTokens();
-        deployer.run(ownerNominee, admins, admins);
+
+        string[] memory uris;
+        ReputationTokensBase.TokenType[] memory tokenTypes;
+
+        deployer.run(ownerNominee, admins, admins, tokenTypes, uris);
 
         /**
          * This function generates the file containing the contracts Abi definitions.

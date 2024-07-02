@@ -16,6 +16,15 @@ contract ReputationTokensTest__Base is ReputationTokensBaseTest__Base {
         address[] memory admins = new address[](1);
         admins[0] = ADMIN;
 
-        s_repTokens = new ReputationTokens(ADMIN, admins, admins);
+        string[] memory uris;
+        ReputationTokens.TokenType[] memory tokenTypes;
+
+        s_repTokens = new ReputationTokens(
+            ADMIN,
+            admins,
+            admins,
+            tokenTypes,
+            uris
+        );
     }
 }

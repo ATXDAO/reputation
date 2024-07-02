@@ -74,7 +74,7 @@ abstract contract ReputationTokensBase is
         uint256 id,
         TokenType tokenType,
         string memory uri
-    ) external onlyRole(TOKEN_UPDATER_ROLE) {
+    ) public onlyRole(TOKEN_UPDATER_ROLE) {
         _updateToken(id, tokenType, uri);
         emit Update(id, tokenType);
     }
@@ -88,7 +88,7 @@ abstract contract ReputationTokensBase is
         uint256[] memory ids,
         TokenType[] memory tokenTypes,
         string[] memory uris
-    ) external onlyRole(TOKEN_UPDATER_ROLE) {
+    ) public onlyRole(TOKEN_UPDATER_ROLE) {
         _updateTokenBatch(ids, tokenTypes, uris);
         emit UpdateBatch(ids, tokenTypes);
     }

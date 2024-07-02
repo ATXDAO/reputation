@@ -24,7 +24,9 @@ contract ReputationTokens is Ownable, ReputationTokensBase {
     constructor(
         address newOwner,
         address[] memory admins,
-        address[] memory tokenUpdaters
+        address[] memory tokenUpdaters,
+        TokenType[] memory tokenTypes,
+        string[] memory uris
     ) {
         _transferOwnership(newOwner);
 
@@ -35,5 +37,12 @@ contract ReputationTokens is Ownable, ReputationTokensBase {
         for (uint256 i = 0; i < tokenUpdaters.length; i++) {
             _grantRole(TOKEN_UPDATER_ROLE, tokenUpdaters[i]);
         }
+
+        uint256[] memory tokenIds = new uint256[](tokenTypes.length);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokenIds[i] = i;
+        }
+
+        _updateTokenBatch(tokenIds, tokenTypes, uris);
     }
 }
